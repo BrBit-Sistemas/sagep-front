@@ -13,22 +13,12 @@ const axiosInstance = axios.create({
   },
 });
 
-/**
- * Optional: Add token (if using auth)
- *
- axiosInstance.interceptors.request.use((config) => {
+axiosInstance.interceptors.request.use((config) => {
   const token = localStorage.getItem('accessToken');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
-});
-*
-*/
-
-axiosInstance.interceptors.request.use((request) => {
-  console.log('Request:', request);
-  return request;
 });
 
 axiosInstance.interceptors.response.use(
@@ -66,7 +56,7 @@ export const endpoints = {
   kanban: '/api/kanban',
   calendar: '/api/calendar',
   auth: {
-    me: '/api/auth/me',
+    me: '/core/auth/me',
     signIn: '/core/auth/login',
     signUp: '/api/auth/sign-up',
   },
