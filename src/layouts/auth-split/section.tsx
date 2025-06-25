@@ -4,13 +4,10 @@ import type { Breakpoint } from '@mui/material/styles';
 import { varAlpha } from 'minimal-shared/utils';
 
 import Box from '@mui/material/Box';
-import Link from '@mui/material/Link';
-import Tooltip from '@mui/material/Tooltip';
-import Typography from '@mui/material/Typography';
-
-import { RouterLink } from 'src/routes/components';
 
 import { CONFIG } from 'src/global-config';
+
+import { Logo } from 'src/components/logo';
 
 // ----------------------------------------------------------------------
 
@@ -43,7 +40,7 @@ export function AuthSplitSection({
         (theme) => ({
           ...theme.mixins.bgGradient({
             images: [
-              `linear-gradient(0deg, ${varAlpha(theme.vars.palette.background.defaultChannel, 0.92)}, ${varAlpha(theme.vars.palette.background.defaultChannel, 0.92)})`,
+              `linear-gradient(0deg, ${varAlpha(theme.palette.primary.darkerChannel, 0.92)}, ${varAlpha(theme.palette.primary.darkerChannel, 0.98)})`,
               `url(${CONFIG.assetsDir}/assets/background/background-3-blur.webp)`,
             ],
           }),
@@ -55,7 +52,7 @@ export function AuthSplitSection({
           position: 'relative',
           pt: 'var(--layout-header-desktop-height)',
           [theme.breakpoints.up(layoutQuery)]: {
-            gap: 8,
+            gap: 4,
             display: 'flex',
             alignItems: 'center',
             flexDirection: 'column',
@@ -66,16 +63,14 @@ export function AuthSplitSection({
       ]}
       {...other}
     >
-      <div>
-        <Typography variant="h3" sx={{ textAlign: 'center' }}>
-          {title}
-        </Typography>
-
-        {subtitle && (
-          <Typography sx={{ color: 'text.secondary', textAlign: 'center', mt: 2 }}>
-            {subtitle}
-          </Typography>
-        )}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <Logo
+          sx={{
+            width: '80%',
+            height: 'auto',
+            margin: '0 auto',
+          }}
+        />
       </div>
 
       <Box
@@ -84,42 +79,6 @@ export function AuthSplitSection({
         src={imgUrl}
         sx={{ width: 1, aspectRatio: '4/3', objectFit: 'cover' }}
       />
-
-      {!!methods?.length && method && (
-        <Box component="ul" sx={{ gap: 2, display: 'flex' }}>
-          {methods.map((option) => {
-            const selected = method === option.label.toLowerCase();
-
-            return (
-              <Box
-                key={option.label}
-                component="li"
-                sx={{
-                  ...(!selected && {
-                    cursor: 'not-allowed',
-                    filter: 'grayscale(1)',
-                  }),
-                }}
-              >
-                <Tooltip title={option.label} placement="top">
-                  <Link
-                    component={RouterLink}
-                    href={option.path}
-                    sx={{ ...(!selected && { pointerEvents: 'none' }) }}
-                  >
-                    <Box
-                      component="img"
-                      alt={option.label}
-                      src={option.icon}
-                      sx={{ width: 32, height: 32 }}
-                    />
-                  </Link>
-                </Tooltip>
-              </Box>
-            );
-          })}
-        </Box>
-      )}
     </Box>
   );
 }

@@ -38,7 +38,7 @@ export function Logo({
   const fullLogo = (
     <img
       alt="Full logo"
-      src={`${CONFIG.assetsDir}/logo/logo-full.png`}
+      src={`${CONFIG.assetsDir}/logo/logo-full.svg`}
       width="100%"
       height="100%"
     />

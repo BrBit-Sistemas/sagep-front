@@ -66,10 +66,10 @@ export function dashboardNavColorVars(
           // caption
           '--nav-item-caption-color': palette.grey[600],
           // subheader
-          '--nav-subheader-color': palette.grey[600],
+          '--nav-subheader-color': palette.common.white,
           '--nav-subheader-hover-color': palette.common.white,
           // item
-          '--nav-item-color': palette.grey[500],
+          '--nav-item-color': palette.common.white,
           '--nav-item-root-active-color': palette.secondary.main,
           '--nav-item-root-open-color': palette.common.white,
           // bullet
