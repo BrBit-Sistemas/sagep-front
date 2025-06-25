@@ -1,0 +1,104 @@
+---
+description: Theming configuration
+globs: 
+alwaysApply: false
+---
+# Sistema de Temas
+
+## 📁 Estrutura de Temas
+
+O sistema de temas está localizado em [src/theme/](mdc:sagep-roraima-ui/sagep-front/src/theme) com a seguinte organização:
+
+### 🎨 Como Personalizar Cores
+
+Edite [src/theme/core/palette.ts](mdc:sagep-roraima-ui/sagep-front/src/theme/core/palette.ts):
+
+```typescript
+// Cores primárias
+primary: {
+  50: '#E3F2FD',
+  500: '#2196F3',    // Cor principal
+  900: '#0D47A1',
+}
+
+// Cores personalizadas
+const custom = {
+  minhaCor: '#FF5722',
+}
+```
+
+### ✏️ Personalizar Tipografia
+
+Modifique [src/theme/core/typography.ts](mdc:sagep-roraima-ui/sagep-front/src/theme/core/typography.ts):
+
+```typescript
+// Trocar fonte
+fontFamily: '"Roboto", "Arial", sans-serif',
+
+// Personalizar tamanhos
+h1: { fontSize: '2.5rem' },
+body1: { fontSize: '1rem' },
+```
+
+### 🌙 Modo Escuro/Claro
+
+O template suporta automaticamente ambos os modos. Configure em:
+- [src/theme/core/palette.ts](mdc:sagep-roraima-ui/sagep-front/src/theme/core/palette.ts) - Defina cores para cada modo
+- [src/components/settings/](mdc:sagep-roraima-ui/sagep-front/src/components/settings) - Controles de alternância
+
+### 🧩 Customizar Componentes MUI
+
+Overrides de componentes em [src/theme/core/components/](mdc:sagep-roraima-ui/sagep-front/src/theme/core/components):
+
+```typescript
+// Exemplo: personalizar botões
+MuiButton: {
+  styleOverrides: {
+    root: {
+      borderRadius: 8,
+      textTransform: 'none',
+    }
+  }
+}
+```
+
+### 📐 Breakpoints e Responsividade
+
+Configure breakpoints customizados:
+
+```typescript
+breakpoints: {
+  values: {
+    xs: 0,
+    sm: 600,
+    md: 900,
+    lg: 1200,
+    xl: 1536,
+  }
+}
+```
+
+### 🎭 CSS Variables
+
+O template usa CSS Variables para maior flexibilidade. Configure em:
+- [src/theme/core/css-vars.ts](mdc:sagep-roraima-ui/sagep-front/src/theme/core/css-vars.ts)
+
+## 🔧 Aplicando Mudanças
+
+### Criar Tema Personalizado
+
+1. Crie arquivo em `src/theme/variants/meu-tema.ts`
+2. Exporte as customizações
+3. Importe em [create-theme.ts](mdc:sagep-roraima-ui/sagep-front/src/theme/create-theme.ts)
+
+### Definir Tema Padrão
+
+Modifique [src/theme/theme-config.ts](mdc:sagep-roraima-ui/sagep-front/src/theme/theme-config.ts):
+
+```typescript
+export const themeConfig = {
+  direction: 'ltr',        // 'ltr' | 'rtl'
+  defaultMode: 'light',    // 'light' | 'dark'
+  modeStorageKey: 'theme-mode',
+}
+```

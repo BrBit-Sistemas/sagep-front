@@ -1,0 +1,77 @@
+---
+description: App Configuration
+globs: 
+alwaysApply: false
+---
+# Configuração do Template
+
+## 📋 Arquivo Principal: global-config.ts
+
+O arquivo [global-config.ts](mdc:sagep-roraima-ui/sagep-front/src/global-config.ts) é o centro de todas as configurações da aplicação.
+
+### 🔧 Como Modificar Configurações
+
+```typescript
+export const CONFIG: ConfigValue = {
+  appName: 'Seu App',           // Nome da aplicação
+  appVersion: packageJson.version,
+  serverUrl: import.meta.env.VITE_SERVER_URL ?? '',
+  assetsDir: import.meta.env.VITE_ASSETS_DIR ?? '',
+  
+  // Configuração de autenticação
+  auth: {
+    method: 'jwt',              // Altere aqui: 'jwt' | 'firebase' | 'auth0' | 'amplify' | 'supabase'
+    skip: false,                // true = pula autenticação globalmente
+    redirectPath: paths.dashboard.root,
+  },
+}
+```
+
+### 🌍 Variáveis de Ambiente
+
+Crie um arquivo `.env` na raiz do projeto:
+
+```bash
+# URLs
+VITE_SERVER_URL=http://localhost:3001
+VITE_ASSETS_DIR=/assets
+
+# Mapbox (se usar mapas)
+VITE_MAPBOX_API_KEY=sua_chave
+
+# Firebase (se usar)
+VITE_FIREBASE_API_KEY=sua_chave
+VITE_FIREBASE_AUTH_DOMAIN=projeto.firebaseapp.com
+
+# Auth0 (se usar)
+VITE_AUTH0_CLIENT_ID=sua_chave
+VITE_AUTH0_DOMAIN=seu_dominio.auth0.com
+
+# Outras conforme necessário...
+```
+
+### 📝 Tipos de Configuração
+
+Edite o tipo `ConfigValue` para adicionar novas configurações:
+
+```typescript
+export type ConfigValue = {
+  // Adicione suas configurações personalizadas aqui
+  myCustomConfig: string;
+}
+```
+
+## 🎯 Mudanças Comuns
+
+### Alterar Nome da App
+1. Edite `appName` em [global-config.ts](mdc:sagep-roraima-ui/sagep-front/src/global-config.ts)
+2. Atualize `name` em [package.json](mdc:sagep-roraima-ui/sagep-front/package.json)
+
+### Trocar Método de Auth
+1. Altere `auth.method` em [global-config.ts](mdc:sagep-roraima-ui/sagep-front/src/global-config.ts)
+2. Configure as variáveis de ambiente correspondentes
+3. Implemente a lógica específica em [src/auth/](mdc:sagep-roraima-ui/sagep-front/src/auth)
+
+### Configurar API Backend
+1. Defina `VITE_SERVER_URL` no .env
+2. Configure o axios em [src/lib/axios.ts](mdc:sagep-roraima-ui/sagep-front/src/lib/axios.ts)

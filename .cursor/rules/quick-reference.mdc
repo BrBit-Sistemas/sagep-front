@@ -1,0 +1,183 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# 📚 Guia de Referência Rápida - Minimal UI
+
+## 🎯 Navegação Rápida das Regras
+
+### 📋 [Visão Geral](mdc:sagep-roraima-ui/sagep-roraima-ui/minimal-ui-overview.mdc)
+- Estrutura geral do template
+- Tecnologias utilizadas
+- Scripts disponíveis
+
+### ⚙️ [Configuração](mdc:sagep-roraima-ui/sagep-roraima-ui/configuration.mdc)
+- Como configurar a aplicação
+- Variáveis de ambiente
+- Configurações de autenticação
+
+### 🎨 [Sistema de Temas](mdc:sagep-roraima-ui/sagep-roraima-ui/theming.mdc)
+- Personalizar cores e tipografia
+- Modo claro/escuro
+- Customização de componentes MUI
+
+### 🔐 [Autenticação](mdc:sagep-roraima-ui/sagep-roraima-ui/authentication.mdc)
+- Configurar diferentes provedores
+- Guards de proteção
+- Páginas de login/registro
+
+### 📱 [Layouts](mdc:sagep-roraima-ui/sagep-roraima-ui/layouts.mdc)
+- Dashboard, Auth e Simple layouts
+- Customizar navegação
+- Layout responsivo
+
+### 🧩 [Componentes](mdc:sagep-roraima-ui/sagep-roraima-ui/components.mdc)
+- Biblioteca de componentes disponíveis
+- Como criar componentes customizados
+- Formulários, animações, ícones
+
+### 🛣️ [Sistema de Rotas](mdc:sagep-roraima-ui/sagep-roraima-ui/routing.mdc)
+- Adicionar novas rotas
+- Proteção de rotas
+- Navegação e breadcrumbs
+
+### 🛠️ [Desenvolvimento](mdc:sagep-roraima-ui/sagep-roraima-ui/development.mdc)
+- Melhores práticas
+- Mocks e dados simulados
+- TypeScript e linting
+
+### 🚀 [Deploy e Produção](mdc:sagep-roraima-ui/sagep-roraima-ui/deployment.mdc)
+- Build de produção
+- Configurações de deploy
+- Performance e monitoramento
+
+## ⚡ Comandos Mais Usados
+
+```bash
+# Desenvolvimento
+npm run dev              # Iniciar desenvolvimento
+npm run build           # Build de produção
+npm run lint:fix        # Corrigir linting
+npm run clean           # Limpar projeto
+
+# Modificações comuns
+npm run dev & npm run tsc:watch    # Dev + TypeScript watch
+```
+
+## 🔧 Mudanças Mais Comuns
+
+### Alterar Nome da Aplicação
+1. Editar `appName` em [global-config.ts](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/global-config.ts)
+2. Atualizar `name` em [package.json](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/package.json)
+
+### Adicionar Nova Página
+1. Definir path em [paths.ts](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/routes/paths.ts)
+2. Criar componente em `src/pages/`
+3. Configurar rota no sistema de rotas
+4. Adicionar ao menu se necessário
+
+### Customizar Cores do Tema
+1. Editar [src/theme/core/palette.ts](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/theme/core/palette.ts)
+2. Definir cores para modo claro e escuro
+
+### Trocar Método de Autenticação
+1. Alterar `auth.method` em [global-config.ts](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/global-config.ts)
+2. Configurar variáveis de ambiente correspondentes
+3. Implementar lógica específica se necessário
+
+### Adicionar Item ao Menu
+1. Editar [nav-config-dashboard.tsx](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/layouts/nav-config-dashboard.tsx)
+2. Definir title, path e icon
+3. Configurar children se for submenu
+
+## 📁 Estrutura de Arquivos Importantes
+
+```
+sagep-front/src/
+├── global-config.ts          # ⚙️ Configurações principais
+├── routes/paths.ts           # 🛣️ Definição de rotas
+├── theme/                    # 🎨 Configurações de tema
+│   ├── core/palette.ts       # Cores
+│   ├── core/typography.ts    # Tipografia
+│   └── create-theme.ts       # Criação do tema
+├── auth/                     # 🔐 Sistema de autenticação
+│   ├── context/              # Contextos de auth
+│   ├── guard/                # Guards de proteção
+│   └── view/                 # Páginas de auth
+├── layouts/                  # 📱 Layouts
+│   ├── dashboard/            # Layout principal
+│   ├── auth-split/           # Layout de autenticação
+│   └── nav-config-*.tsx      # Configurações de menu
+├── components/               # 🧩 Componentes reutilizáveis
+├── pages/                    # 📄 Páginas da aplicação
+└── _mock/                    # 🧪 Dados simulados
+```
+
+## 🎯 Fluxo de Desenvolvimento Típico
+
+### 1. Configuração Inicial
+- [ ] Configurar [global-config.ts](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/global-config.ts)
+- [ ] Criar arquivo `.env` com variáveis necessárias
+- [ ] Escolher método de autenticação
+- [ ] Personalizar tema básico
+
+### 2. Desenvolvimento de Funcionalidades
+- [ ] Definir rotas em [paths.ts](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/routes/paths.ts)
+- [ ] Criar páginas em `src/pages/`
+- [ ] Adicionar ao menu se necessário
+- [ ] Criar componentes específicos
+- [ ] Adicionar mocks para desenvolvimento
+
+### 3. Customização Visual
+- [ ] Personalizar cores do tema
+- [ ] Ajustar tipografia se necessário
+- [ ] Customizar layouts conforme design
+- [ ] Implementar componentes específicos
+
+### 4. Deploy
+- [ ] Configurar variáveis de produção
+- [ ] Testar build local
+- [ ] Configurar plataforma de deploy
+- [ ] Implementar CI/CD se necessário
+
+## 🆘 Troubleshooting Rápido
+
+### Projeto não inicia
+```bash
+npm run clean
+npm install
+npm run dev
+```
+
+### Autenticação não funciona
+- Verificar `auth.method` em config
+- Confirmar variáveis de ambiente
+- Verificar se guards estão configurados
+
+### Tema não aplica
+- Limpar cache do navegador
+- Verificar se mudanças estão em `palette.ts`
+- Reiniciar servidor de desenvolvimento
+
+### Rota não funciona
+- Verificar se path está definido em `paths.ts`
+- Confirmar se rota está no sistema de rotas
+- Verificar guards de proteção
+
+## 💡 Dicas Importantes
+
+- **Sempre use TypeScript** - O template é otimizado para TS
+- **Reutilize componentes** - Não reinvente a roda
+- **Mantenha consistência** - Siga padrões estabelecidos
+- **Use lazy loading** - Para performance em rotas
+- **Configure ESLint** - Para qualidade de código
+- **Teste em mobile** - Layout é responsivo por padrão
+
+## 🔗 Links Úteis
+
+- [Documentação Oficial Minimal UI](mdc:sagep-roraima-ui/sagep-roraima-ui/https:/docs.minimals.cc/introduction)
+- [Material-UI Components](mdc:sagep-roraima-ui/sagep-roraima-ui/https:/mui.com/components)
+- [React Router Docs](mdc:sagep-roraima-ui/sagep-roraima-ui/https:/reactrouter.com)
+- [Vite Guide](mdc:sagep-roraima-ui/sagep-roraima-ui/https:/vitejs.dev/guide)
+- [TypeScript Handbook](mdc:sagep-roraima-ui/sagep-roraima-ui/https:/www.typescriptlang.org/docs)

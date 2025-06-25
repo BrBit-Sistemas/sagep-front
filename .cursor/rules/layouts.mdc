@@ -1,0 +1,165 @@
+---
+description: Layouts explanation
+globs: 
+alwaysApply: false
+---
+# Sistema de Layouts
+
+## 📱 Estrutura de Layouts
+
+Os layouts estão organizados em [src/layouts/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/layouts) com tipos específicos para diferentes necessidades.
+
+### 🏗️ Tipos de Layout Disponíveis
+
+#### Dashboard Layout
+- **Localização**: [src/layouts/dashboard/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/layouts/dashboard)
+- **Uso**: Páginas principais da aplicação
+- **Recursos**: Sidebar, header, navegação, breadcrumbs
+
+#### Auth Layout  
+- **Localização**: [src/layouts/auth-split/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/layouts/auth-split)
+- **Uso**: Páginas de login, registro, recuperação
+- **Recursos**: Layout dividido com ilustração
+
+#### Simple Layout
+- **Localização**: [src/layouts/simple/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/layouts/simple)
+- **Uso**: Páginas básicas sem navegação complexa
+- **Recursos**: Header simples, conteúdo centralizado
+
+### 🔧 Layout Section (Base)
+
+O componente base é o [LayoutSection](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/layouts/core/layout-section.tsx):
+
+```tsx
+<LayoutSection
+  headerSection={<Header />}
+  sidebarSection={<Sidebar />}
+  footerSection={<Footer />}
+>
+  {children}
+</LayoutSection>
+```
+
+## 🎯 Como Customizar Layouts
+
+### Modificar Dashboard Layout
+
+1. **Header**: Edite [src/layouts/components/header.tsx](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/layouts/components/header.tsx)
+2. **Sidebar**: Edite [src/layouts/components/nav-vertical.tsx](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/layouts/components/nav-vertical.tsx)
+3. **Configuração**: Use [src/layouts/dashboard/layout.tsx](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/layouts/dashboard/layout.tsx)
+
+### Customizar Navegação
+
+Configure a navegação em arquivos específicos:
+- [nav-config-dashboard.tsx](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/layouts/nav-config-dashboard.tsx) - Menu principal
+- [nav-config-account.tsx](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/layouts/nav-config-account.tsx) - Menu de conta
+- [nav-config-workspace.tsx](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/layouts/nav-config-workspace.tsx) - Menu workspace
+
+### Exemplo de Item de Menu
+
+```tsx
+{
+  title: 'Minha Página',
+  path: paths.dashboard.minhaPage,
+  icon: ICONS.dashboard,
+  children: [
+    { title: 'Subitem 1', path: paths.dashboard.subitem1 },
+    { title: 'Subitem 2', path: paths.dashboard.subitem2 },
+  ]
+}
+```
+
+## 📐 Layout Responsivo
+
+### Breakpoints Configurados
+- **xs**: < 600px (Mobile)
+- **sm**: 600px - 900px (Tablet)  
+- **md**: 900px - 1200px (Desktop pequeno)
+- **lg**: 1200px - 1536px (Desktop)
+- **xl**: > 1536px (Desktop grande)
+
+### Sidebar Responsiva
+
+A sidebar se adapta automaticamente:
+- **Desktop**: Sempre visível
+- **Mobile**: Drawer que abre/fecha
+- **Configurável**: Em [src/layouts/dashboard/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/layouts/dashboard)
+
+## 🎨 Customizações Visuais
+
+### Cores do Layout
+
+Configure em [src/theme/core/palette.ts](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/theme/core/palette.ts):
+
+```typescript
+background: {
+  default: '#FFFFFF',    // Fundo principal
+  paper: '#F9FAFB',      // Fundo de cards
+  neutral: '#F4F6F8',    // Fundo neutro
+}
+```
+
+### Altura do Header
+
+Modifique em [src/layouts/core/css-vars.ts](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/layouts/core/css-vars.ts):
+
+```typescript
+'--layout-header-height': '64px',
+'--layout-header-mobile-height': '56px',
+```
+
+### Largura da Sidebar
+
+```typescript
+'--layout-nav-vertical-width': '280px',
+'--layout-nav-mini-width': '64px',
+```
+
+## 🔧 Criar Layout Personalizado
+
+### 1. Crie o Componente
+
+```tsx
+// src/layouts/meu-layout/layout.tsx
+import { LayoutSection } from '../core';
+
+export function MeuLayout({ children }) {
+  return (
+    <LayoutSection
+      headerSection={<MeuHeader />}
+      sidebarSection={<MeuSidebar />}
+    >
+      {children}
+    </LayoutSection>
+  );
+}
+```
+
+### 2. Use em Páginas
+
+```tsx
+// Em suas páginas
+import { MeuLayout } from 'src/layouts/meu-layout';
+
+export default function MinhaPage() {
+  return (
+    <MeuLayout>
+      <div>Conteúdo da página</div>
+    </MeuLayout>
+  );
+}
+```
+
+## 🎯 Configurações Avançadas
+
+### Layout Settings
+
+Configure comportamentos em [src/components/settings/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/components/settings):
+- Direção (LTR/RTL)
+- Modo claro/escuro
+- Largura do container
+- Sidebar compacta
+
+### Persistência de Estado
+
+Os layouts salvam configurações do usuário no localStorage automaticamente.

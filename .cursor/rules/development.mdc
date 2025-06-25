@@ -1,0 +1,387 @@
+---
+description: Devlopment guide
+globs: 
+alwaysApply: false
+---
+# Desenvolvimento e Melhores Práticas
+
+## 🚀 Configuração do Ambiente
+
+### Requisitos
+- **Node.js**: ≥ 20
+- **Package Manager**: Yarn 1.22.22 (recomendado) ou npm
+- **Editor**: VS Code com extensões TypeScript
+
+### Scripts de Desenvolvimento
+
+```bash
+# Desenvolvimento
+npm run dev          # Inicia servidor de desenvolvimento
+npm run tsc:dev      # Dev + TypeScript watch mode
+
+# Build e produção
+npm run build        # Build para produção
+npm run start        # Preview do build
+
+# Qualidade de código
+npm run lint         # Verificar linting
+npm run lint:fix     # Corrigir problemas automaticamente
+npm run fm:fix       # Formatação com Prettier
+npm run fix:all      # Lint + Format
+
+# Utilitários
+npm run clean        # Limpar node_modules e builds
+npm run re:dev       # Reinstalar + dev
+npm run tsc:watch    # TypeScript watch mode
+```
+
+## 📁 Estrutura de Desenvolvimento
+
+### Organização de Arquivos
+
+```
+src/
+├── _mock/           # Dados simulados para desenvolvimento
+├── actions/         # Server actions (se usando)
+├── components/      # Componentes reutilizáveis
+├── layouts/         # Layouts de página
+├── pages/           # Páginas da aplicação
+├── sections/        # Seções específicas de páginas
+├── types/           # Definições TypeScript
+├── utils/           # Funções utilitárias
+├── theme/           # Configurações de tema
+└── global.css       # Estilos globais
+```
+
+### Convenções de Nomenclatura
+
+- **Componentes**: PascalCase (`MinhaPage.tsx`)
+- **Hooks**: camelCase iniciando com `use` (`useAuth.ts`)
+- **Utilitários**: camelCase (`formatCurrency.ts`)
+- **Tipos**: PascalCase (`UserType.ts`)
+- **Constantes**: SCREAMING_SNAKE_CASE (`API_URLS.ts`)
+
+## 🛠️ Desenvolvimento de Componentes
+
+### Template Base de Componente
+
+```tsx
+// src/components/meu-componente/meu-componente.tsx
+import type { Theme, SxProps } from '@mui/material/styles';
+import type { StackProps } from '@mui/material/Stack';
+
+import Stack from '@mui/material/Stack';
+
+// ----------------------------------------------------------------------
+
+export interface MeuComponenteProps extends StackProps {
+  title: string;
+  variant?: 'default' | 'outlined';
+  sx?: SxProps<Theme>;
+}
+
+export function MeuComponente({
+  title,
+  variant = 'default',
+  sx,
+  children,
+  ...other
+}: MeuComponenteProps) {
+  return (
+    <Stack
+      sx={{
+        p: 2,
+        border: variant === 'outlined' ? 1 : 0,
+        borderColor: 'divider',
+        borderRadius: 1,
+        ...sx,
+      }}
+      {...other}
+    >
+      <h3>{title}</h3>
+      {children}
+    </Stack>
+  );
+}
+
+// src/components/meu-componente/index.ts
+export { MeuComponente } from './meu-componente';
+export type { MeuComponenteProps } from './meu-componente';
+```
+
+### Hooks Customizados
+
+```tsx
+// src/hooks/use-meu-hook.ts
+import { useState, useEffect } from 'react';
+
+export function useMeuHook(initialValue: string) {
+  const [value, setValue] = useState(initialValue);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Lógica do hook
+  }, []);
+
+  return { value, setValue, loading };
+}
+```
+
+## 🎨 Estilização
+
+### Usando SX Prop (Recomendado)
+
+```tsx
+// Estilos inline com tipagem
+<Box
+  sx={{
+    p: 2,
+    bgcolor: 'primary.main',
+    color: 'primary.contrastText',
+    borderRadius: 1,
+    '&:hover': {
+      bgcolor: 'primary.dark',
+    },
+  }}
+>
+  Conteúdo
+</Box>
+```
+
+### Styled Components (Para casos complexos)
+
+```tsx
+import { styled } from '@mui/material/styles';
+
+const StyledBox = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(2),
+  backgroundColor: theme.palette.primary.main,
+  '&:hover': {
+    backgroundColor: theme.palette.primary.dark,
+  },
+}));
+```
+
+## 🧪 Dados de Mock
+
+### Localização dos Mocks
+
+Os dados simulados estão em [src/_mock/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/_mock):
+
+```
+_mock/
+├── _blog.ts         # Posts de blog
+├── _calendar.ts     # Eventos de calendário
+├── _files.ts        # Arquivos simulados
+├── _map/           # Dados de mapas
+└── ...
+```
+
+### Criando Novos Mocks
+
+```typescript
+// src/_mock/_meus-dados.ts
+import { faker } from '@faker-js/faker';
+
+export const MOCK_USUARIOS = Array.from({ length: 20 }, (_, index) => ({
+  id: faker.string.uuid(),
+  nome: faker.person.fullName(),
+  email: faker.internet.email(),
+  avatar: faker.image.avatar(),
+  status: faker.helpers.arrayElement(['ativo', 'inativo']),
+  criadoEm: faker.date.recent(),
+}));
+
+export const MOCK_PRODUTOS = Array.from({ length: 50 }, (_, index) => ({
+  id: index + 1,
+  nome: faker.commerce.productName(),
+  preco: Number(faker.commerce.price()),
+  categoria: faker.commerce.department(),
+  estoque: faker.number.int({ min: 0, max: 100 }),
+}));
+```
+
+### Usando Mocks
+
+```tsx
+import { MOCK_USUARIOS } from 'src/_mock/_usuarios';
+
+export function ListaUsuarios() {
+  const [usuarios] = useState(MOCK_USUARIOS);
+  
+  return (
+    <List>
+      {usuarios.map((usuario) => (
+        <ListItem key={usuario.id}>
+          {usuario.nome}
+        </ListItem>
+      ))}
+    </List>
+  );
+}
+```
+
+## 🔧 Configurações de TypeScript
+
+### Alias de Import
+
+O template já está configurado com alias:
+
+```typescript
+// Em vez de ../../../../components
+import { MinhaComp } from 'src/components/minha-comp';
+
+// Assets
+import icon from 'src/assets/icons/icon.svg';
+
+// Types
+import type { User } from 'src/types/user';
+```
+
+### Tipos Customizados
+
+```typescript
+// src/types/meu-tipo.ts
+export interface MeuTipo {
+  id: string;
+  nome: string;
+  email?: string;
+  configuracoes: {
+    tema: 'light' | 'dark';
+    notificacoes: boolean;
+  };
+}
+
+// Union types
+export type StatusType = 'ativo' | 'inativo' | 'pendente';
+
+// Generic types
+export interface ApiResponse<T> {
+  data: T;
+  message: string;
+  success: boolean;
+}
+```
+
+## 🚦 Linting e Formatação
+
+### ESLint Config
+
+O template usa configuração personalizada em [eslint.config.mjs](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-roraima-ui/sagep-front/eslint.config.mjs).
+
+### Regras Importantes
+
+- **Import order**: Imports organizados automaticamente
+- **Unused imports**: Removidos automaticamente
+- **React hooks**: Verificação de dependências
+- **TypeScript**: Tipagem estrita
+
+### VS Code Settings
+
+Crie `.vscode/settings.json`:
+
+```json
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true,
+    "source.organizeImports": true
+  },
+  "typescript.preferences.importModuleSpecifier": "relative"
+}
+```
+
+## 🐛 Debugging
+
+### Debug no VS Code
+
+Configure `.vscode/launch.json`:
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Chrome",
+      "request": "launch",
+      "type": "chrome",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}/src"
+    }
+  ]
+}
+```
+
+### Logs de Desenvolvimento
+
+```typescript
+// Use console.log apenas em desenvolvimento
+if (import.meta.env.DEV) {
+  console.log('Debug info:', data);
+}
+
+// Para logs mais avançados
+const isDev = import.meta.env.MODE === 'development';
+const logger = {
+  info: (msg: string, data?: any) => isDev && console.log(msg, data),
+  error: (msg: string, error?: any) => isDev && console.error(msg, error),
+};
+```
+
+## 🚀 Performance
+
+### Code Splitting
+
+```tsx
+// Lazy loading automático
+const MinhaPage = lazy(() => import('src/pages/minha-page'));
+
+// Com loading
+<Suspense fallback={<LoadingScreen />}>
+  <MinhaPage />
+</Suspense>
+```
+
+### Memoização
+
+```tsx
+import { memo, useMemo, useCallback } from 'react';
+
+// Componente memoizado
+export const MeuComponente = memo(({ data }) => {
+  const processedData = useMemo(
+    () => data.map(item => ({ ...item, processed: true })),
+    [data]
+  );
+
+  const handleClick = useCallback(
+    (id: string) => console.log(id),
+    []
+  );
+
+  return <div>{/* render */}</div>;
+});
+```
+
+## 🎯 Dicas Gerais
+
+### 1. Sempre use TypeScript
+- Defina tipos para props, state e retornos de função
+- Use interfaces para objetos complexos
+- Aproveite o intellisense do editor
+
+### 2. Reutilize Componentes
+- Crie componentes genéricos e flexíveis
+- Use composition em vez de herança
+- Mantenha componentes pequenos e focados
+
+### 3. Mantenha Consistência
+- Siga as convenções de nomenclatura
+- Use a estrutura de pastas estabelecida
+- Mantenha imports organizados
+
+### 4. Performance
+- Use lazy loading para rotas
+- Memoize componentes pesados
+- Otimize re-renders desnecessários

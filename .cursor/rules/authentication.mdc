@@ -1,0 +1,111 @@
+---
+description: How to configure authentication
+globs: 
+alwaysApply: false
+---
+# Sistema de Autenticação
+
+## 🔐 Configuração de Auth
+
+O template suporta múltiplos provedores de autenticação configurados em [src/auth/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/auth).
+
+### 🎯 Alterar Método de Autenticação
+
+1. Modifique em [global-config.ts](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/global-config.ts):
+
+```typescript
+auth: {
+  method: 'jwt',        // Opções: 'jwt' | 'firebase' | 'auth0' | 'amplify' | 'supabase'
+  skip: false,          // true = desabilita auth globalmente
+  redirectPath: paths.dashboard.root,
+}
+```
+
+### 🛡️ Guards de Proteção
+
+- **AuthGuard**: Protege rotas que precisam de usuário logado
+- **GuestGuard**: Protege rotas que só usuários não-logados podem acessar
+
+Localização: [src/auth/guard/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/auth/guard)
+
+### 🔄 Context de Autenticação
+
+O estado de auth é gerenciado pelo contexto em:
+- [src/auth/context/auth-context.tsx](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/auth/context/auth-context.tsx)
+
+### 🎣 Hooks Disponíveis
+
+```typescript
+// Hook principal para usar auth
+import { useAuthContext } from 'src/auth/hooks';
+
+const { user, loading, authenticated, login, logout } = useAuthContext();
+```
+
+## 🔧 Configurações por Provedor
+
+### JWT (Padrão)
+1. Configure backend URL em `.env`
+2. Implemente endpoints de login/register
+3. Customize em [src/auth/context/jwt/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/auth/context/jwt)
+
+### Firebase
+1. Configure credenciais no [global-config.ts](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/global-config.ts)
+2. Ative métodos de auth no Firebase Console
+3. Use contexto em [src/auth/context/firebase/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/auth/context/firebase)
+
+### Auth0
+1. Configure `clientId` e `domain` 
+2. Defina callback URLs no Auth0 Dashboard
+3. Contexto disponível (implemente se necessário)
+
+### AWS Amplify
+1. Configure Cognito User Pool
+2. Defina credenciais em [global-config.ts](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/global-config.ts)
+3. Instale dependências do Amplify
+
+### Supabase
+1. Crie projeto no Supabase
+2. Configure URL e chave anônima
+3. Ative auth providers necessários
+
+## 📱 Páginas de Auth
+
+Páginas pré-construídas em [src/auth/view/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/auth/view):
+- Login
+- Registro
+- Recuperação de senha
+- Verificação
+
+### 🎨 Customizar Formulários
+
+Componentes reutilizáveis em [src/auth/components/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/auth/components):
+- FormHead
+- FormDivider
+- FormResendCode
+
+## 🛣️ Rotas Protegidas
+
+Para proteger rotas, use os guards:
+
+```tsx
+// Rota que precisa de auth
+<AuthGuard>
+  <DashboardPage />
+</AuthGuard>
+
+// Rota só para visitantes
+<GuestGuard>
+  <LoginPage />
+</GuestGuard>
+```
+
+## 🔧 Desabilitar Autenticação
+
+Para desenvolvimento, defina em [global-config.ts](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/global-config.ts):
+
+```typescript
+auth: {
+  skip: true,  // Bypassa toda verificação de auth
+}
+```

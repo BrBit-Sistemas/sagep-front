@@ -1,0 +1,298 @@
+---
+description: Routing reference
+globs: 
+alwaysApply: false
+---
+# Sistema de Rotas
+
+## 🛣️ Estrutura de Rotas
+
+O template usa React Router 7 com estrutura organizada em [src/routes/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/routes).
+
+### 📍 Definição de Paths
+
+As rotas são centralizadas em [paths.ts](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/routes/paths.ts):
+
+```typescript
+export const paths = {
+  // Páginas públicas
+  faqs: '/faqs',
+  
+  // Autenticação
+  auth: {
+    jwt: {
+      signIn: '/auth/jwt/sign-in',
+      signUp: '/auth/jwt/sign-up',
+    },
+    firebase: {
+      signIn: '/auth/firebase/sign-in',
+      // ...
+    }
+  },
+  
+  // Dashboard
+  dashboard: {
+    root: '/dashboard',
+    analytics: '/dashboard/analytics',
+    ecommerce: '/dashboard/ecommerce',
+    // Grupos aninhados
+    group: {
+      root: '/dashboard/group',
+      five: '/dashboard/group/five',
+    }
+  }
+};
+```
+
+### 🎯 Como Adicionar Novas Rotas
+
+#### 1. Defina o Path
+
+```typescript
+// Em paths.ts
+export const paths = {
+  dashboard: {
+    // ... existentes
+    minhaNovaRota: '/dashboard/minha-nova-rota',
+    meuModulo: {
+      root: '/dashboard/meu-modulo',
+      lista: '/dashboard/meu-modulo/lista',
+      criar: '/dashboard/meu-modulo/criar',
+      editar: (id: string) => `/dashboard/meu-modulo/${id}/edit`,
+    }
+  }
+};
+```
+
+#### 2. Crie a Página
+
+```tsx
+// src/pages/dashboard/minha-nova-page.tsx
+import { DashboardContent } from 'src/layouts/dashboard';
+
+export default function MinhaNovaPage() {
+  return (
+    <DashboardContent>
+      <h1>Minha Nova Página</h1>
+    </DashboardContent>
+  );
+}
+```
+
+#### 3. Configure a Rota
+
+```tsx
+// No sistema de rotas
+{
+  path: paths.dashboard.minhaNovaRota,
+  element: <MinhaNovaPage />
+}
+```
+
+## 🔐 Proteção de Rotas
+
+### AuthGuard - Rotas Privadas
+
+```tsx
+import { AuthGuard } from 'src/auth/guard';
+
+// Rota que precisa de autenticação
+<Route 
+  path="/dashboard" 
+  element={
+    <AuthGuard>
+      <DashboardLayout>
+        <DashboardPage />
+      </DashboardLayout>
+    </AuthGuard>
+  } 
+/>
+```
+
+### GuestGuard - Rotas Públicas
+
+```tsx
+import { GuestGuard } from 'src/auth/guard';
+
+// Rota só para usuários não logados
+<Route 
+  path="/auth/login" 
+  element={
+    <GuestGuard>
+      <LoginPage />
+    </GuestGuard>
+  } 
+/>
+```
+
+### RoleBasedGuard - Por Permissão
+
+```tsx
+import { RoleBasedGuard } from 'src/auth/guard';
+
+// Rota por papel/permissão
+<Route 
+  path="/admin" 
+  element={
+    <RoleBasedGuard hasContent roles={['admin']}>
+      <AdminPage />
+    </RoleBasedGuard>
+  } 
+/>
+```
+
+## 🧭 Navegação
+
+### Hook de Navegação
+
+```tsx
+import { useRouter } from 'src/routes/hooks';
+
+const router = useRouter();
+
+// Navegar programaticamente
+router.push(paths.dashboard.analytics);
+router.replace(paths.auth.signIn);
+router.back();
+
+// Com parâmetros
+router.push(`${paths.dashboard.user}/${userId}`);
+```
+
+### Componente Link
+
+```tsx
+import { RouterLink } from 'src/routes/components';
+
+<RouterLink href={paths.dashboard.analytics}>
+  Ir para Analytics
+</RouterLink>
+```
+
+## 📊 Breadcrumbs
+
+### Configuração Automática
+
+```tsx
+import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
+
+<CustomBreadcrumbs
+  heading="Página Atual"
+  links={[
+    { name: 'Dashboard', href: paths.dashboard.root },
+    { name: 'Módulo', href: paths.dashboard.modulo },
+    { name: 'Página Atual' }
+  ]}
+/>
+```
+
+### Breadcrumbs Dinâmicos
+
+```tsx
+// Baseado na rota atual
+const breadcrumbs = useBreadcrumbs();
+
+<CustomBreadcrumbs
+  heading={pageTitle}
+  links={breadcrumbs}
+/>
+```
+
+## 🔄 Lazy Loading
+
+### Componentes Assíncronos
+
+```tsx
+import { lazy, Suspense } from 'react';
+import { LoadingScreen } from 'src/components/loading-screen';
+
+const MinhaPage = lazy(() => import('src/pages/minha-page'));
+
+// Na rota
+<Route 
+  path="/minha-page" 
+  element={
+    <Suspense fallback={<LoadingScreen />}>
+      <MinhaPage />
+    </Suspense>
+  } 
+/>
+```
+
+### Code Splitting por Módulo
+
+```tsx
+// Carregamento por módulo
+const DashboardPages = lazy(() => import('src/pages/dashboard'));
+const AuthPages = lazy(() => import('src/pages/auth'));
+```
+
+## 🎯 Roteamento Avançado
+
+### Parâmetros de Rota
+
+```tsx
+// Definição
+{ path: '/user/:id', element: <UserPage /> }
+
+// Uso
+import { useParams } from 'react-router-dom';
+
+const { id } = useParams();
+```
+
+### Query Parameters
+
+```tsx
+import { useSearchParams } from 'react-router-dom';
+
+const [searchParams, setSearchParams] = useSearchParams();
+
+// Ler parâmetro
+const tab = searchParams.get('tab');
+
+// Definir parâmetro
+setSearchParams({ tab: 'profile' });
+```
+
+### Redirects
+
+```tsx
+// Redirect padrão
+<Route path="/" element={<Navigate to={paths.dashboard.root} replace />} />
+
+// Redirect condicional
+function ConditionalRedirect() {
+  const { authenticated } = useAuthContext();
+  
+  if (!authenticated) {
+    return <Navigate to={paths.auth.signIn} replace />;
+  }
+  
+  return <DashboardPage />;
+}
+```
+
+## 🛠️ Configurações Avançadas
+
+### Base URL
+
+```tsx
+// Para apps em subpastas
+<Router basename="/minha-app">
+  <Routes>
+    {/* rotas */}
+  </Routes>
+</Router>
+```
+
+### Scroll Restoration
+
+```tsx
+// Comportamento de scroll automático
+window.scrollTo(0, 0);
+```
+
+### Progress Bar na Navegação
+
+O template inclui progress bar automático durante navegação - configurado em [src/components/progress-bar/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/components/progress-bar).

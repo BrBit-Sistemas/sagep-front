@@ -1,0 +1,267 @@
+---
+description: Components documentation
+globs: 
+alwaysApply: false
+---
+# Sistema de Componentes
+
+## 🧩 Biblioteca de Componentes
+
+O template oferece uma biblioteca extensa em [src/components/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/components) com componentes reutilizáveis e otimizados.
+
+### 🎭 Animações
+
+**Localização**: [src/components/animate/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/components/animate)
+
+```tsx
+// Animações de entrada
+import { MotionViewport, varFade } from 'src/components/animate';
+
+<MotionViewport>
+  <m.div variants={varFade().inUp}>
+    Conteúdo animado
+  </m.div>
+</MotionViewport>
+
+// Contador animado
+import { AnimateCountUp } from 'src/components/animate';
+<AnimateCountUp from={0} to={100} />
+```
+
+### 📝 Formulários (Hook Form)
+
+**Localização**: [src/components/hook-form/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/components/hook-form)
+
+```tsx
+import { useForm } from 'react-hook-form';
+import { FormProvider, Field } from 'src/components/hook-form';
+
+const methods = useForm();
+
+<FormProvider methods={methods} onSubmit={handleSubmit}>
+  <Field.Text name="nome" label="Nome" />
+  <Field.Select name="tipo" label="Tipo" options={opcoes} />
+  <Field.CheckBox name="ativo" label="Ativo" />
+  <Field.Upload name="arquivo" />
+</FormProvider>
+```
+
+### 🎨 Ícones
+
+**Localização**: [src/components/iconify/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/components/iconify)
+
+```tsx
+import { Iconify } from 'src/components/iconify';
+
+// Ícones do Iconify
+<Iconify icon="eva:home-fill" />
+<Iconify icon="material-symbols:settings" width={24} />
+
+// Ícones customizados em src/assets/icons/
+import { EmailInboxIcon } from 'src/assets/icons';
+<EmailInboxIcon />
+```
+
+### 🏷️ Labels
+
+**Localização**: [src/components/label/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/components/label)
+
+```tsx
+import { Label } from 'src/components/label';
+
+<Label variant="filled" color="success">Ativo</Label>
+<Label variant="outlined" color="error">Inativo</Label>
+<Label variant="soft" color="warning">Pendente</Label>
+```
+
+### 🔍 Busca
+
+**Localização**: [src/components/search-not-found/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/components/search-not-found)
+
+```tsx
+import { SearchNotFound } from 'src/components/search-not-found';
+
+<SearchNotFound query="termo" />
+```
+
+### 📊 Progress Bar
+
+**Localização**: [src/components/progress-bar/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/components/progress-bar)
+
+```tsx
+import { ProgressBar } from 'src/components/progress-bar';
+
+// Barra de progresso linear
+<ProgressBar />
+
+// Uso automático em navegação
+// Configure em src/app.tsx
+```
+
+### 🖼️ File Thumbnail
+
+**Localização**: [src/components/file-thumbnail/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/components/file-thumbnail)
+
+```tsx
+import { FileThumbnail } from 'src/components/file-thumbnail';
+
+<FileThumbnail file="documento.pdf" />
+<FileThumbnail file="imagem.jpg" />
+```
+
+### 🏁 Bandeiras (Flag Icons)
+
+**Localização**: [src/components/flag-icon/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/components/flag-icon)
+
+```tsx
+import { FlagIcon } from 'src/components/flag-icon';
+
+<FlagIcon code="BR" />  // Brasil
+<FlagIcon code="US" />  // Estados Unidos
+```
+
+### 📜 Scrollbar
+
+**Localização**: [src/components/scrollbar/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/components/scrollbar)
+
+```tsx
+import { Scrollbar } from 'src/components/scrollbar';
+
+<Scrollbar>
+  <div style={{ height: 300 }}>
+    Conteúdo com scroll personalizado
+  </div>
+</Scrollbar>
+```
+
+### 🎨 SVG Color
+
+**Localização**: [src/components/svg-color/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/components/svg-color)
+
+```tsx
+import { SvgColor } from 'src/components/svg-color';
+
+<SvgColor src="/assets/icons/icon.svg" />
+```
+
+## 🔧 Navegação (Nav Section)
+
+**Localização**: [src/components/nav-section/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/components/nav-section)
+
+```tsx
+import { NavSection } from 'src/components/nav-section';
+
+const navData = [
+  {
+    title: 'Dashboard',
+    path: '/dashboard',
+    icon: <Iconify icon="eva:home-fill" />,
+    children: [
+      { title: 'Analytics', path: '/dashboard/analytics' },
+      { title: 'Ecommerce', path: '/dashboard/ecommerce' },
+    ]
+  }
+];
+
+<NavSection data={navData} />
+```
+
+## ⚙️ Settings (Configurações)
+
+**Localização**: [src/components/settings/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/components/settings)
+
+```tsx
+import { SettingsDrawer } from 'src/components/settings';
+
+// Drawer de configurações automático
+<SettingsDrawer />
+```
+
+### Configurações Disponíveis
+- **Theme Mode**: Claro/Escuro
+- **Direction**: LTR/RTL  
+- **Layout**: Diferentes tipos
+- **Contrast**: Alto contraste
+- **Colors**: Cores primárias
+
+## 🎯 Popovers Customizados
+
+**Localização**: [src/components/custom-popover/](mdc:sagep-roraima-ui/sagep-roraima-ui/sagep-front/src/components/custom-popover)
+
+```tsx
+import { usePopover, CustomPopover } from 'src/components/custom-popover';
+
+const popover = usePopover();
+
+<>
+  <Button onClick={popover.onOpen}>
+    Abrir Menu
+  </Button>
+  
+  <CustomPopover
+    open={popover.open}
+    anchorEl={popover.anchorEl}
+    onClose={popover.onClose}
+  >
+    <MenuItem>Item 1</MenuItem>
+    <MenuItem>Item 2</MenuItem>
+  </CustomPopover>
+</>
+```
+
+## 💡 Como Criar Componentes Personalizados
+
+### 1. Estrutura Recomendada
+
+```
+src/components/meu-componente/
+├── index.ts           // Exports
+├── meu-componente.tsx // Componente principal
+├── types.ts           // Tipos TypeScript
+└── styles.tsx         // Estilos (se necessário)
+```
+
+### 2. Exemplo de Componente
+
+```tsx
+// meu-componente.tsx
+import type { BoxProps } from '@mui/material/Box';
+import Box from '@mui/material/Box';
+
+interface MeuComponenteProps extends BoxProps {
+  title: string;
+  variant?: 'default' | 'highlighted';
+}
+
+export function MeuComponente({ 
+  title, 
+  variant = 'default',
+  sx,
+  ...other 
+}: MeuComponenteProps) {
+  return (
+    <Box
+      sx={{
+        p: 2,
+        bgcolor: variant === 'highlighted' ? 'primary.main' : 'grey.100',
+        ...sx,
+      }}
+      {...other}
+    >
+      {title}
+    </Box>
+  );
+}
+
+// index.ts
+export { MeuComponente } from './meu-componente';
+export type { MeuComponenteProps } from './meu-componente';
+```
+
+### 3. Usando o Componente
+
+```tsx
+import { MeuComponente } from 'src/components/meu-componente';
+
+<MeuComponente title="Título" variant="highlighted" />
+```

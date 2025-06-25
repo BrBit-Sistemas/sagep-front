@@ -1,0 +1,70 @@
+---
+description: Template info and overview
+globs: 
+alwaysApply: false
+---
+# Template Minimal UI - Visão Geral
+
+Este projeto utiliza o **Minimal UI Template v7.3.0** - um kit React profissional construído com Material-UI.
+
+## 📁 Estrutura Principal
+
+- **sagep-front/** - Projeto principal do frontend (Vite + TypeScript)
+- **Tecnologias**: React 19, MUI 7, Vite 6, TypeScript 5, React Router 7
+
+## 🔧 Configuração Inicial
+
+O arquivo principal de configuração é [global-config.ts](mdc:sagep-roraima-ui/sagep-front/src/global-config.ts), onde você define:
+
+- Nome da aplicação
+- Método de autenticação (jwt, firebase, auth0, etc.)
+- URLs do servidor
+- Chaves de API (Mapbox, Firebase, etc.)
+- Configurações de provedores de auth
+
+## 🎨 Sistema de Temas
+
+O tema é configurado através dos arquivos em [src/theme/](mdc:sagep-roraima-ui/sagep-front/src/theme):
+- **Cores**: Palette personalizada com modo claro/escuro
+- **Tipografia**: Baseada em fontes variáveis
+- **Componentes**: Overrides de componentes MUI
+- **Shadows**: Sistema de sombras customizado
+
+## 🔐 Autenticação
+
+Suporte a múltiplos provedores configurados em [src/auth/](mdc:sagep-roraima-ui/sagep-front/src/auth):
+- JWT (padrão)
+- Firebase
+- Auth0
+- AWS Amplify
+- Supabase
+
+## 📱 Layout Responsivo
+
+Sistema de layouts flexível em [src/layouts/](mdc:sagep-roraima-ui/sagep-front/src/layouts):
+- Dashboard layout
+- Auth layout
+- Simple layout
+- Layout sections modulares
+
+## 🛣️ Sistema de Rotas
+
+Rotas definidas em [paths.ts](mdc:sagep-roraima-ui/sagep-front/src/routes/paths.ts) com estrutura hierárquica organizada.
+
+## 🧩 Componentes
+
+Biblioteca extensa de componentes reutilizáveis em [src/components/](mdc:sagep-roraima-ui/sagep-front/src/components) incluindo:
+- Animate (animações)
+- Hook Form (formulários)
+- Settings (configurações)
+- Navigation
+- Loading screens
+- E muito mais
+
+## 🎯 Scripts Disponíveis
+
+- `npm run dev` - Desenvolvimento
+- `npm run build` - Build de produção
+- `npm run lint` - Verificação de código
+- `npm run lint:fix` - Correção automática
+- `npm run fm:fix` - Formatação com Prettier
