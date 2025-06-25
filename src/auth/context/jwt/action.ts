@@ -22,9 +22,10 @@ export type SignUpParams = {
  *************************************** */
 export const signInWithPassword = async ({ email, password }: SignInParams): Promise<void> => {
   try {
-    const params = { email, password };
-
-    const res = await axios.post(endpoints.auth.signIn, params);
+    const res = await axios.post(endpoints.auth.signIn, {
+      email,
+      senha: password,
+    });
 
     const { accessToken } = res.data;
 

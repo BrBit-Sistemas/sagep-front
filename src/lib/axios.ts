@@ -26,6 +26,11 @@ const axiosInstance = axios.create({
 *
 */
 
+axiosInstance.interceptors.request.use((request) => {
+  console.log('Request:', request);
+  return request;
+});
+
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -62,7 +67,7 @@ export const endpoints = {
   calendar: '/api/calendar',
   auth: {
     me: '/api/auth/me',
-    signIn: '/api/auth/sign-in',
+    signIn: '/core/auth/login',
     signUp: '/api/auth/sign-up',
   },
   mail: {

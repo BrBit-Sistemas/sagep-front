@@ -1,6 +1,8 @@
 import 'src/global.css';
 
 import { useEffect } from 'react';
+import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { usePathname } from 'src/routes/hooks';
 
@@ -12,6 +14,8 @@ import { SettingsDrawer, defaultSettings, SettingsProvider } from 'src/component
 
 import { AuthProvider } from 'src/auth/context/jwt';
 
+import { Snackbar } from './components/snackbar';
+
 // ----------------------------------------------------------------------
 
 type AppProps = {
@@ -20,22 +24,28 @@ type AppProps = {
 
 export default function App({ children }: AppProps) {
   useScrollToTop();
+  const queryClient = new QueryClient();
 
   return (
-    <AuthProvider>
-      <SettingsProvider defaultSettings={defaultSettings}>
-        <ThemeProvider
-          modeStorageKey={themeConfig.modeStorageKey}
-          defaultMode={themeConfig.defaultMode}
-        >
-          <MotionLazy>
-            <ProgressBar />
-            <SettingsDrawer defaultSettings={defaultSettings} />
-            {children}
-          </MotionLazy>
-        </ThemeProvider>
-      </SettingsProvider>
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <NuqsAdapter>
+          <SettingsProvider defaultSettings={defaultSettings}>
+            <ThemeProvider
+              modeStorageKey={themeConfig.modeStorageKey}
+              defaultMode={themeConfig.defaultMode}
+            >
+              <MotionLazy>
+                <ProgressBar />
+                <SettingsDrawer defaultSettings={defaultSettings} />
+                <Snackbar />
+                {children}
+              </MotionLazy>
+            </ThemeProvider>
+          </SettingsProvider>
+        </NuqsAdapter>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
 
