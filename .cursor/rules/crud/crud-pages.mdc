@@ -38,7 +38,7 @@ export default function {Feature}CadastroPage() {
   };
 
   const handleSortModelChange = (newModel: GridSortModel) => {
-    setSearchParams({ sort: newModel[0].field, order: newModel[0].sort });
+    setSearchParams({ sort: newModel[0]?.field || '', order: newModel[0]?.sort || 'asc' });
   };
 
   return (
@@ -142,7 +142,7 @@ export default function DetentoCadastroPage() {
   };
 
   const handleSortModelChange = (newModel: GridSortModel) => {
-    setSearchParams({ sort: newModel[0].field, order: newModel[0].sort });
+    setSearchParams({ sort: newModel[0]?.field || '', order: newModel[0]?.sort || 'asc' });
   };
 
   return (
@@ -330,7 +330,7 @@ const handlePaginationModelChange = (newModel: GridPaginationModel) => {
 
 ```typescript
 const handleSortModelChange = (newModel: GridSortModel) => {
-  setSearchParams({ sort: newModel[0].field, order: newModel[0].sort });
+  setSearchParams({ sort: newModel[0]?.field || '', order: newModel[0]?.sort || 'asc' });
 };
 ```
 
@@ -413,7 +413,7 @@ const [searchParams, setSearchParams] = useDetentoSearchParams();
 
 // Handler para sort model do DataGrid
 const handleSortModelChange = (newModel: GridSortModel) => {
-  setSearchParams({ sort: newModel[0].field, order: newModel[0].sort });
+  setSearchParams({ sort: newModel[0]?.field || '', order: newModel[0]?.sort || 'asc' });
 };
 
 // DataGrid
@@ -426,5 +426,5 @@ const handleSortModelChange = (newModel: GridSortModel) => {
 ```
 
 - O hook de search params deve incluir os campos `sort` e `order`.
-- O handler `handleSortModelChange` atualiza os parâmetros de ordenação na URL e no estado.
+- O handler `handleSortModelChange` deve SEMPRE usar `newModel[0]?.field || ''` e `newModel[0]?.sort || 'asc'` para garantir valores default e evitar erros quando não houver ordenação ativa.
 - O DataGrid recebe as props `sort` e `order` controladas.

@@ -48,6 +48,7 @@ export const paths = {
   },
   detentos: {
     root: ROOTS.DETENTOS,
+    detalhes: (detentoId: string) => `${ROOTS.DETENTOS}/detalhes/${detentoId}`,
   },
   unidadesPrisionais: {
     root: ROOTS.UNIDADES_PRISIONAIS,

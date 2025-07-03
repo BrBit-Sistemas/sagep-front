@@ -36,7 +36,6 @@ export default function CustomDataGrid(props: CustomDataGridProps) {
       {...toolbarOptions.settings}
       localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
       disableRowSelectionOnClick
-      getRowHeight={() => 'auto'}
       pageSizeOptions={[5, 10, 20]}
       initialState={{
         pagination: {

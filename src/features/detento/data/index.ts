@@ -4,7 +4,8 @@ import type { CreateDetentoSchema, UpdateDetentoSchema } from '../schemas';
 
 import { Regime, Escolaridade } from '../types';
 
-export const detentos: Detento[] = [
+// Usando let para permitir reatribuição e evitar problemas de imutabilidade
+let detentos: Detento[] = [
   {
     detento_id: '1',
     nome: 'João da Silva',
@@ -45,11 +46,13 @@ export const detentoService: CrudService<
       created_by: '1',
       updated_by: '1',
     };
-    detentos.push(newDetento);
+    // Para evitar problemas de objeto não extensível, criamos um novo array
+    detentos = [...detentos, newDetento];
     return newDetento;
   },
   read: async (id) => {
     const detento = detentos.find((d) => d.detento_id === id);
+
     if (!detento) {
       throw new Error('Detento não encontrado');
     }
@@ -64,20 +67,28 @@ export const detentoService: CrudService<
 
     const detento = detentos[detentoIndex];
 
-    detentos[detentoIndex] = {
+    const updatedDetento: Detento = {
       ...detento,
       ...data,
       updated_at: new Date().toISOString(),
       updated_by: '1',
     };
 
-    return detento;
+    // Atualiza o array de forma imutável
+    detentos = [
+      ...detentos.slice(0, detentoIndex),
+      updatedDetento,
+      ...detentos.slice(detentoIndex + 1),
+    ];
+
+    return updatedDetento;
   },
   delete: async (id) => {
     const detentoIndex = detentos.findIndex((d) => d.detento_id === id);
     if (detentoIndex === -1) {
       throw new Error('Detento não encontrado');
     }
-    detentos.splice(detentoIndex, 1);
+    // Remove o item de forma imutável
+    detentos = [...detentos.slice(0, detentoIndex), ...detentos.slice(detentoIndex + 1)];
   },
 };

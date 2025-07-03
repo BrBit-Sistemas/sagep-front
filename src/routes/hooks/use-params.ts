@@ -3,8 +3,8 @@ import { useParams as _useParams } from 'react-router';
 
 // ----------------------------------------------------------------------
 
-export function useParams() {
-  const params = _useParams();
+export function useParams<T extends Record<string, string>>() {
+  const params = _useParams<T>();
 
-  return useMemo(() => params, [params]);
+  return useMemo(() => params as T, [params]);
 }

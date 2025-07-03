@@ -28,6 +28,8 @@ const dashboardLayout = () => (
 );
 
 const DetentoCadastroPage = lazy(() => import('src/features/detento/pages/cadastro'));
+const DetentoDetalhesPage = lazy(() => import('src/features/detento/pages/detalhes'));
+
 const UnidadePrisionalCadastroPage = lazy(
   () => import('src/features/unidades-prisionais/pages/cadastro')
 );
@@ -46,7 +48,16 @@ export const dashboardRoutes: RouteObject[] = [
       },
       {
         path: 'detentos',
-        element: <DetentoCadastroPage />,
+        children: [
+          {
+            index: true,
+            element: <DetentoCadastroPage />,
+          },
+          {
+            path: 'detalhes/:detentoId',
+            element: <DetentoDetalhesPage />,
+          },
+        ],
       },
       {
         path: 'unidades-prisionais',

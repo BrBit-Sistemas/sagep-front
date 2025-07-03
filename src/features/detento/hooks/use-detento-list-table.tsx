@@ -3,7 +3,13 @@ import type { Detento } from '../types';
 
 import { useMemo, useCallback } from 'react';
 
+import Box from '@mui/material/Box';
+import Avatar from '@mui/material/Avatar';
 import { useTheme } from '@mui/material/styles';
+import Typography from '@mui/material/Typography';
+
+import { paths } from 'src/routes/paths';
+import { useRouter } from 'src/routes/hooks';
 
 import { formatCpf } from 'src/utils/format-string';
 
@@ -14,6 +20,7 @@ import { useDetentoCadastroStore } from '../stores/detento-cadastro-store';
 
 export const useDetentoListTable = () => {
   const theme = useTheme();
+  const navigate = useRouter();
   const { openDeleteDialog, openEditDialog } = useDetentoCadastroStore();
 
   const onDelete = useCallback(
@@ -30,17 +37,29 @@ export const useDetentoListTable = () => {
     [openEditDialog]
   );
 
+  const onView = useCallback(
+    (detento: Detento) => {
+      navigate.push(paths.detentos.detalhes(detento.detento_id));
+    },
+    [navigate]
+  );
+
   const columns = useMemo(
     (): GridColDef<Detento>[] => [
-      {
-        field: 'detento_id',
-        headerName: 'ID',
-        flex: 1,
-      },
       {
         field: 'nome',
         headerName: 'Nome',
         flex: 1,
+        renderCell: (params) => (
+          <Box sx={{ gap: 2, width: 1, display: 'flex', alignItems: 'center' }}>
+            <Avatar alt={params.row.nome} sx={{ width: 32, height: 32 }}>
+              {params.row.nome.charAt(0).toUpperCase()}
+            </Avatar>
+            <Typography component="span" variant="body2" noWrap>
+              {params.row.nome}
+            </Typography>
+          </Box>
+        ),
       },
       {
         field: 'cpf',
@@ -55,6 +74,8 @@ export const useDetentoListTable = () => {
         width: 64,
         align: 'right',
         headerAlign: 'right',
+        disableReorder: true,
+        hideable: false,
         sortable: false,
         filterable: false,
         disableColumnMenu: true,
@@ -72,10 +93,16 @@ export const useDetentoListTable = () => {
             onClick={() => onDelete(params.row)}
             style={{ color: theme.vars.palette.error.main }}
           />,
+          <CustomGridActionsCellItem
+            showInMenu
+            label="Visualizar"
+            icon={<Iconify icon="solar:eye-bold" />}
+            onClick={() => onView(params.row)}
+          />,
         ],
       },
     ],
-    [onDelete, onEdit, theme.vars.palette.error.main]
+    [onDelete, onEdit, onView, theme.vars.palette.error.main]
   );
 
   return { columns };

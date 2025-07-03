@@ -1,17 +1,24 @@
-import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import {
   Grid,
   Button,
   Dialog,
+  Switch,
   MenuItem,
   Typography,
   DialogTitle,
   DialogActions,
   DialogContent,
+  FormControlLabel,
 } from '@mui/material';
+
+import { paths } from 'src/routes/paths';
+import { useRouter } from 'src/routes/hooks';
+
+import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/use-unidade-prisional-list';
 
 import { Form, Field } from 'src/components/hook-form';
 
@@ -19,12 +26,8 @@ import { Regime, Escolaridade } from '../../types';
 import { useCreateDetento } from '../../hooks/use-create-detento';
 import { useUpdateDetento } from '../../hooks/use-update-detento';
 import { createDetentoSchema, type CreateDetentoSchema } from '../../schemas';
-
-const mockUnidades = [
-  { id: '1', nome: 'Unidade 1' },
-  { id: '2', nome: 'Unidade 2' },
-  { id: '3', nome: 'Unidade 3' },
-];
+import { useDetentoDetalhesStore } from '../../stores/detento-detalhes-store';
+import { detentoDetalhesSearchQuerySerializer } from '../../hooks/use-dentento-detalhes-search-params';
 
 type DetentoFormDialogProps = {
   onSuccess: () => void;
@@ -52,10 +55,23 @@ export const DetentoFormDialog = ({
   open,
 }: DetentoFormDialogProps) => {
   const isEditing = !!detentoId;
+
+  const [fillFichaCadastral, setFillFichaCadastral] = useState(false);
+
   const { mutateAsync: createDetento, isPending: isCreating } = useCreateDetento();
   const { mutateAsync: updateDetento, isPending: isUpdating } = useUpdateDetento();
+  const { openFichaCadastralCreateDialog } = useDetentoDetalhesStore();
+
+  const router = useRouter();
 
   const isLoading = isEditing ? isUpdating : isCreating;
+
+  const { data: unidadesData, isLoading: isLoadingUnidades } = useUnidadePrisionalList({
+    page: 1,
+    limit: 100,
+  });
+
+  const unidades = unidadesData?.items || [];
 
   const methods = useForm({
     resolver: zodResolver(createDetentoSchema),
@@ -63,11 +79,26 @@ export const DetentoFormDialog = ({
   });
 
   const handleSubmit = methods.handleSubmit(async (data) => {
+    let _detentoId: string;
+
     if (isEditing) {
       await updateDetento({ detentoId, ...data });
+      _detentoId = detentoId;
     } else {
-      await createDetento(data);
+      const newDetento = await createDetento(data);
+      _detentoId = newDetento.detento_id;
     }
+
+    if (fillFichaCadastral) {
+      const path = paths.detentos.detalhes(_detentoId);
+      const url = detentoDetalhesSearchQuerySerializer(path, { tab: 'ficha_cadastral' });
+      openFichaCadastralCreateDialog();
+      router.push(url);
+    } else {
+      const path = paths.detentos.detalhes(_detentoId);
+      router.push(path);
+    }
+
     methods.reset(INITIAL_VALUES);
     onSuccess();
   });
@@ -138,16 +169,23 @@ export const DetentoFormDialog = ({
                 name="unidade_id"
                 label="Unidade"
                 slotProps={{ inputLabel: { shrink: true } }}
+                disabled={isLoadingUnidades}
               >
-                {mockUnidades.map((unidade) => (
-                  <MenuItem
-                    key={unidade.id}
-                    value={unidade.id}
-                    sx={{ textTransform: 'capitalize' }}
-                  >
-                    {unidade.nome}
+                {isLoadingUnidades ? (
+                  <MenuItem value="" disabled>
+                    Carregando...
                   </MenuItem>
-                ))}
+                ) : (
+                  unidades.map((unidade) => (
+                    <MenuItem
+                      key={unidade.unidade_id}
+                      value={unidade.unidade_id}
+                      sx={{ textTransform: 'capitalize' }}
+                    >
+                      {unidade.nome}
+                    </MenuItem>
+                  ))
+                )}
               </Field.Select>
             </Grid>
           </Grid>
@@ -155,6 +193,13 @@ export const DetentoFormDialog = ({
       </DialogContent>
 
       <DialogActions>
+        <FormControlLabel
+          control={<Switch checked={fillFichaCadastral} />}
+          label="Preencher ficha cadastral?"
+          onChange={(_, checked) => setFillFichaCadastral(checked)}
+          checked={fillFichaCadastral}
+          sx={{ mr: 'auto' }}
+        />
         <Button onClick={onClose} variant="outlined" color="primary">
           Cancelar
         </Button>

@@ -33,7 +33,7 @@ export default function DetentoCadastroPage() {
   };
 
   const handleSortModelChange = (newModel: GridSortModel) => {
-    setSearchParams({ sort: newModel[0].field, order: newModel[0].sort });
+    setSearchParams({ sort: newModel[0]?.field || '', order: newModel[0]?.sort || 'asc' });
   };
 
   return (
