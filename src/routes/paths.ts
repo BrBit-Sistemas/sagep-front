@@ -3,6 +3,8 @@
 const ROOTS = {
   AUTH: '/auth',
   DETENTOS: '/detentos',
+  UNIDADES_PRISIONAIS: '/unidades-prisionais',
+  EMPRESAS: '/empresas',
   DASHBOARD: '/dashboard',
 };
 
@@ -46,5 +48,14 @@ export const paths = {
   },
   detentos: {
     root: ROOTS.DETENTOS,
+  },
+  unidadesPrisionais: {
+    root: ROOTS.UNIDADES_PRISIONAIS,
+  },
+  empresas: {
+    root: ROOTS.EMPRESAS,
+  },
+  profissoes: {
+    root: '/profissoes',
   },
 };

@@ -1,0 +1,430 @@
+# 📄 Páginas CRUD - SAGEP
+
+## 📝 Estrutura Obrigatória (pages/cadastro.tsx)
+
+```typescript
+import type { GridPaginationModel, GridSortModel } from '@mui/x-data-grid/models';
+
+import { Card, Button } from '@mui/material';
+
+import { paths } from 'src/routes/paths';
+
+import { DashboardContent } from 'src/layouts/dashboard';
+
+import { Iconify } from 'src/components/iconify';
+import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
+import CustomDataGrid from 'src/components/custom-data-grid/custom-data-grid';
+
+import { {feature}ToFormValues } from '../helper';
+import { use{Feature}List } from '../hooks/use-{feature}-list';
+import { use{Feature}ListTable } from '../hooks/use-{feature}-list-table';
+import { use{Feature}CadastroStore } from '../stores/{feature}-cadastro-store';
+import { use{Feature}SearchParams } from '../hooks/use-{feature}-search-params';
+import { {Feature}FormDialog } from '../components/cadastro/{feature}-form-dialog';
+import { {Feature}DeleteDialog } from '../components/cadastro/{feature}-delete-dialog';
+
+export default function {Feature}CadastroPage() {
+  const [searchParams, setSearchParams] = use{Feature}SearchParams();
+
+  const { selected{Feature}, isFormDialogOpen, openCreateDialog, closeCreateDialog } =
+    use{Feature}CadastroStore();
+
+  const { data, isLoading } = use{Feature}List(searchParams);
+
+  const { columns } = use{Feature}ListTable();
+
+  const handlePaginationModelChange = (newModel: GridPaginationModel) => {
+    setSearchParams({ page: newModel.page, limit: newModel.pageSize });
+  };
+
+  const handleSortModelChange = (newModel: GridSortModel) => {
+    setSearchParams({ sort: newModel[0].field, order: newModel[0].sort });
+  };
+
+  return (
+    <DashboardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+      <CustomBreadcrumbs
+        heading="Cadastro de {features}"
+        links={[{ name: '{Features}' }, { name: 'Cadastro de {features}', href: paths.{features}.root }]}
+        action={
+          <Button
+            color="primary"
+            variant="contained"
+            startIcon={<Iconify icon="mingcute:add-line" />}
+            onClick={openCreateDialog}
+          >
+            Adicionar
+          </Button>
+        }
+        sx={{ mb: { xs: 3, md: 5 } }}
+      />
+
+      <Card
+        sx={{
+          minHeight: 640,
+          flexGrow: { md: 1 },
+          display: { md: 'flex' },
+          height: { xs: 800, md: '1px' },
+          flexDirection: { md: 'column' },
+        }}
+      >
+        <CustomDataGrid
+          hasNextPage={data?.hasNextPage || false}
+          total={data?.total || 0}
+          rows={data?.items || []}
+          columns={columns}
+          loading={isLoading}
+          page={searchParams.page}
+          limit={searchParams.limit}
+          onPaginationModelChange={handlePaginationModelChange}
+          getRowId={(row) => row.{feature}_id}
+          sort={searchParams.sort}
+          order={searchParams.order}
+          onSortModelChange={handleSortModelChange}
+        />
+
+        <{Feature}FormDialog
+          open={isFormDialogOpen}
+          onSuccess={closeCreateDialog}
+          onClose={closeCreateDialog}
+          {...(selected{Feature} && {
+            defaultValues: {feature}ToFormValues(selected{Feature}),
+            {feature}Id: selected{Feature}.{feature}_id,
+          })}
+        />
+
+        <{Feature}DeleteDialog />
+      </Card>
+    </DashboardContent>
+  );
+}
+```
+
+## 🎯 Exemplo Real (Detento)
+
+```typescript
+import type { GridPaginationModel, GridSortModel } from "@mui/x-data-grid/models";
+
+import { Card, Button } from "@mui/material";
+
+import { paths } from "src/routes/paths";
+
+import { DashboardContent } from "src/layouts/dashboard";
+
+import { Iconify } from "src/components/iconify";
+import { CustomBreadcrumbs } from "src/components/custom-breadcrumbs";
+import CustomDataGrid from "src/components/custom-data-grid/custom-data-grid";
+
+import { detentoToFormValues } from "../helper";
+import { useDetentoList } from "../hooks/use-detento-list";
+import { useDetentoListTable } from "../hooks/use-detento-list-table";
+import { useDetentoCadastroStore } from "../stores/detento-cadastro-store";
+import { useDetentoSearchParams } from "../hooks/use-detento-search-params";
+import { DetentoFormDialog } from "../components/cadastro/detento-form-dialog";
+import { DetentoDeleteDialog } from "../components/cadastro/detento-delete-dialog";
+
+export default function DetentoCadastroPage() {
+  const [searchParams, setSearchParams] = useDetentoSearchParams();
+
+  const {
+    selectedDetento,
+    isFormDialogOpen,
+    openCreateDialog,
+    closeCreateDialog,
+  } = useDetentoCadastroStore();
+
+  const { data, isLoading } = useDetentoList(searchParams);
+
+  const { columns } = useDetentoListTable();
+
+  const handlePaginationModelChange = (newModel: GridPaginationModel) => {
+    setSearchParams({ page: newModel.page, limit: newModel.pageSize });
+  };
+
+  const handleSortModelChange = (newModel: GridSortModel) => {
+    setSearchParams({ sort: newModel[0].field, order: newModel[0].sort });
+  };
+
+  return (
+    <DashboardContent
+      sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}
+    >
+      <CustomBreadcrumbs
+        heading="Cadastro de detentos"
+        links={[
+          { name: "Detentos" },
+          { name: "Cadastro de detentos", href: paths.detentos.root },
+        ]}
+        action={
+          <Button
+            color="primary"
+            variant="contained"
+            startIcon={<Iconify icon="mingcute:add-line" />}
+            onClick={openCreateDialog}
+          >
+            Adicionar
+          </Button>
+        }
+        sx={{ mb: { xs: 3, md: 5 } }}
+      />
+      <Card
+        sx={{
+          minHeight: 640,
+          flexGrow: { md: 1 },
+          display: { md: "flex" },
+          height: { xs: 800, md: "1px" },
+          flexDirection: { md: "column" },
+        }}
+      >
+        <CustomDataGrid
+          hasNextPage={data?.hasNextPage || false}
+          total={data?.total || 0}
+          rows={data?.items || []}
+          columns={columns}
+          loading={isLoading}
+          page={searchParams.page}
+          limit={searchParams.limit}
+          onPaginationModelChange={handlePaginationModelChange}
+          getRowId={(row) => row.detento_id}
+          sort={searchParams.sort}
+          order={searchParams.order}
+          onSortModelChange={handleSortModelChange}
+        />
+
+        <DetentoFormDialog
+          open={isFormDialogOpen}
+          onSuccess={closeCreateDialog}
+          onClose={closeCreateDialog}
+          {...(selectedDetento && {
+            defaultValues: detentoToFormValues(selectedDetento),
+            detentoId: selectedDetento.detento_id,
+          })}
+        />
+
+        <DetentoDeleteDialog />
+      </Card>
+    </DashboardContent>
+  );
+}
+```
+
+## 🧩 Componentes Obrigatórios
+
+### 1. Layout Principal
+
+```typescript
+<DashboardContent
+  sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}
+>
+  {/* Conteúdo da página */}
+</DashboardContent>
+```
+
+### 2. Breadcrumbs com Botão de Ação
+
+```typescript
+<CustomBreadcrumbs
+  heading="Cadastro de {features}"
+  links={[{ name: '{Features}' }, { name: 'Cadastro de {features}', href: paths.{features}.root }]}
+  action={
+    <Button
+      color="primary"
+      variant="contained"
+      startIcon={<Iconify icon="mingcute:add-line" />}
+      onClick={openCreateDialog}
+    >
+      Adicionar
+    </Button>
+  }
+  sx={{ mb: { xs: 3, md: 5 } }}
+/>
+```
+
+### 3. Card Container para DataGrid
+
+```typescript
+<Card
+  sx={{
+    minHeight: 640,
+    flexGrow: { md: 1 },
+    display: { md: "flex" },
+    height: { xs: 800, md: "1px" },
+    flexDirection: { md: "column" },
+  }}
+>
+  {/* CustomDataGrid */}
+</Card>
+```
+
+### 4. CustomDataGrid Configurado
+
+```typescript
+<CustomDataGrid
+  hasNextPage={data?.hasNextPage || false}
+  total={data?.total || 0}
+  rows={data?.items || []}
+  columns={columns}
+  loading={isLoading}
+  page={searchParams.page}
+  limit={searchParams.limit}
+  onPaginationModelChange={handlePaginationModelChange}
+  getRowId={(row) => row.{feature}_id}
+  sort={searchParams.sort}
+  order={searchParams.order}
+  onSortModelChange={handleSortModelChange}
+/>
+```
+
+### 5. Dialogs de Formulário e Exclusão
+
+```typescript
+<{Feature}FormDialog
+  open={isFormDialogOpen}
+  onSuccess={closeCreateDialog}
+  onClose={closeCreateDialog}
+  {...(selected{Feature} && {
+    defaultValues: {feature}ToFormValues(selected{Feature}),
+    {feature}Id: selected{Feature}.{feature}_id,
+  })}
+/>
+
+<{Feature}DeleteDialog />
+```
+
+## 🔧 Hooks Utilizados
+
+### 1. Search Params
+
+```typescript
+const [searchParams, setSearchParams] = use{Feature}SearchParams();
+```
+
+### 2. Store de Estado
+
+```typescript
+const { selected{Feature}, isFormDialogOpen, openCreateDialog, closeCreateDialog } =
+  use{Feature}CadastroStore();
+```
+
+### 3. Dados da API
+
+```typescript
+const { data, isLoading } = use{Feature}List(searchParams);
+```
+
+### 4. Configuração da Tabela
+
+```typescript
+const { columns } = use{Feature}ListTable();
+```
+
+### 5. Handler de Paginação
+
+```typescript
+const handlePaginationModelChange = (newModel: GridPaginationModel) => {
+  setSearchParams({ page: newModel.page, limit: newModel.pageSize });
+};
+```
+
+### 6. Handler de Ordenação
+
+```typescript
+const handleSortModelChange = (newModel: GridSortModel) => {
+  setSearchParams({ sort: newModel[0].field, order: newModel[0].sort });
+};
+```
+
+## ⚠️ Regras Obrigatórias
+
+### Estrutura
+
+1. **SEMPRE** use `DashboardContent` como layout principal
+2. **SEMPRE** configure flexbox para layout responsivo
+3. **SEMPRE** inclua `CustomBreadcrumbs` com ação de adicionar
+4. **SEMPRE** use `Card` container para a tabela
+5. **SEMPRE** inclua os dois dialogs (form e delete)
+
+### Paginação
+
+1. **SEMPRE** use `search params` para paginação
+2. **SEMPRE** implemente `handlePaginationModelChange`
+3. **SEMPRE** passe `page` e `limit` para o DataGrid
+4. **SEMPRE** use `data?.hasNextPage || false` para `hasNextPage`
+
+### DataGrid
+
+1. **SEMPRE** use `CustomDataGrid` do sistema
+2. **SEMPRE** configure `getRowId` com o ID da entidade
+3. **SEMPRE** passe `loading={isLoading}` do hook de API
+4. **SEMPRE** use `data?.items || []` para rows
+5. **SEMPRE** use `sort` e `order` para ordenação
+6. **SEMPRE** use `onSortModelChange` para atualizar ordenação
+
+### Dialogs
+
+1. **SEMPRE** passe `open`, `onSuccess` e `onClose` para FormDialog
+2. **SEMPRE** use spread operator condicional para props de edição
+3. **SEMPRE** use função helper para converter dados para formulário
+4. **SEMPRE** inclua DeleteDialog sem props (usa store interno)
+
+### Imports
+
+1. **SEMPRE** importe `GridPaginationModel` e `GridSortModel` do MUI X Data Grid
+2. **SEMPRE** importe componentes MUI necessários
+3. **SEMPRE** importe `paths` para breadcrumbs
+4. **SEMPRE** importe todos os hooks e componentes da feature
+
+### Nomenclatura
+
+- **Função**: `{Feature}CadastroPage` (ex: `DetentoCadastroPage`)
+- **Arquivo**: `cadastro.tsx`
+- **Export**: sempre `export default`
+
+## 🚀 Checklist de Implementação
+
+- [ ] Importar todos os tipos e hooks necessários
+- [ ] Configurar search params hook
+- [ ] Configurar store hook
+- [ ] Configurar hook de listagem da API
+- [ ] Configurar hook da tabela
+- [ ] Implementar handler de paginação
+- [ ] Configurar DashboardContent com flexbox
+- [ ] Adicionar CustomBreadcrumbs com botão de ação
+- [ ] Configurar Card container com estilos corretos
+- [ ] Configurar CustomDataGrid com todas as props
+- [ ] Adicionar FormDialog com props condicionais
+- [ ] Adicionar DeleteDialog
+- [ ] Configurar paths no breadcrumb
+- [ ] Testar paginação e ordenação
+- [ ] Testar criação, edição e exclusão
+      description:
+      globs:
+      alwaysApply: false
+
+---
+
+## 🟦 Integração com Ordenação (DataGrid)
+
+Para suportar ordenação no DataGrid, utilize o padrão abaixo:
+
+```typescript
+// Hook de search params (exemplo: useDetentoSearchParams)
+const [searchParams, setSearchParams] = useDetentoSearchParams();
+
+// Handler para sort model do DataGrid
+const handleSortModelChange = (newModel: GridSortModel) => {
+  setSearchParams({ sort: newModel[0].field, order: newModel[0].sort });
+};
+
+// DataGrid
+<CustomDataGrid
+  // ...outros props
+  sort={searchParams.sort}
+  order={searchParams.order}
+  onSortModelChange={handleSortModelChange}
+/>
+```
+
+- O hook de search params deve incluir os campos `sort` e `order`.
+- O handler `handleSortModelChange` atualiza os parâmetros de ordenação na URL e no estado.
+- O DataGrid recebe as props `sort` e `order` controladas.

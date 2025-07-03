@@ -14,6 +14,8 @@ export * from './schema-helper';
 
 export * from './form-provider';
 
+export * from './rhf-cpf-field';
+
 export * from './rhf-text-field';
 
 export * from './rhf-date-picker';

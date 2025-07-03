@@ -1,6 +1,6 @@
-import type { DetentoListParams } from '../types';
+import type { PaginatedParams } from 'src/types';
 
 export const detentoKeys = {
   all: ['detentos'] as const,
-  list: (params: DetentoListParams) => [...detentoKeys.all, params] as const,
+  list: (params: PaginatedParams) => [...detentoKeys.all, params] as const,
 };

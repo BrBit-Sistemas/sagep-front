@@ -55,4 +55,34 @@ export const navData: NavSectionProps['data'] = [
       },
     ],
   },
+  {
+    subheader: 'Unidades Prisionais',
+    items: [
+      {
+        title: 'Cadastro',
+        path: paths.unidadesPrisionais.root,
+        icon: ICONS.banking,
+      },
+    ],
+  },
+  {
+    subheader: 'Empresas',
+    items: [
+      {
+        title: 'Cadastro',
+        path: paths.empresas.root,
+        icon: ICONS.ecommerce,
+      },
+    ],
+  },
+  {
+    subheader: 'Profissões',
+    items: [
+      {
+        title: 'Cadastro',
+        path: paths.profissoes.root,
+        icon: ICONS.label,
+      },
+    ],
+  },
 ];

@@ -46,6 +46,7 @@ export function useToolbarSettings(
     density: 'standard',
     showCellVerticalBorder: false,
     showColumnVerticalBorder: false,
+
     ...initialSettings,
   };
 
@@ -77,7 +78,7 @@ export function CustomToolbarSettingsButton({
   settings,
   onChangeSettings,
   showLabel,
-  label = 'Settings',
+  label = 'Configurar',
 }: Pick<ToolbarButtonBaseProps, 'label' | 'showLabel'> & CustomToolbarSettingsButtonProps) {
   const { open, anchorEl, onClose, onOpen } = usePopover();
 

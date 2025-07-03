@@ -1,0 +1,277 @@
+# 🗄️ Stores CRUD com Zustand - SAGEP
+
+## 📝 Estrutura do Store (stores/{feature}-cadastro-store.ts)
+
+### Template Obrigatório
+
+```typescript
+import type { {Feature} } from '../types';
+import { create } from 'zustand';
+
+type {Feature}CadastroStore = {
+  // Estado do formulário
+  isFormDialogOpen: boolean;
+  openCreateDialog: () => void;
+  closeCreateDialog: () => void;
+  openEditDialog: (item: {Feature}) => void;
+  closeEditDialog: () => void;
+
+  // Estado do dialog de exclusão
+  isDeleteDialogOpen: boolean;
+  openDeleteDialog: (item: {Feature}) => void;
+  closeDeleteDialog: () => void;
+
+  // Item selecionado
+  selected{Feature}: {Feature} | null;
+  setSelected{Feature}: (item: {Feature} | null) => void;
+};
+
+export const use{Feature}CadastroStore = create<{Feature}CadastroStore>((set) => ({
+  // Form dialog state
+  isFormDialogOpen: false,
+  openCreateDialog: () => set({ isFormDialogOpen: true, selected{Feature}: null }),
+  closeCreateDialog: () => set({ isFormDialogOpen: false, selected{Feature}: null }),
+  openEditDialog: (item) => set({ isFormDialogOpen: true, selected{Feature}: item }),
+  closeEditDialog: () => set({ isFormDialogOpen: false, selected{Feature}: null }),
+
+  // Delete dialog state
+  isDeleteDialogOpen: false,
+  openDeleteDialog: (item) => set({ isDeleteDialogOpen: true, selected{Feature}: item }),
+  closeDeleteDialog: () => set({ isDeleteDialogOpen: false, selected{Feature}: null }),
+
+  // Selected item
+  selected{Feature}: null,
+  setSelected{Feature}: (item) => set({ selected{Feature}: item }),
+}));
+```
+
+### Exemplo Completo (Detento)
+
+```typescript
+import type { Detento } from "../types";
+import { create } from "zustand";
+
+type DetentoCadastroStore = {
+  isFormDialogOpen: boolean;
+  openCreateDialog: () => void;
+  closeCreateDialog: () => void;
+  openEditDialog: (detento: Detento) => void;
+  closeEditDialog: () => void;
+
+  isDeleteDialogOpen: boolean;
+  openDeleteDialog: (detento: Detento) => void;
+  closeDeleteDialog: () => void;
+
+  selectedDetento: Detento | null;
+  setSelectedDetento: (detento: Detento | null) => void;
+};
+
+export const useDetentoCadastroStore = create<DetentoCadastroStore>((set) => ({
+  isFormDialogOpen: false,
+  openCreateDialog: () =>
+    set({ isFormDialogOpen: true, selectedDetento: null }),
+  closeCreateDialog: () =>
+    set({ isFormDialogOpen: false, selectedDetento: null }),
+  openEditDialog: (detento) =>
+    set({ isFormDialogOpen: true, selectedDetento: detento }),
+  closeEditDialog: () =>
+    set({ isFormDialogOpen: false, selectedDetento: null }),
+
+  isDeleteDialogOpen: false,
+  openDeleteDialog: (detento) =>
+    set({ isDeleteDialogOpen: true, selectedDetento: detento }),
+  closeDeleteDialog: () =>
+    set({ isDeleteDialogOpen: false, selectedDetento: null }),
+
+  selectedDetento: null,
+  setSelectedDetento: (detento) => set({ selectedDetento: detento }),
+}));
+```
+
+## 🎯 Responsabilidades do Store
+
+### ✅ O que DEVE estar no store
+
+1. **Estado dos modals/dialogs**
+
+   - `isFormDialogOpen` - controla dialog de formulário
+   - `isDeleteDialogOpen` - controla dialog de confirmação de exclusão
+
+2. **Ações para modais**
+
+   - `openCreateDialog` - abre modal para criação (limpa seleção)
+   - `closeCreateDialog` - fecha modal de criação
+   - `openEditDialog` - abre modal para edição (define item selecionado)
+   - `closeEditDialog` - fecha modal de edição
+   - `openDeleteDialog` - abre modal de confirmação de exclusão
+   - `closeDeleteDialog` - fecha modal de exclusão
+
+3. **Estado do item selecionado**
+   - `selected{Feature}` - item atualmente selecionado para edição/exclusão
+   - `setSelected{Feature}` - setter para o item selecionado
+
+### ❌ O que NÃO deve estar no store
+
+1. **Dados da API** - use React Query
+2. **Estado de loading** - use React Query
+3. **Estado do formulário** - use React Hook Form
+4. **Parâmetros de busca/filtros** - use URL search params
+5. **Estado da tabela** - use DataGrid interno
+
+## 🔧 Padrões de Uso
+
+### Na Página Principal
+
+```typescript
+export default function {Feature}CadastroPage() {
+  const { selected{Feature}, isFormDialogOpen, openCreateDialog, closeCreateDialog } =
+    use{Feature}CadastroStore();
+
+  return (
+    <DashboardContent>
+      {/* Botão de adicionar */}
+      <Button onClick={openCreateDialog}>Adicionar</Button>
+
+      {/* DataGrid */}
+      <CustomDataGrid />
+
+      {/* Form Dialog */}
+      <{Feature}FormDialog
+        open={isFormDialogOpen}
+        onSuccess={closeCreateDialog}
+        onClose={closeCreateDialog}
+        {...(selected{Feature} && {
+          defaultValues: {feature}ToFormValues(selected{Feature}),
+          {feature}Id: selected{Feature}.{feature}_id,
+        })}
+      />
+    </DashboardContent>
+  );
+}
+```
+
+### No Hook da Tabela
+
+```typescript
+export const use{Feature}ListTable = () => {
+  const { openDeleteDialog, openEditDialog } = use{Feature}CadastroStore();
+
+  const onDelete = useCallback(
+    (item: {Feature}) => openDeleteDialog(item),
+    [openDeleteDialog]
+  );
+
+  const onEdit = useCallback(
+    (item: {Feature}) => openEditDialog(item),
+    [openEditDialog]
+  );
+
+  const columns = useMemo((): GridColDef<{Feature}>[] => [
+    // ... colunas
+    {
+      type: 'actions',
+      field: 'actions',
+      getActions: (params) => [
+        <CustomGridActionsCellItem
+          label="Editar"
+          onClick={() => onEdit(params.row)}
+        />,
+        <CustomGridActionsCellItem
+          label="Excluir"
+          onClick={() => onDelete(params.row)}
+        />,
+      ],
+    },
+  ], [onEdit, onDelete]);
+
+  return { columns };
+};
+```
+
+### No Dialog de Exclusão
+
+```typescript
+export const {Feature}DeleteDialog = () => {
+  const { isDeleteDialogOpen, selected{Feature}, closeDeleteDialog } =
+    use{Feature}CadastroStore();
+
+  const { mutateAsync: delete{Feature} } = useDelete{Feature}();
+
+  const handleDelete = async () => {
+    if (selected{Feature}) {
+      await delete{Feature}(selected{Feature}.{feature}_id);
+      closeDeleteDialog();
+    }
+  };
+
+  return (
+    <Dialog open={isDeleteDialogOpen} onClose={closeDeleteDialog}>
+      {/* ... conteúdo do dialog */}
+    </Dialog>
+  );
+};
+```
+
+## ⚠️ Regras Obrigatórias
+
+### Nomenclatura
+
+1. **Store**: `use{Feature}CadastroStore`
+2. **Tipo**: `{Feature}CadastroStore`
+3. **Arquivo**: `{feature}-cadastro-store.ts`
+4. **Item selecionado**: `selected{Feature}`
+
+### Estrutura
+
+1. **SEMPRE** implemente TODOS os métodos do template
+2. **SEMPRE** use a tipagem TypeScript correta
+3. **SEMPRE** limpe a seleção ao abrir modal de criação
+4. **SEMPRE** defina a seleção ao abrir modal de edição/exclusão
+5. **NUNCA** coloque lógica de API no store
+
+### Convenções
+
+1. **SEMPRE** use `create` do Zustand
+2. **SEMPRE** exporte apenas o hook customizado
+3. **SEMPRE** mantenha o estado mínimo e focado em UI
+4. **NUNCA** misture responsabilidades (API, forms, etc.)
+
+## 🚀 Template de Geração Rápida
+
+```typescript
+// Para criar um novo store, substitua {Feature} e {feature}:
+import type { {Feature} } from '../types';
+import { create } from 'zustand';
+
+type {Feature}CadastroStore = {
+  isFormDialogOpen: boolean;
+  openCreateDialog: () => void;
+  closeCreateDialog: () => void;
+  openEditDialog: (item: {Feature}) => void;
+  closeEditDialog: () => void;
+  isDeleteDialogOpen: boolean;
+  openDeleteDialog: (item: {Feature}) => void;
+  closeDeleteDialog: () => void;
+  selected{Feature}: {Feature} | null;
+  setSelected{Feature}: (item: {Feature} | null) => void;
+};
+
+export const use{Feature}CadastroStore = create<{Feature}CadastroStore>((set) => ({
+  isFormDialogOpen: false,
+  openCreateDialog: () => set({ isFormDialogOpen: true, selected{Feature}: null }),
+  closeCreateDialog: () => set({ isFormDialogOpen: false, selected{Feature}: null }),
+  openEditDialog: (item) => set({ isFormDialogOpen: true, selected{Feature}: item }),
+  closeEditDialog: () => set({ isFormDialogOpen: false, selected{Feature}: null }),
+  isDeleteDialogOpen: false,
+  openDeleteDialog: (item) => set({ isDeleteDialogOpen: true, selected{Feature}: item }),
+  closeDeleteDialog: () => set({ isDeleteDialogOpen: false, selected{Feature}: null }),
+  selected{Feature}: null,
+  setSelected{Feature}: (item) => set({ selected{Feature}: item }),
+}));
+```
+
+description:
+globs:
+alwaysApply: false
+
+---

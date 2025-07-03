@@ -1,0 +1,229 @@
+# 🏷️ Tipos e Schemas CRUD - SAGEP
+
+## 📝 Estrutura de Tipos (types/index.ts)
+
+### Tipo Principal da Entidade
+
+```typescript
+// Padrão obrigatório para todas as entidades
+export type {Feature} = {
+  {feature}_id: string;           // ID único da entidade
+  // ... campos específicos da entidade
+  created_at: string;             // Data de criação (ISO string)
+  updated_at: string;             // Data de atualização (ISO string)
+  created_by?: string;            // ID do usuário criador (opcional)
+  updated_by?: string;            // ID do usuário que atualizou (opcional)
+};
+```
+
+### Enums (quando necessário)
+
+```typescript
+// Use enums para campos com valores fixos
+export enum StatusEnum {
+  ATIVO = "ATIVO",
+  INATIVO = "INATIVO",
+  SUSPENSO = "SUSPENSO",
+}
+
+export enum TipoEnum {
+  TIPO_A = "TIPO_A",
+  TIPO_B = "TIPO_B",
+}
+```
+
+### Tipos para Parâmetros de Listagem
+
+```typescript
+// Sempre inclua este tipo para paginação
+export type {Feature}ListParams = {
+  page: number;
+  limit: number;
+  search?: string;
+  // ... outros filtros específicos
+};
+```
+
+### Exemplo Completo (Detento)
+
+```typescript
+export enum Regime {
+  FECHADO = "FECHADO",
+  SEMIABERTO = "SEMIABERTO",
+  ABERTO = "ABERTO",
+}
+
+export enum Escolaridade {
+  FUNDAMENTAL = "FUNDAMENTAL",
+  MEDIO = "MEDIO",
+  SUPERIOR = "SUPERIOR",
+  ANALFABETO = "ANALFABETO",
+}
+
+export type Detento = {
+  detento_id: string;
+  nome: string;
+  prontuario: string;
+  cpf: string;
+  data_nascimento: string;
+  regime: Regime;
+  escolaridade: Escolaridade;
+  unidade_id: string;
+  created_at: string;
+  updated_at: string;
+  created_by?: string;
+  updated_by?: string;
+};
+
+export type DetentoListParams = {
+  page: number;
+  limit: number;
+  search?: string;
+};
+```
+
+## 🔍 Estrutura de Schemas (schemas/index.ts)
+
+### Schema de Criação
+
+```typescript
+import { z } from 'zod';
+import { {Enum1}, {Enum2} } from '../types';
+
+export const create{Feature}Schema = z.object({
+  // Inclua TODOS os campos obrigatórios para criação
+  // EXCLUA: {feature}_id, created_at, updated_at, created_by, updated_by
+  nome: z.string().min(1, 'Nome é obrigatório'),
+  // ... outros campos com validações apropriadas
+  status: z.nativeEnum(StatusEnum).default(StatusEnum.ATIVO),
+});
+
+export type Create{Feature}Schema = z.infer<typeof create{Feature}Schema>;
+```
+
+### Schema de Atualização
+
+```typescript
+// Sempre extenda o schema de criação
+export type Update{Feature}Schema = Create{Feature}Schema & {
+  {feature}Id: string
+};
+```
+
+### Validações Comuns
+
+```typescript
+// CPF
+cpf: z.string().min(11, 'CPF deve ter 11 dígitos').max(14, 'CPF inválido'),
+
+// E-mail
+email: z.string().email('E-mail inválido'),
+
+// Data
+data_nascimento: z.string().min(1, 'Data é obrigatória'),
+
+// Relacionamentos
+unidade_id: z.string().min(1, 'Unidade é obrigatória'),
+
+// Enums
+regime: z.nativeEnum(Regime).default(Regime.FECHADO),
+
+// Textos obrigatórios
+nome: z.string().min(1, 'Nome é obrigatório'),
+descricao: z.string().min(1, 'Descrição é obrigatória'),
+
+// Textos opcionais
+observacoes: z.string().optional(),
+
+// Números
+idade: z.number().min(0, 'Idade deve ser positiva'),
+```
+
+### Exemplo Completo (Detento)
+
+```typescript
+import { z } from "zod";
+import { Regime, Escolaridade } from "../types";
+
+export const createDetentoSchema = z.object({
+  nome: z.string().min(1, "Nome é obrigatório"),
+  prontuario: z.string().min(1, "Prontuário é obrigatório"),
+  cpf: z.string().min(11, "CPF deve ter 11 dígitos").max(14, "CPF inválido"),
+  data_nascimento: z.string().min(1, "Data de nascimento é obrigatória"),
+  regime: z.nativeEnum(Regime).default(Regime.FECHADO),
+  escolaridade: z.nativeEnum(Escolaridade).default(Escolaridade.FUNDAMENTAL),
+  unidade_id: z.string().min(1, "Unidade é obrigatória"),
+});
+
+export type CreateDetentoSchema = z.infer<typeof createDetentoSchema>;
+export type UpdateDetentoSchema = CreateDetentoSchema & { detentoId: string };
+```
+
+## ⚠️ Regras Obrigatórias
+
+### Tipos
+
+1. **SEMPRE** use `{feature}_id` como identificador único
+2. **SEMPRE** inclua `created_at`, `updated_at`, `created_by?`, `updated_by?`
+3. **SEMPRE** use enums para campos com valores fixos
+4. **SEMPRE** crie tipo `{Feature}ListParams` para paginação
+5. **NUNCA** use `any` ou tipos genéricos demais
+
+### Schemas
+
+1. **SEMPRE** use Zod para todas as validações
+2. **SEMPRE** crie schemas separados para criação e atualização
+3. **SEMPRE** inclua mensagens de erro em português
+4. **SEMPRE** use `.default()` para enums quando apropriado
+5. **NUNCA** inclua campos autogenerados nos schemas de criação
+
+### Nomenclatura
+
+- Tipos: PascalCase (`Detento`, `Unidade`)
+- Enums: PascalCase (`Regime`, `Escolaridade`)
+- Schemas: camelCase (`createDetentoSchema`)
+- Campos: snake_case (`detento_id`, `data_nascimento`)
+
+## 🎯 Template Rápido
+
+```typescript
+// types/index.ts
+export enum {Feature}Status {
+  ATIVO = 'ATIVO',
+  INATIVO = 'INATIVO',
+}
+
+export type {Feature} = {
+  {feature}_id: string;
+  nome: string;
+  status: {Feature}Status;
+  created_at: string;
+  updated_at: string;
+  created_by?: string;
+  updated_by?: string;
+};
+
+export type {Feature}ListParams = {
+  page: number;
+  limit: number;
+  search?: string;
+};
+
+// schemas/index.ts
+import { z } from 'zod';
+import { {Feature}Status } from '../types';
+
+export const create{Feature}Schema = z.object({
+  nome: z.string().min(1, 'Nome é obrigatório'),
+  status: z.nativeEnum({Feature}Status).default({Feature}Status.ATIVO),
+});
+
+export type Create{Feature}Schema = z.infer<typeof create{Feature}Schema>;
+export type Update{Feature}Schema = Create{Feature}Schema & { {feature}Id: string };
+```
+
+description:
+globs:
+alwaysApply: false
+
+---

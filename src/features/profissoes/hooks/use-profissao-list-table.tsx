@@ -1,0 +1,80 @@
+import type { GridColDef } from '@mui/x-data-grid/models';
+import type { Profissao } from '../types';
+
+import { useMemo, useCallback } from 'react';
+
+import { useTheme } from '@mui/material/styles';
+
+import { Iconify } from 'src/components/iconify';
+import { CustomGridActionsCellItem } from 'src/components/custom-data-grid';
+
+import { useProfissaoCadastroStore } from '../stores/profissao-cadastro-store';
+
+export const useProfissaoListTable = () => {
+  const theme = useTheme();
+  const { openDeleteDialog, openEditDialog } = useProfissaoCadastroStore();
+
+  const onDelete = useCallback(
+    (profissao: Profissao) => {
+      openDeleteDialog(profissao);
+    },
+    [openDeleteDialog]
+  );
+
+  const onEdit = useCallback(
+    (profissao: Profissao) => {
+      openEditDialog(profissao);
+    },
+    [openEditDialog]
+  );
+
+  const columns = useMemo(
+    (): GridColDef<Profissao>[] => [
+      {
+        field: 'profissao_id',
+        headerName: 'ID',
+        flex: 1,
+      },
+      {
+        field: 'nome',
+        headerName: 'Nome',
+        flex: 2,
+      },
+      {
+        field: 'created_at',
+        headerName: 'Criado em',
+        flex: 1,
+        valueFormatter: (value) => new Date(value).toLocaleDateString('pt-BR'),
+      },
+      {
+        type: 'actions',
+        field: 'actions',
+        headerName: ' ',
+        width: 64,
+        align: 'right',
+        headerAlign: 'right',
+        sortable: false,
+        filterable: false,
+        disableColumnMenu: true,
+        getActions: (params) => [
+          <CustomGridActionsCellItem
+            showInMenu
+            label="Editar"
+            icon={<Iconify icon="solar:pen-bold" />}
+            onClick={() => onEdit(params.row)}
+          />,
+          <CustomGridActionsCellItem
+            showInMenu
+            label="Excluir"
+            icon={<Iconify icon="solar:trash-bin-trash-bold" />}
+            onClick={() => onDelete(params.row)}
+            style={{ color: theme.vars.palette.error.main }}
+          />,
+        ],
+      },
+    ],
+    [onDelete, onEdit, theme.vars.palette.error.main]
+  );
+
+  return { columns };
+};

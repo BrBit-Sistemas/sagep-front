@@ -1,5 +1,6 @@
 import { RHFRating } from './rhf-rating';
 import { RHFSlider } from './rhf-slider';
+import { RHFCpfField } from './rhf-cpf-field';
 import { RHFTextField } from './rhf-text-field';
 import { RHFRadioGroup } from './rhf-radio-group';
 import { RHFAutocomplete } from './rhf-autocomplete';
@@ -22,6 +23,7 @@ export const Field = {
   MultiSwitch: RHFMultiSwitch,
   Autocomplete: RHFAutocomplete,
   MultiCheckbox: RHFMultiCheckbox,
+  Cpf: RHFCpfField,
   // Pickers
   DatePicker: RHFDatePicker,
   TimePicker: RHFTimePicker,

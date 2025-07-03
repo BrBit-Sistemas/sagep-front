@@ -1,0 +1,366 @@
+# 🪝 Hooks CRUD com React Query - SAGEP
+
+## 📝 Arquivos Obrigatórios (hooks/)
+
+### 1. keys.ts - Query Keys
+
+```typescript
+export const {feature}Keys = {
+  all: ['{feature}'] as const,
+  lists: () => [...{feature}Keys.all, 'list'] as const,
+  list: (params: any) => [...{feature}Keys.lists(), params] as const,
+  details: () => [...{feature}Keys.all, 'detail'] as const,
+  detail: (id: string) => [...{feature}Keys.details(), id] as const,
+};
+```
+
+### 2. use-{feature}-list.ts - Hook de Listagem
+
+```typescript
+import type { {Feature}ListParams } from '../types';
+
+import { useQuery } from '@tanstack/react-query';
+
+import { {feature}Keys } from './keys';
+import { {feature}Service } from '../data';
+
+export const use{Feature}List = (params: {Feature}ListParams) =>
+  useQuery({
+    queryKey: {feature}Keys.list(params),
+    queryFn: () => {feature}Service.paginate(params),
+  });
+```
+
+### 3. use-create-{feature}.ts - Hook de Criação
+
+```typescript
+import type { Create{Feature}Schema } from '../schemas';
+
+import { toast } from 'sonner';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+
+import { handleError } from 'src/utils/handle-error';
+
+import { {feature}Keys } from './keys';
+import { {feature}Service } from '../data';
+
+export const useCreate{Feature} = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: Create{Feature}Schema) => {feature}Service.create(data),
+    onSuccess: () => toast.success('{Feature} criado com sucesso'),
+    onError: (error) => toast.error(handleError(error)),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: {feature}Keys.all }),
+  });
+};
+```
+
+### 4. use-update-{feature}.ts - Hook de Atualização
+
+```typescript
+import type { Update{Feature}Schema } from '../schemas';
+
+import { toast } from 'sonner';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+
+import { handleError } from 'src/utils/handle-error';
+
+import { {feature}Keys } from './keys';
+import { {feature}Service } from '../data';
+
+export const useUpdate{Feature} = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ {feature}Id, ...data }: Update{Feature}Schema) =>
+      {feature}Service.update({feature}Id, data),
+    onSuccess: () => toast.success('{Feature} atualizado com sucesso'),
+    onError: (error) => toast.error(handleError(error)),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: {feature}Keys.all }),
+  });
+};
+```
+
+### 5. use-delete-{feature}.ts - Hook de Exclusão
+
+```typescript
+import { toast } from 'sonner';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+
+import { handleError } from 'src/utils/handle-error';
+
+import { {feature}Keys } from './keys';
+import { {feature}Service } from '../data';
+
+export const useDelete{Feature} = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => {feature}Service.delete(id),
+    onSuccess: () => toast.success('{Feature} excluído com sucesso'),
+    onError: (error) => toast.error(handleError(error)),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: {feature}Keys.all }),
+  });
+};
+```
+
+### 6. use-{feature}-search-params.ts - Hook de Search Params
+
+```typescript
+import type { {Feature}ListParams } from '../types';
+
+import { useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
+
+const DEFAULT_PARAMS: {Feature}ListParams = {
+  page: 0,
+  limit: 25,
+};
+
+export const use{Feature}SearchParams = () => {
+  const [searchParams, setSearchParamsRaw] = useSearchParams();
+
+  const params: {Feature}ListParams = {
+    page: Number(searchParams.get('page')) || DEFAULT_PARAMS.page,
+    limit: Number(searchParams.get('limit')) || DEFAULT_PARAMS.limit,
+    ...(searchParams.get('search') && { search: searchParams.get('search')! }),
+  };
+
+  const setSearchParams = useCallback(
+    (newParams: Partial<{Feature}ListParams>) => {
+      const updatedParams = { ...params, ...newParams };
+
+      const urlParams = new URLSearchParams();
+      urlParams.set('page', updatedParams.page.toString());
+      urlParams.set('limit', updatedParams.limit.toString());
+
+      if (updatedParams.search) {
+        urlParams.set('search', updatedParams.search);
+      }
+
+      setSearchParamsRaw(urlParams);
+    },
+    [params, setSearchParamsRaw]
+  );
+
+  return [params, setSearchParams] as const;
+};
+```
+
+### 7. use-{feature}-list-table.tsx - Hook da Tabela
+
+```typescript
+import type { GridColDef } from '@mui/x-data-grid/models';
+import type { {Feature} } from '../types';
+
+import { useMemo, useCallback } from 'react';
+import { useTheme } from '@mui/material/styles';
+
+import { Iconify } from 'src/components/iconify';
+import { CustomGridActionsCellItem } from 'src/components/custom-data-grid';
+
+import { use{Feature}CadastroStore } from '../stores/{feature}-cadastro-store';
+
+export const use{Feature}ListTable = () => {
+  const theme = useTheme();
+  const { openDeleteDialog, openEditDialog } = use{Feature}CadastroStore();
+
+  const onDelete = useCallback(
+    (item: {Feature}) => openDeleteDialog(item),
+    [openDeleteDialog]
+  );
+
+  const onEdit = useCallback(
+    (item: {Feature}) => openEditDialog(item),
+    [openEditDialog]
+  );
+
+  const columns = useMemo(
+    (): GridColDef<{Feature}>[] => [
+      {
+        field: '{feature}_id',
+        headerName: 'ID',
+        flex: 1,
+      },
+      {
+        field: 'nome',
+        headerName: 'Nome',
+        flex: 1,
+      },
+      // ... outras colunas específicas da entidade
+      {
+        type: 'actions',
+        field: 'actions',
+        headerName: ' ',
+        width: 64,
+        align: 'right',
+        headerAlign: 'right',
+        sortable: false,
+        filterable: false,
+        disableColumnMenu: true,
+        getActions: (params) => [
+          <CustomGridActionsCellItem
+            showInMenu
+            label="Editar"
+            icon={<Iconify icon="solar:pen-bold" />}
+            onClick={() => onEdit(params.row)}
+          />,
+          <CustomGridActionsCellItem
+            showInMenu
+            label="Excluir"
+            icon={<Iconify icon="solar:trash-bin-trash-bold" />}
+            onClick={() => onDelete(params.row)}
+            style={{ color: theme.vars.palette.error.main }}
+          />,
+        ],
+      },
+    ],
+    [onDelete, onEdit, theme.vars.palette.error.main]
+  );
+
+  return { columns };
+};
+```
+
+## 🎯 Exemplos Completos (Detento)
+
+### keys.ts
+
+```typescript
+export const detentoKeys = {
+  all: ["detento"] as const,
+  lists: () => [...detentoKeys.all, "list"] as const,
+  list: (params: any) => [...detentoKeys.lists(), params] as const,
+  details: () => [...detentoKeys.all, "detail"] as const,
+  detail: (id: string) => [...detentoKeys.details(), id] as const,
+};
+```
+
+### use-create-detento.ts
+
+```typescript
+import type { CreateDetentoSchema } from "../schemas";
+
+import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+import { handleError } from "src/utils/handle-error";
+
+import { detentoKeys } from "./keys";
+import { detentoService } from "../data";
+
+export const useCreateDetento = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateDetentoSchema) => detentoService.create(data),
+    onSuccess: () => toast.success("Detento criado com sucesso"),
+    onError: (error) => toast.error(handleError(error)),
+    onSettled: () =>
+      queryClient.invalidateQueries({ queryKey: detentoKeys.all }),
+  });
+};
+```
+
+## ⚠️ Regras Obrigatórias
+
+### Nomenclatura
+
+1. **Query Keys**: `{feature}Keys` (camelCase)
+2. **Hooks**: `use{Feature}{Action}` (ex: `useCreateDetento`)
+3. **Services**: `{feature}Service` (camelCase)
+4. **Arquivos**: `use-{action}-{feature}.ts`
+
+### Estrutura
+
+1. **SEMPRE** crie arquivo `keys.ts` primeiro
+2. **SEMPRE** implemente todos os hooks CRUD básicos
+3. **SEMPRE** use `toast.success` e `toast.error` com mensagens em português
+4. **SEMPRE** invalide queries com `queryClient.invalidateQueries`
+5. **SEMPRE** use `handleError` do utils para tratar erros
+
+### React Query
+
+1. **SEMPRE** use `useQuery` para consultas
+2. **SEMPRE** use `useMutation` para modificações
+3. **SEMPRE** configure `onSuccess`, `onError` e `onSettled`
+4. **SEMPRE** use query keys hierárquicas
+5. **NUNCA** faça queries manuais fora dos hooks
+
+### Toast Messages
+
+```typescript
+// Padrão de mensagens
+onSuccess: () => toast.success('{Feature} criado com sucesso'),      // CREATE
+onSuccess: () => toast.success('{Feature} atualizado com sucesso'),   // UPDATE
+onSuccess: () => toast.success('{Feature} excluído com sucesso'),     // DELETE
+onError: (error) => toast.error(handleError(error)),                  // TODOS
+```
+
+### Search Params
+
+1. **SEMPRE** use URL search params para filtros e paginação
+2. **SEMPRE** defina valores padrão
+3. **SEMPRE** sincronize com a URL
+4. **SEMPRE** mantenha tipagem forte
+
+## 🚀 Template de Geração Rápida
+
+```typescript
+// keys.ts
+export const {feature}Keys = {
+  all: ['{feature}'] as const,
+  lists: () => [...{feature}Keys.all, 'list'] as const,
+  list: (params: any) => [...{feature}Keys.lists(), params] as const,
+  details: () => [...{feature}Keys.all, 'detail'] as const,
+  detail: (id: string) => [...{feature}Keys.details(), id] as const,
+};
+
+// use-create-{feature}.ts
+export const useCreate{Feature} = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: Create{Feature}Schema) => {feature}Service.create(data),
+    onSuccess: () => toast.success('{Feature} criado com sucesso'),
+    onError: (error) => toast.error(handleError(error)),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: {feature}Keys.all }),
+  });
+};
+
+// use-update-{feature}.ts
+export const useUpdate{Feature} = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ {feature}Id, ...data }: Update{Feature}Schema) =>
+      {feature}Service.update({feature}Id, data),
+    onSuccess: () => toast.success('{Feature} atualizado com sucesso'),
+    onError: (error) => toast.error(handleError(error)),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: {feature}Keys.all }),
+  });
+};
+
+// use-delete-{feature}.ts
+export const useDelete{Feature} = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => {feature}Service.delete(id),
+    onSuccess: () => toast.success('{Feature} excluído com sucesso'),
+    onError: (error) => toast.error(handleError(error)),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: {feature}Keys.all }),
+  });
+};
+
+// use-{feature}-list.ts
+export const use{Feature}List = (params: {Feature}ListParams) =>
+  useQuery({
+    queryKey: {feature}Keys.list(params),
+    queryFn: () => {feature}Service.paginate(params),
+  });
+```
+
+description:
+globs:
+alwaysApply: false
+
+---

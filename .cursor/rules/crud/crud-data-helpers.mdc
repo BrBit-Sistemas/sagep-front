@@ -1,0 +1,370 @@
+# 🔧 Serviços de Dados e Helpers - SAGEP
+
+## 📝 Serviço de Dados (data/index.ts)
+
+### Template Obrigatório
+
+```typescript
+import type { {Feature} } from '../types';
+import type { CrudService, PaginatedParams } from 'src/types';
+import type { Create{Feature}Schema, Update{Feature}Schema } from '../schemas';
+
+// Dados mock para desenvolvimento
+export const {features}: {Feature}[] = [
+  {
+    {feature}_id: '1',
+    nome: 'Exemplo',
+    // ... outros campos
+    created_at: '2021-01-01',
+    updated_at: '2021-01-01',
+    created_by: '1',
+    updated_by: '1',
+  },
+];
+
+// Service implementando interface CrudService
+export const {feature}Service: CrudService<
+  {Feature},
+  Create{Feature}Schema,
+  Update{Feature}Schema,
+  PaginatedParams
+> = {
+  paginate: async ({ page, limit, search }) => ({
+    totalPages: 1,
+    page,
+    limit,
+    total: {features}.length,
+    hasNextPage: false,
+    hasPrevPage: false,
+    items: {features},
+  }),
+
+  create: async (data) => {
+    const new{Feature}: {Feature} = {
+      ...data,
+      {feature}_id: crypto.randomUUID(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      created_by: '1',
+      updated_by: '1',
+    };
+    {features}.push(new{Feature});
+    return new{Feature};
+  },
+
+  read: async (id) => {
+    const {feature} = {features}.find((item) => item.{feature}_id === id);
+    if (!{feature}) {
+      throw new Error('{Feature} não encontrado');
+    }
+    return {feature};
+  },
+
+  update: async (id, data) => {
+    const {feature}Index = {features}.findIndex((item) => item.{feature}_id === id);
+    if ({feature}Index === -1) {
+      throw new Error('{Feature} não encontrado');
+    }
+
+    const {feature} = {features}[{feature}Index];
+    {features}[{feature}Index] = {
+      ...{feature},
+      ...data,
+      updated_at: new Date().toISOString(),
+      updated_by: '1',
+    };
+
+    return {features}[{feature}Index];
+  },
+
+  delete: async (id) => {
+    const {feature}Index = {features}.findIndex((item) => item.{feature}_id === id);
+    if ({feature}Index === -1) {
+      throw new Error('{Feature} não encontrado');
+    }
+    {features}.splice({feature}Index, 1);
+  },
+};
+```
+
+### Implementação Real (API)
+
+```typescript
+import axios from 'src/lib/axios';
+
+export const {feature}Service: CrudService<{Feature}, Create{Feature}Schema, Update{Feature}Schema, PaginatedParams> = {
+  paginate: async (params) => {
+    const { data } = await axios.get('/{features}', { params });
+    return data;
+  },
+
+  create: async (data) => {
+    const { data: response } = await axios.post('/{features}', data);
+    return response;
+  },
+
+  read: async (id) => {
+    const { data } = await axios.get(`/{features}/${id}`);
+    return data;
+  },
+
+  update: async (id, data) => {
+    const { data: response } = await axios.put(`/{features}/${id}`, data);
+    return response;
+  },
+
+  delete: async (id) => {
+    await axios.delete(`/{features}/${id}`);
+  },
+};
+```
+
+## 📝 Helpers (helper/index.ts)
+
+### Template Obrigatório
+
+```typescript
+import type { {Feature} } from '../types';
+import type { Create{Feature}Schema } from '../schemas';
+
+// Função para converter entidade para dados de formulário
+export const {feature}ToFormValues = ({feature}: {Feature}): Create{Feature}Schema => ({
+  nome: {feature}?.nome ?? '',
+  // ... outros campos mapeados
+  status: {feature}?.status ?? DefaultStatus.ATIVO,
+});
+
+// Função para formatar dados para exibição (opcional)
+export const format{Feature}ForDisplay = ({feature}: {Feature}) => ({
+  ...{feature},
+  // Formatações específicas para display
+  created_at_formatted: new Date({feature}.created_at).toLocaleDateString('pt-BR'),
+  updated_at_formatted: new Date({feature}.updated_at).toLocaleDateString('pt-BR'),
+});
+
+// Função para validar dados antes de envio (opcional)
+export const validate{Feature}Data = (data: Create{Feature}Schema): boolean => {
+  // Validações específicas que não estão no schema
+  return true;
+};
+```
+
+### Exemplo Real (Detento)
+
+```typescript
+import type { Detento } from "../types";
+import type { CreateDetentoSchema } from "../schemas";
+import { Regime, Escolaridade } from "../types";
+
+export const detentoToFormValues = (detento: Detento): CreateDetentoSchema => ({
+  nome: detento?.nome ?? "",
+  prontuario: detento?.prontuario ?? "",
+  cpf: detento?.cpf ?? "",
+  data_nascimento: detento?.data_nascimento ?? "",
+  regime: detento?.regime ?? Regime.FECHADO,
+  escolaridade: detento?.escolaridade ?? Escolaridade.FUNDAMENTAL,
+  unidade_id: detento?.unidade_id ?? "",
+});
+```
+
+## 🎯 Interface CrudService (src/types/index.ts)
+
+```typescript
+export interface CrudService<T, CreateSchema, UpdateSchema, ListParams> {
+  paginate: (params: ListParams) => Promise<PaginatedResponse<T>>;
+  create: (data: CreateSchema) => Promise<T>;
+  read: (id: string) => Promise<T>;
+  update: (id: string, data: CreateSchema) => Promise<T>;
+  delete: (id: string) => Promise<void>;
+}
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+export interface PaginatedParams {
+  page: number;
+  limit: number;
+  search?: string;
+}
+```
+
+## 🔧 Padrões de Implementação
+
+### Mock Data
+
+```typescript
+// Para desenvolvimento, sempre forneça dados mock realistas
+export const {features}: {Feature}[] = [
+  {
+    {feature}_id: '1',
+    nome: 'João da Silva',
+    cpf: '12345678900',
+    // ... campos específicos
+    created_at: '2024-01-01T10:00:00.000Z',
+    updated_at: '2024-01-01T10:00:00.000Z',
+    created_by: '1',
+    updated_by: '1',
+  },
+  // ... mais registros para teste de paginação
+];
+```
+
+### Geração de IDs
+
+```typescript
+// SEMPRE use crypto.randomUUID() para novos IDs
+{feature}_id: crypto.randomUUID(),
+```
+
+### Timestamps
+
+```typescript
+// SEMPRE use ISO string para datas
+created_at: new Date().toISOString(),
+updated_at: new Date().toISOString(),
+```
+
+### Error Handling
+
+```typescript
+// SEMPRE lance erros em português com contexto
+if (!{ feature }) {
+  throw new Error("{Feature} não encontrado");
+}
+```
+
+### Search Implementation
+
+```typescript
+paginate: async ({ page, limit, search }) => {
+  let filtered{Features} = {features};
+
+  // Implementar busca se fornecida
+  if (search) {
+    filtered{Features} = {features}.filter(item =>
+      item.nome.toLowerCase().includes(search.toLowerCase()) ||
+      item.cpf.includes(search)
+      // ... outros campos pesquisáveis
+    );
+  }
+
+  const startIndex = page * limit;
+  const endIndex = startIndex + limit;
+  const items = filtered{Features}.slice(startIndex, endIndex);
+
+  return {
+    totalPages: Math.ceil(filtered{Features}.length / limit),
+    page,
+    limit,
+    total: filtered{Features}.length,
+    hasNextPage: endIndex < filtered{Features}.length,
+    hasPrevPage: page > 0,
+    items,
+  };
+},
+```
+
+## ⚠️ Regras Obrigatórias
+
+### Serviço de Dados
+
+1. **SEMPRE** implemente interface `CrudService` completa
+2. **SEMPRE** use tipagem TypeScript forte
+3. **SEMPRE** forneça dados mock para desenvolvimento
+4. **SEMPRE** implemente busca básica por texto
+5. **SEMPRE** retorne `PaginatedResponse` na paginação
+
+### Helpers
+
+1. **SEMPRE** crie função `{feature}ToFormValues`
+2. **SEMPRE** use valores padrão com `??` operator
+3. **SEMPRE** mantenha funções pure (sem side effects)
+4. **SEMPRE** use tipagem forte nos parâmetros e retorno
+
+### Mock Data
+
+1. **SEMPRE** inclua pelo menos 3-5 registros mock
+2. **SEMPRE** use dados realistas e variados
+3. **SEMPRE** inclua todos os campos obrigatórios
+4. **SEMPRE** use IDs únicos consistentes
+
+### API Integration
+
+1. **SEMPRE** use axios instance configurada
+2. **SEMPRE** mantenha mesmas assinaturas de métodos
+3. **SEMPRE** trate erros adequadamente
+4. **SEMPRE** use endpoints RESTful padrão
+
+### Nomenclatura
+
+- **Service**: `{feature}Service` (ex: `detentoService`)
+- **Mock Array**: `{features}` (plural, ex: `detentos`)
+- **Helper**: `{feature}ToFormValues` (ex: `detentoToFormValues`)
+
+## 🚀 Exemplo Completo (Detento)
+
+### data/index.ts
+
+```typescript
+import type { Detento } from "../types";
+import type { CrudService, PaginatedParams } from "src/types";
+import type { CreateDetentoSchema, UpdateDetentoSchema } from "../schemas";
+import { Regime, Escolaridade } from "../types";
+
+export const detentos: Detento[] = [
+  {
+    detento_id: "1",
+    nome: "João da Silva",
+    prontuario: "1234567890",
+    cpf: "12345678900",
+    data_nascimento: "1990-01-01",
+    regime: Regime.FECHADO,
+    escolaridade: Escolaridade.FUNDAMENTAL,
+    unidade_id: "1",
+    created_at: "2021-01-01",
+    updated_at: "2021-01-01",
+    created_by: "1",
+    updated_by: "1",
+  },
+];
+
+export const detentoService: CrudService<
+  Detento,
+  CreateDetentoSchema,
+  UpdateDetentoSchema,
+  PaginatedParams
+> = {
+  // ... implementação completa
+};
+```
+
+### helper/index.ts
+
+```typescript
+import type { Detento } from "../types";
+import type { CreateDetentoSchema } from "../schemas";
+import { Regime, Escolaridade } from "../types";
+
+export const detentoToFormValues = (detento: Detento): CreateDetentoSchema => ({
+  nome: detento?.nome ?? "",
+  prontuario: detento?.prontuario ?? "",
+  cpf: detento?.cpf ?? "",
+  data_nascimento: detento?.data_nascimento ?? "",
+  regime: detento?.regime ?? Regime.FECHADO,
+  escolaridade: detento?.escolaridade ?? Escolaridade.FUNDAMENTAL,
+  unidade_id: detento?.unidade_id ?? "",
+});
+```
+
+description:
+globs:
+alwaysApply: false
+
+---

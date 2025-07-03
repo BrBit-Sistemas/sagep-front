@@ -1,0 +1,108 @@
+# 🏗️ Estrutura de Features CRUD - SAGEP
+
+## 📁 Estrutura de Diretórios Obrigatória
+
+Toda feature CRUD deve seguir esta estrutura exata:
+
+```
+src/features/{feature-name}/
+├── types/
+│   └── index.ts          # Tipos TypeScript da entidade
+├── schemas/
+│   └── index.ts          # Schemas de validação Zod
+├── stores/
+│   └── {feature}-cadastro-store.ts  # Store Zustand para estado
+├── hooks/
+│   ├── keys.ts           # React Query keys
+│   ├── use-{feature}-list.ts        # Hook para listagem
+│   ├── use-create-{feature}.ts      # Hook para criação
+│   ├── use-update-{feature}.ts      # Hook para atualização
+│   ├── use-delete-{feature}.ts      # Hook para exclusão
+│   ├── use-{feature}-list-table.tsx # Hook para configuração da tabela
+│   └── use-{feature}-search-params.ts # Hook para parâmetros de busca
+├── components/
+│   └── cadastro/
+│       ├── {feature}-form-dialog.tsx    # Dialog de formulário
+│       └── {feature}-delete-dialog.tsx  # Dialog de confirmação de exclusão
+├── data/
+│   └── index.ts          # Serviços de API (mock ou real)
+├── helper/
+│   └── index.ts          # Funções auxiliares de transformação
+└── pages/
+    └── cadastro.tsx      # Página principal do CRUD
+```
+
+## 🎯 Convenções de Nomenclatura
+
+### Arquivos e Diretórios
+
+- **Features**: nome no singular (ex: `detento`, `unidade`)
+- **Stores**: `{feature}-cadastro-store.ts`
+- **Hooks**: `use-{action}-{feature}.ts`
+- **Components**: `{feature}-{component}-dialog.tsx`
+- **Pages**: sempre `cadastro.tsx`
+
+### Identificadores
+
+- **IDs de entidade**: `{feature}_id` (ex: `detento_id`, `unidade_id`)
+- **Types**: `{Feature}` (PascalCase, ex: `Detento`, `Unidade`)
+- **Schemas**: `create{Feature}Schema`, `update{Feature}Schema`
+- **Services**: `{feature}Service` (ex: `detentoService`)
+
+## ⚡ Exemplo de Implementação
+
+Para criar uma nova feature `unidade`:
+
+```typescript
+// src/features/unidade/types/index.ts
+export type Unidade = {
+  unidade_id: string;
+  nome: string;
+  // ... outros campos
+  created_at: string;
+  updated_at: string;
+  created_by?: string;
+  updated_by?: string;
+};
+
+// src/features/unidade/stores/unidade-cadastro-store.ts
+export const useUnidadeCadastroStore = create<UnidadeCadastroStore>((set) => ({
+  // ... implementação igual ao padrão
+}));
+```
+
+## 🔧 Tecnologias Obrigatórias
+
+- **Estado Global**: Zustand para stores
+- **Validação**: Zod para schemas
+- **API**: React Query para cache e mutações
+- **Formulários**: React Hook Form + Zod resolver
+- **UI**: Material-UI componentes
+- **Tabelas**: MUI X Data Grid
+
+## 📋 Checklist de Nova Feature
+
+- [ ] Criar estrutura de diretórios completa
+- [ ] Definir tipos em `types/index.ts`
+- [ ] Criar schemas de validação em `schemas/index.ts`
+- [ ] Implementar store em `stores/{feature}-cadastro-store.ts`
+- [ ] Criar todos os hooks necessários em `hooks/`
+- [ ] Implementar componentes em `components/cadastro/`
+- [ ] Criar serviço de dados em `data/index.ts`
+- [ ] Adicionar helpers em `helper/index.ts`
+- [ ] Implementar página em `pages/cadastro.tsx`
+- [ ] Adicionar rota no sistema de rotas
+- [ ] Configurar menu se necessário
+
+## ⚠️ Regras Importantes
+
+1. **NUNCA** misture lógicas de features diferentes
+2. **SEMPRE** use a estrutura de diretórios exata
+3. **SEMPRE** siga as convenções de nomenclatura
+4. **SEMPRE** implemente todos os hooks CRUD básicos
+5. **SEMPRE** use TypeScript com tipagem forte
+   description:
+   globs:
+   alwaysApply: false
+
+---

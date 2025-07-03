@@ -1,0 +1,234 @@
+# 🧩 Componentes CRUD - SAGEP
+
+## 📁 Estrutura Obrigatória
+
+```
+components/cadastro/
+├── {feature}-form-dialog.tsx     # Dialog com formulário
+└── {feature}-delete-dialog.tsx   # Dialog de confirmação
+```
+
+## 📝 Form Dialog - Template Base
+
+```typescript
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  Grid,
+  Button,
+  Dialog,
+  MenuItem,
+  Typography,
+  DialogTitle,
+  DialogActions,
+  DialogContent,
+} from '@mui/material';
+import { Form, Field } from 'src/components/hook-form';
+
+type {Feature}FormDialogProps = {
+  onSuccess: () => void;
+  onClose: () => void;
+  open: boolean;
+  defaultValues?: Create{Feature}Schema;
+  {feature}Id?: string;
+};
+
+const INITIAL_VALUES: Create{Feature}Schema = {
+  nome: '',
+  // ... outros campos padrão
+};
+
+export const {Feature}FormDialog = ({
+  defaultValues,
+  {feature}Id,
+  onSuccess,
+  onClose,
+  open,
+}: {Feature}FormDialogProps) => {
+  const isEditing = !!{feature}Id;
+  const { mutateAsync: create{Feature}, isPending: isCreating } = useCreate{Feature}();
+  const { mutateAsync: update{Feature}, isPending: isUpdating } = useUpdate{Feature}();
+  const isLoading = isEditing ? isUpdating : isCreating;
+
+  const methods = useForm({
+    resolver: zodResolver(create{Feature}Schema),
+    defaultValues: isEditing ? defaultValues : INITIAL_VALUES,
+  });
+
+  const handleSubmit = methods.handleSubmit(async (data) => {
+    if (isEditing) {
+      await update{Feature}({ {feature}Id, ...data });
+    } else {
+      await create{Feature}(data);
+    }
+    methods.reset(INITIAL_VALUES);
+    onSuccess();
+  });
+
+  useEffect(() => {
+    if (isEditing) methods.reset(defaultValues);
+    else methods.reset(INITIAL_VALUES);
+  }, [isEditing, defaultValues, methods]);
+
+  return (
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle>{isEditing ? 'Editar' : 'Adicionar'} {feature}</DialogTitle>
+      <DialogContent>
+        <Form methods={methods} onSubmit={handleSubmit}>
+          <Grid container spacing={2}>
+            {/* CAMPOS DO FORMULÁRIO */}
+          </Grid>
+        </Form>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} variant="outlined">Cancelar</Button>
+        <Button onClick={handleSubmit} variant="contained" loading={isLoading}>
+          {isEditing ? 'Atualizar' : 'Adicionar'}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+```
+
+## 📝 Delete Dialog - Template Base
+
+```typescript
+import { Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+
+export const {Feature}DeleteDialog = () => {
+  const { isDeleteDialogOpen, selected{Feature}, closeDeleteDialog } =
+    use{Feature}CadastroStore();
+  const { mutateAsync: delete{Feature}, isPending } = useDelete{Feature}();
+
+  const handleDelete = async () => {
+    if (selected{Feature}) {
+      await delete{Feature}(selected{Feature}.{feature}_id);
+      closeDeleteDialog();
+    }
+  };
+
+  if (!selected{Feature}) return null;
+
+  return (
+    <Dialog open={isDeleteDialogOpen} onClose={closeDeleteDialog}>
+      <DialogTitle>Confirmar exclusão</DialogTitle>
+      <DialogContent>
+        Tem certeza que deseja excluir "{selected{Feature}.nome}"?
+        Esta ação não pode ser desfeita.
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={closeDeleteDialog} variant="outlined">Cancelar</Button>
+        <Button onClick={handleDelete} variant="contained" color="error" loading={isPending}>
+          Excluir
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+```
+
+## 🎯 Tipos de Campos Padrões
+
+### Texto Simples
+
+```typescript
+<Grid size={{ md: 6, sm: 12 }}>
+  <Field.Text name="nome" label="Nome" />
+</Grid>
+```
+
+### CPF
+
+```typescript
+<Grid size={{ md: 6, sm: 12 }}>
+  <Field.Cpf name="cpf" label="CPF" />
+</Grid>
+```
+
+### Data
+
+```typescript
+<Grid size={{ md: 6, sm: 12 }}>
+  <Field.DatePicker name="data_nascimento" label="Data" disableFuture />
+</Grid>
+```
+
+### Select com Enum
+
+```typescript
+<Grid size={{ md: 6, sm: 12 }}>
+  <Field.Select
+    name="status"
+    label="Status"
+    slotProps={{ inputLabel: { shrink: true } }}
+  >
+    {Object.values(StatusEnum).map((option) => (
+      <MenuItem key={option} value={option}>
+        {option}
+      </MenuItem>
+    ))}
+  </Field.Select>
+</Grid>
+```
+
+## ⚠️ Regras Obrigatórias
+
+### Form Dialog
+
+1. **SEMPRE** implemente criação E edição no mesmo componente
+2. **SEMPRE** use `isEditing = !!{feature}Id` para determinar modo
+3. **SEMPRE** reset formulário após sucesso com `methods.reset(INITIAL_VALUES)`
+4. **SEMPRE** use `useEffect` para resetar quando `defaultValues` mudar
+5. **SEMPRE** configure loading states corretamente
+
+### Delete Dialog
+
+1. **SEMPRE** use store para controlar visibilidade
+2. **SEMPRE** verifique se `selected{Feature}` existe antes de renderizar
+3. **SEMPRE** use cor `error` no botão de exclusão
+4. **SEMPRE** feche dialog após sucesso
+
+### Campos
+
+1. **SEMPRE** use `Grid` responsivo (`md: 6, sm: 12`)
+2. **SEMPRE** use componentes `Field.*` do hook-form
+3. **SEMPRE** configure `slotProps={{ inputLabel: { shrink: true } }}` em selects
+4. **SEMPRE** mapeie enums para MenuItem
+
+### Nomenclatura
+
+- **Componentes**: `{Feature}FormDialog`, `{Feature}DeleteDialog`
+- **Props**: `{feature}Id`, `defaultValues`, `onSuccess`, `onClose`
+- **Files**: `{feature}-form-dialog.tsx`, `{feature}-delete-dialog.tsx`
+
+## 🚀 Exemplo Real (Detento)
+
+```typescript
+// detento-form-dialog.tsx
+export const DetentoFormDialog = ({
+  defaultValues,
+  detentoId,
+  onSuccess,
+  onClose,
+  open,
+}) => {
+  const isEditing = !!detentoId;
+  const { mutateAsync: createDetento, isPending: isCreating } =
+    useCreateDetento();
+  const { mutateAsync: updateDetento, isPending: isUpdating } =
+    useUpdateDetento();
+
+  // ... resto da implementação segue o template
+};
+
+// detento-delete-dialog.tsx
+export const DetentoDeleteDialog = () => {
+  const { isDeleteDialogOpen, selectedDetento, closeDeleteDialog } =
+    useDetentoCadastroStore();
+  const { mutateAsync: deleteDetento, isPending } = useDeleteDetento();
+
+  // ... resto da implementação segue o template
+};
+```
