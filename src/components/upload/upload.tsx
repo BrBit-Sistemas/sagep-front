@@ -7,12 +7,12 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import FormHelperText from '@mui/material/FormHelperText';
 
+import { Iconify } from '../iconify';
 import { uploadClasses } from './classes';
 import { UploadPlaceholder } from './components/placeholder';
 import { RejectionFiles } from './components/rejection-files';
 import { MultiFilePreview } from './components/preview-multi-file';
 import { DeleteButton, SingleFilePreview } from './components/preview-single-file';
-import { Iconify } from '../../../../sagep-roraima-ui/next-ts/src/components/iconify';
 
 // ----------------------------------------------------------------------
 
@@ -53,7 +53,7 @@ export function Upload({
           <Box sx={{ gap: 1.5, display: 'flex', justifyContent: 'flex-end' }}>
             {onRemoveAll && (
               <Button color="inherit" variant="outlined" size="small" onClick={onRemoveAll}>
-                Remover todos
+                Remove all
               </Button>
             )}
 
@@ -64,7 +64,7 @@ export function Upload({
                 onClick={onUpload}
                 startIcon={<Iconify icon="eva:cloud-upload-fill" />}
               >
-                Enviar
+                Upload
               </Button>
             )}
           </Box>

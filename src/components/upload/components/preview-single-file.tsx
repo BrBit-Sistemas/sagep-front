@@ -6,8 +6,8 @@ import { varAlpha, mergeClasses } from 'minimal-shared/utils';
 import { styled } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
 
+import { Iconify } from '../../iconify';
 import { uploadClasses } from '../classes';
-import { Iconify } from '../../../../../sagep-roraima-ui/next-ts/src/components/iconify';
 
 // ----------------------------------------------------------------------
 

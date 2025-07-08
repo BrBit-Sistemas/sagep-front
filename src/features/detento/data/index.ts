@@ -52,7 +52,7 @@ export const detentoService: CrudService<
   },
   read: async (id) => {
     const detento = detentos.find((d) => d.detento_id === id);
-
+    
     if (!detento) {
       throw new Error('Detento não encontrado');
     }

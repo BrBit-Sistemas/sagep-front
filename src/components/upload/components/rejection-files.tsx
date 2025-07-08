@@ -7,7 +7,7 @@ import { styled } from '@mui/material/styles';
 import { fData } from 'src/utils/format-number';
 
 import { uploadClasses } from '../classes';
-import { fileData } from '../../../../../sagep-roraima-ui/next-ts/src/components/file-thumbnail';
+import { fileData } from '../../file-thumbnail';
 
 // ----------------------------------------------------------------------
 

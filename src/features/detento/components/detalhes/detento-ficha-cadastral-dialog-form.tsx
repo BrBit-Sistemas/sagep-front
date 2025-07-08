@@ -28,7 +28,7 @@ const INITIAL_VALUES: CreateDetentoFichaCadastralSchema = {
   tem_problema_saude: false,
   regiao_bloqueada: '',
   ja_trabalhou_funap: false,
-  ano_trabalho_anterior: 2000,
+  ano_trabalho_anterior: 0,
   pdf_path: '',
 };
 
@@ -62,27 +62,22 @@ export const DetentoFichaCadastralDialogForm = ({
               <Field.Text name="regiao_bloqueada" label="Região bloqueada" />
             </Grid>
             <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text
-                type="number"
-                name="ano_trabalho_anterior"
-                label="Ano de trabalho anterior"
-              />
+              <Field.Switch name="tem_problema_saude" label="Tem problema de saúde" />
             </Grid>
             <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Checkbox name="tem_problema_saude" label="Tem problema de saúde" />
+              <Field.Switch name="ja_trabalhou_funap" label="Já trabalhou no FUNAP" />
             </Grid>
             <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Checkbox name="ja_trabalhou_funap" label="Já trabalhou na Funap" />
+              <Field.Text name="ano_trabalho_anterior" label="Ano de trabalho anterior" />
             </Grid>
-
-            <Grid size={{ sm: 12 }}>
+            <Grid size={{ md: 6, sm: 12 }}>
               <Field.Upload name="pdf_path" />
             </Grid>
           </Grid>
         </Form>
       </DialogContent>
       <DialogActions>
-        <Button variant="contained" color="primary" type="submit" onClick={handleSubmit}>
+        <Button variant="contained" color="primary" type="submit">
           Salvar
         </Button>
       </DialogActions>

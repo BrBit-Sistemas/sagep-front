@@ -1,6 +1,6 @@
 import type { DropzoneOptions } from 'react-dropzone';
 import type { Theme, SxProps } from '@mui/material/styles';
-import type { FileThumbnailProps } from '../../../../sagep-roraima-ui/next-ts/src/components/file-thumbnail';
+import type { FileThumbnailProps } from '../file-thumbnail';
 
 // ----------------------------------------------------------------------
 

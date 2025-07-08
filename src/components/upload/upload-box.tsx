@@ -5,7 +5,7 @@ import { varAlpha, mergeClasses } from 'minimal-shared/utils';
 
 import Box from '@mui/material/Box';
 
-import { Iconify } from '../../../../sagep-roraima-ui/next-ts/src/components/iconify';
+import { Iconify } from '../iconify';
 import { uploadClasses } from './classes';
 
 // ----------------------------------------------------------------------

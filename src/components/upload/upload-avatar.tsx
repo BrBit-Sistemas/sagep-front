@@ -7,8 +7,8 @@ import { varAlpha, mergeClasses } from 'minimal-shared/utils';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 
-import { Image } from '../../../../sagep-roraima-ui/next-ts/src/components/image';
-import { Iconify } from '../../../../sagep-roraima-ui/next-ts/src/components/iconify';
+import { Image } from '../image';
+import { Iconify } from '../iconify';
 import { uploadClasses } from './classes';
 import { RejectionFiles } from './components/rejection-files';
 
