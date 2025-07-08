@@ -50,6 +50,7 @@
     "@types/react-input-mask": "^3.0.6",
     "autosuggest-highlight": "^3.3.4",
     "axios": "^1.10.0",
+    "axios-logger": "^2.8.1",
     "axios-mock-adapter": "^2.1.0",
     "dayjs": "^1.11.13",
     "es-toolkit": "^1.39.3",

@@ -1,6 +1,7 @@
 import type { AxiosRequestConfig } from 'axios';
 
 import axios from 'axios';
+import * as AxiosLogger from 'axios-logger';
 
 import { CONFIG } from 'src/global-config';
 
@@ -15,20 +16,15 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use((config) => {
   const token = localStorage.getItem('accessToken');
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  return config;
-});
 
-axiosInstance.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    const message = error?.response?.data?.message || error?.message || 'Something went wrong!';
-    console.error('Axios error:', message);
-    return Promise.reject(new Error(message));
-  }
-);
+  return AxiosLogger.requestLogger(config);
+}, AxiosLogger.errorLogger);
+
+axiosInstance.interceptors.response.use(AxiosLogger.responseLogger, AxiosLogger.errorLogger);
 
 export default axiosInstance;
 

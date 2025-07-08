@@ -1,3 +1,4 @@
+import type { Theme } from '@mui/material/styles';
 import type { MultiFilePreviewProps } from '../types';
 
 import { varAlpha, mergeClasses } from 'minimal-shared/utils';
@@ -8,8 +9,8 @@ import ListItemText from '@mui/material/ListItemText';
 
 import { fData } from 'src/utils/format-number';
 
-import { Iconify } from '../../../../../sagep-roraima-ui/next-ts/src/components/iconify';
 import { uploadClasses } from '../classes';
+import { Iconify } from '../../../../../sagep-roraima-ui/next-ts/src/components/iconify';
 import {
   fileData,
   FileThumbnail,
@@ -49,7 +50,7 @@ export function MultiFilePreview({
                 file={file}
                 onRemove={() => onRemove?.(file)}
                 sx={[
-                  (theme) => ({
+                  (theme: Theme) => ({
                     width: 80,
                     height: 80,
                     border: `solid 1px ${varAlpha(theme.vars.palette.grey['500Channel'], 0.16)}`,
