@@ -22,7 +22,7 @@ type Props = {
 };
 
 export function AuthProvider({ children }: Props) {
-  const { state, setState } = useSetState<AuthState>({ user: null, loading: true });
+  const { state, setState } = useSetState<AuthState>({ user: undefined, loading: true });
 
   const checkUserSession = useCallback(async () => {
     try {
@@ -30,18 +30,16 @@ export function AuthProvider({ children }: Props) {
 
       if (accessToken && isValidToken(accessToken)) {
         setSession(accessToken);
-
         const res = await axios.get(endpoints.auth.me);
-
         const { user } = res.data;
 
         setState({ user: { ...user, accessToken }, loading: false });
       } else {
-        setState({ user: null, loading: false });
+        setState({ user: undefined, loading: false });
       }
     } catch (error) {
       console.error(error);
-      setState({ user: null, loading: false });
+      setState({ user: undefined, loading: false });
     }
   }, [setState]);
 
@@ -58,7 +56,7 @@ export function AuthProvider({ children }: Props) {
 
   const memoizedValue = useMemo(
     () => ({
-      user: state.user ? { ...state.user, role: state.user?.role ?? 'admin' } : null,
+      user: state?.user ?? undefined,
       checkUserSession,
       loading: status === 'loading',
       authenticated: status === 'authenticated',
