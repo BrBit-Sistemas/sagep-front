@@ -29,11 +29,11 @@ export function UploadPlaceholder({ sx, className, ...other }: UploadPlaceholder
     >
       <UploadIllustration hideBackground sx={{ width: 200 }} />
       <PlaceholderContent>
-        <div className={uploadPlaceholderClasses.title}>Drop or select file</div>
+        <div className={uploadPlaceholderClasses.title}>Arraste e solte o arquivo aqui</div>
         <div className={uploadPlaceholderClasses.description}>
-          Drop files here or click to
-          <span>browse</span>
-          through your machine.
+          ou clique para
+          <span>navegar</span>
+          no seu computador.
         </div>
       </PlaceholderContent>
     </PlaceholderRoot>

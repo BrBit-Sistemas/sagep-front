@@ -49,6 +49,11 @@ export const DetentoFichaCadastralDialogForm = ({
 
   const handleSubmit = methods.handleSubmit(async (data) => {});
 
+  const handleRemovePdf = () => {
+    methods.setValue('pdf_path', '');
+    console.log('pdf_path', methods.getValues('pdf_path'));
+  };
+
   useEffect(() => {
     if (isEditing) methods.reset(defaultValues);
     else methods.reset(INITIAL_VALUES);
@@ -82,7 +87,7 @@ export const DetentoFichaCadastralDialogForm = ({
             </Grid>
 
             <Grid size={{ sm: 12 }}>
-              <Field.Upload name="pdf_path" />
+              <Field.Upload name="pdf_path" onDelete={handleRemovePdf} />
             </Grid>
           </Grid>
         </Form>

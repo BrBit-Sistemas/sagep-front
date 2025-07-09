@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { schemaHelper } from 'src/components/hook-form';
+
 import { Regime, Escolaridade } from '../types';
 
 export const createDetentoSchema = z.object({
@@ -18,7 +20,7 @@ export const createDetentoFichaCadastralSchema = z.object({
   regiao_bloqueada: z.string().min(1, 'Região bloqueada é obrigatória'),
   ja_trabalhou_funap: z.boolean().default(false),
   ano_trabalho_anterior: z.number().min(1900, 'Ano de trabalho anterior deve ser maior que 1900'),
-  pdf_path: z.string().min(1, 'PDF é obrigatório'),
+  pdf_path: schemaHelper.file({ message: 'PDF é obrigatório' }),
 });
 
 export type CreateDetentoSchema = z.infer<typeof createDetentoSchema>;
