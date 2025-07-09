@@ -4,4 +4,6 @@ export const detentoKeys = {
   all: ['detentos'] as const,
   list: (params: PaginatedParams) => [...detentoKeys.all, params] as const,
   read: (id: string) => [...detentoKeys.all, 'read', id] as const,
+  fichasCadastrais: (detentoId: string) =>
+    [...detentoKeys.all, 'fichasCadastrais', detentoId] as const,
 };

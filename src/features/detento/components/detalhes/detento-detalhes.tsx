@@ -30,7 +30,7 @@ export const DetentoDetalhes = ({ detentoId }: DetentoDetalhesProps) => {
   const { data } = useSuspenseReadDetentoDetails(detentoId);
   const [{ tab }, setSearchParams] = useDetentoDetalhesSearchParams();
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
+  const handleTabChange = (_: React.SyntheticEvent, newValue: string) => {
     setSearchParams({ tab: newValue as 'detalhes' | 'ficha_cadastral' });
   };
 

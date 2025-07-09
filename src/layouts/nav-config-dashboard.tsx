@@ -46,42 +46,37 @@ const ICONS = {
 
 export const navData: NavSectionProps['data'] = [
   {
-    subheader: 'Detentos',
+    subheader: 'Carceragem',
     items: [
       {
-        title: 'Cadastro',
+        title: 'Detentos',
         path: paths.detentos.root,
         icon: ICONS.user,
       },
     ],
   },
   {
-    subheader: 'Unidades Prisionais',
+    subheader: 'Core',
     items: [
       {
-        title: 'Cadastro',
+        title: 'Unidades Prisionais',
         path: paths.unidadesPrisionais.root,
         icon: ICONS.banking,
       },
-    ],
-  },
-  {
-    subheader: 'Empresas',
-    items: [
       {
-        title: 'Cadastro',
-        path: paths.empresas.root,
-        icon: ICONS.ecommerce,
+        title: 'Profissões',
+        path: paths.profissoes.root,
+        icon: ICONS.label,
       },
     ],
   },
   {
-    subheader: 'Profissões',
+    subheader: 'Laboral',
     items: [
       {
-        title: 'Cadastro',
-        path: paths.profissoes.root,
-        icon: ICONS.label,
+        title: 'Empresas',
+        path: paths.empresas.root,
+        icon: ICONS.ecommerce,
       },
     ],
   },

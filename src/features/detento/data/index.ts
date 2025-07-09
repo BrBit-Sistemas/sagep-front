@@ -1,10 +1,25 @@
-import type { Detento } from '../types';
-import type { CrudService, PaginatedParams } from 'src/types';
-import type { CreateDetentoSchema, UpdateDetentoSchema } from '../schemas';
+import type { Detento, DetentoService, DetentoFichaCadastral } from '../types';
+
+import { CONFIG } from 'src/global-config';
 
 import { Regime, Escolaridade } from '../types';
 
-// Usando let para permitir reatribuição e evitar problemas de imutabilidade
+const detento_fichas_cadastrais: DetentoFichaCadastral[] = [
+  {
+    fichacadastral_id: '1',
+    detento_id: '1',
+    tem_problema_saude: true,
+    regiao_bloqueada: 'Região 1',
+    ja_trabalhou_funap: true,
+    ano_trabalho_anterior: 2024,
+    pdf_path: `${CONFIG.assetsDir}/files/pdf_example.pdf`,
+    created_at: '2021-01-01',
+    updated_at: '2021-01-01',
+    created_by: '1',
+    updated_by: '1',
+  },
+];
+
 let detentos: Detento[] = [
   {
     detento_id: '1',
@@ -22,12 +37,9 @@ let detentos: Detento[] = [
   },
 ];
 
-export const detentoService: CrudService<
-  Detento,
-  CreateDetentoSchema,
-  UpdateDetentoSchema,
-  PaginatedParams
-> = {
+export const detentoService: DetentoService = {
+  getFichasCadastrais: async (detentoId) =>
+    detento_fichas_cadastrais.filter((f) => f.detento_id === detentoId),
   paginate: async ({ page, limit, search }) => ({
     totalPages: 1,
     page,
@@ -52,7 +64,7 @@ export const detentoService: CrudService<
   },
   read: async (id) => {
     const detento = detentos.find((d) => d.detento_id === id);
-    
+
     if (!detento) {
       throw new Error('Detento não encontrado');
     }

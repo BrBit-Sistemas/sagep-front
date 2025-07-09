@@ -188,7 +188,7 @@ const MuiButtonBase: Components<Theme>['MuiButtonBase'] = {
 const MuiButton: Components<Theme>['MuiButton'] = {
   // ▼▼▼▼▼▼▼▼ ⚙️ PROPS ▼▼▼▼▼▼▼▼
   defaultProps: {
-    color: 'inherit',
+    color: 'primary',
     disableElevation: true,
   },
   // ▼▼▼▼▼▼▼▼ 🎨 STYLE ▼▼▼▼▼▼▼▼

@@ -4,61 +4,20 @@ alwaysApply: true
 
 # 📐 Padrão de Uso do Grid (Material-UI)
 
-## 🟦 Sempre use as props `item` e `container`
+## 🟦 Sempre use as props `size` e `container`
 
-- Para cada célula/coluna, use `<Grid item ...>`
+- Para cada célula/coluna, use `<Grid ...>`
 - Para o agrupador de linhas/colunas, use `<Grid container ...>`
 
 ## 🟩 Defina o espaçamento com `spacing` no container
 
 - Exemplo: `<Grid container spacing={2}>`
 
-## 🟨 Defina o tamanho responsivo com `xs`, `md`, etc.
+## 🟨 Defina o tamanho responsivo usando `size={{ md: ... }}`
 
-- Exemplo: `<Grid item xs={12} md={6}>`
+- Exemplo: `<Grid size={{ xs: 12, md: 6 }}>`
 - `xs` = largura para telas pequenas (mobile)
 - `md` = largura para telas médias (desktop)
 - A soma dos valores em uma linha deve ser no máximo 12
 
 ## 🟧 Exemplo Correto
-
-```tsx
-<Grid container spacing={2}>
-  <Grid item xs={12} md={6}>
-    <Field.Text name="nome" label="Nome" />
-  </Grid>
-  <Grid item xs={12} md={6}>
-    <Field.Text name="prontuario" label="Prontuário" />
-  </Grid>
-  <Grid item xs={12} md={6}>
-    <Field.Cpf name="cpf" label="CPF" />
-  </Grid>
-  <Grid item xs={12} md={6}>
-    <Field.DatePicker name="data_nascimento" label="Data de nascimento" disableFuture />
-  </Grid>
-</Grid>
-```
-
-## 🚫 O que NÃO fazer
-
-- Não use `size` no lugar de `item`, `xs`, `md` etc.
-- Não omita a prop `item` nos filhos do container
-- Não misture `item` e `container` no mesmo nível sem necessidade
-
-## ⚠️ Regras Obrigatórias
-
-1. **SEMPRE** use `<Grid container>` para agrupar linhas/colunas
-2. **SEMPRE** use `<Grid item xs={...} md={...}>` para cada célula
-3. **NUNCA** use `size` no lugar de `item`, `xs`, `md`
-4. **SEMPRE** defina o espaçamento com `spacing` no container
-5. **SEMPRE** mantenha a soma dos itens em uma linha ≤ 12
-
-## 💡 Dica
-
-- Use sempre os breakpoints (`xs`, `sm`, `md`, `lg`, `xl`) para responsividade
-- Consulte a [documentação oficial do MUI Grid](https://mui.com/material-ui/react-grid/) para mais exemplos
-  description:
-  globs:
-  alwaysApply: false
-
----

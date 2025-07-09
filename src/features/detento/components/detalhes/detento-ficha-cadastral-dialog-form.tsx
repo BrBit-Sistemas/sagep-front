@@ -1,5 +1,6 @@
 import type { CreateDetentoFichaCadastralSchema } from '../../schemas';
 
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -48,6 +49,11 @@ export const DetentoFichaCadastralDialogForm = ({
 
   const handleSubmit = methods.handleSubmit(async (data) => {});
 
+  useEffect(() => {
+    if (isEditing) methods.reset(defaultValues);
+    else methods.reset(INITIAL_VALUES);
+  }, [isEditing, defaultValues, methods]);
+
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Ficha Cadastral</DialogTitle>
@@ -62,15 +68,20 @@ export const DetentoFichaCadastralDialogForm = ({
               <Field.Text name="regiao_bloqueada" label="Região bloqueada" />
             </Grid>
             <Grid size={{ md: 6, sm: 12 }}>
+              <Field.Text
+                type="number"
+                name="ano_trabalho_anterior"
+                label="Ano de trabalho anterior"
+              />
+            </Grid>
+            <Grid size={{ md: 6, sm: 12 }}>
               <Field.Switch name="tem_problema_saude" label="Tem problema de saúde" />
             </Grid>
             <Grid size={{ md: 6, sm: 12 }}>
               <Field.Switch name="ja_trabalhou_funap" label="Já trabalhou no FUNAP" />
             </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="ano_trabalho_anterior" label="Ano de trabalho anterior" />
-            </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
+
+            <Grid size={{ sm: 12 }}>
               <Field.Upload name="pdf_path" />
             </Grid>
           </Grid>

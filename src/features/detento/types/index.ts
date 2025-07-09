@@ -1,4 +1,5 @@
-import type { AuditableEntity } from 'src/types';
+import type { CreateDetentoSchema, UpdateDetentoSchema } from '../schemas';
+import type { CrudService, AuditableEntity, PaginatedParams } from 'src/types';
 
 export enum Regime {
   FECHADO = 'FECHADO',
@@ -34,8 +35,12 @@ export type DetentoFichaCadastral = {
   fichacadastral_id: string;
   detento_id: string;
   tem_problema_saude: boolean;
-  regiao_bloqueada: boolean;
+  regiao_bloqueada: string;
   ja_trabalhou_funap: boolean;
   ano_trabalho_anterior: number;
   pdf_path: string;
 } & AuditableEntity;
+
+export type DetentoService = {
+  getFichasCadastrais: (detentoId: string) => Promise<DetentoFichaCadastral[]>;
+} & CrudService<Detento, CreateDetentoSchema, UpdateDetentoSchema, PaginatedParams>;

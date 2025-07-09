@@ -127,7 +127,6 @@ export function JwtSignUpView() {
 
       <Button
         fullWidth
-        color="inherit"
         size="large"
         type="submit"
         variant="contained"

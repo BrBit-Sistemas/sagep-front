@@ -86,13 +86,7 @@ export function JwtSignInView() {
       />
 
       <Box sx={{ gap: 1.5, display: 'flex', flexDirection: 'column' }}>
-        <Link
-          component={RouterLink}
-          href="#"
-          variant="body2"
-          color="inherit"
-          sx={{ alignSelf: 'flex-end' }}
-        >
+        <Link component={RouterLink} href="#" variant="body2" sx={{ alignSelf: 'flex-end' }}>
           Esqueceu a senha?
         </Link>
 
@@ -120,7 +114,6 @@ export function JwtSignInView() {
 
       <Button
         fullWidth
-        color="inherit"
         size="large"
         type="submit"
         variant="contained"
