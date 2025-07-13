@@ -11,6 +11,7 @@ import { Scrollbar } from 'src/components/scrollbar';
 import { NavSectionMini, NavSectionVertical } from 'src/components/nav-section';
 
 import { layoutClasses } from '../core';
+import { dashboardLayoutVars } from './css-vars';
 import { NavToggleButton } from '../components/nav-toggle-button';
 
 // ----------------------------------------------------------------------
@@ -43,8 +44,19 @@ export function NavVertical({
   const renderNavVertical = () => (
     <>
       {slots?.topArea ?? (
-        <Box sx={{ pl: 3.5, pt: 2.5, pb: 1 }}>
-          <Logo />
+        <Box
+          sx={(theme) => ({
+            px: 3.5,
+            pt: 2,
+            [theme.breakpoints.up(layoutQuery)]: {
+              ...dashboardLayoutVars(theme),
+              height: 'var(--layout-nav-vertical-height)',
+              display: 'flex',
+              alignItems: 'center',
+            },
+          })}
+        >
+          <Logo sx={{ height: '100%', width: 'auto' }} />
         </Box>
       )}
 
@@ -53,7 +65,7 @@ export function NavVertical({
           data={data}
           cssVars={cssVars}
           checkPermissions={checkPermissions}
-          sx={{ px: 2, flex: '1 1 auto' }}
+          sx={{ px: 2, pt: 2, flex: '1 1 auto' }}
         />
       </Scrollbar>
     </>
@@ -62,7 +74,17 @@ export function NavVertical({
   const renderNavMini = () => (
     <>
       {slots?.topArea ?? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 2.5 }}>
+        <Box
+          sx={(theme) => ({
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: 'var(--layout-nav-vertical-height)',
+            [theme.breakpoints.up(layoutQuery)]: {
+              ...dashboardLayoutVars(theme),
+            },
+          })}
+        >
           <Logo isSingle={!open} />
         </Box>
       )}
