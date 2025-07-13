@@ -1,6 +1,6 @@
 export type AuditableEntity = {
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
   created_by?: string;
   updated_by?: string;
 };

@@ -3,8 +3,8 @@ export type UserType = {
   nome: string;
   email: string;
   avatar_url: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
   roles: string[];
 };
 

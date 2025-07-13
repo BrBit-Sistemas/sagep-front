@@ -10,7 +10,7 @@ export const UnidadePrisionalDeleteDialog = () => {
 
   const handleDelete = async () => {
     if (selectedUnidadePrisional) {
-      await deleteUnidadePrisional(selectedUnidadePrisional.unidade_id);
+      await deleteUnidadePrisional(selectedUnidadePrisional.id);
       closeDeleteDialog();
     }
   };

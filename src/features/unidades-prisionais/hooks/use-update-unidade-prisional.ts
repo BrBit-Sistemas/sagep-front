@@ -12,8 +12,8 @@ export const useUpdateUnidadePrisional = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ unidadeId, ...data }: { unidadeId: string } & UpdateUnidadePrisionalSchema) =>
-      unidadePrisionalService.update(unidadeId, data),
+    mutationFn: ({ id, ...data }: UpdateUnidadePrisionalSchema) =>
+      unidadePrisionalService.update(id, data),
     onSuccess: () => toast.success('Unidade Prisional atualizada com sucesso'),
     onError: (error) => toast.error(handleError(error)),
     onSettled: () => queryClient.invalidateQueries({ queryKey: unidadePrisionalKeys.all }),

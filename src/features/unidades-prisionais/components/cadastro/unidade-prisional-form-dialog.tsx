@@ -6,11 +6,14 @@ import {
   Grid,
   Button,
   Dialog,
+  MenuItem,
   Typography,
   DialogTitle,
   DialogActions,
   DialogContent,
 } from '@mui/material';
+
+import { useListRegionais } from 'src/features/regionais/hooks/use-list-regionais';
 
 import { Form, Field } from 'src/components/hook-form';
 
@@ -28,6 +31,7 @@ type UnidadePrisionalFormDialogProps = {
 
 const INITIAL_VALUES: CreateUnidadePrisionalSchema = {
   nome: '',
+  regionalId: '',
 };
 
 export const UnidadePrisionalFormDialog = ({
@@ -43,6 +47,11 @@ export const UnidadePrisionalFormDialog = ({
   const { mutateAsync: updateUnidadePrisional, isPending: isUpdating } =
     useUpdateUnidadePrisional();
 
+  const { data: { items: regionais } = { items: [] } } = useListRegionais({
+    page: 0,
+    limit: 1000,
+  });
+
   const isLoading = isEditing ? isUpdating : isCreating;
 
   const methods = useForm({
@@ -52,7 +61,7 @@ export const UnidadePrisionalFormDialog = ({
 
   const handleSubmit = methods.handleSubmit(async (data) => {
     if (isEditing) {
-      await updateUnidadePrisional({ unidadeId, ...data });
+      await updateUnidadePrisional({ id: unidadeId, ...data });
     } else {
       await createUnidadePrisional(data);
     }
@@ -76,8 +85,23 @@ export const UnidadePrisionalFormDialog = ({
 
         <Form methods={methods} onSubmit={handleSubmit}>
           <Grid container spacing={2}>
-            <Grid size={{ md: 12, sm: 12 }}>
+            <Grid size={{ md: 6, sm: 12 }}>
               <Field.Text name="nome" label="Nome da Unidade" />
+            </Grid>
+
+            <Grid size={{ md: 6, sm: 12 }}>
+              <Field.Select
+                name="regionalId"
+                label="Regional"
+                slotProps={{ inputLabel: { shrink: true } }}
+                disabled={isLoading || !regionais?.length}
+              >
+                {regionais?.map((regional) => (
+                  <MenuItem key={regional.id} value={regional.id}>
+                    {regional.nome}
+                  </MenuItem>
+                ))}
+              </Field.Select>
             </Grid>
           </Grid>
         </Form>

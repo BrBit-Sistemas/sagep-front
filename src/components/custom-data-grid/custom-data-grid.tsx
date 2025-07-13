@@ -84,6 +84,7 @@ export default function CustomDataGrid(props: CustomDataGridProps) {
         },
         ...(Array.isArray(props.sx) ? props.sx : [props.sx]),
       }}
+      getRowId={(row) => row.id}
       {...props}
     />
   );

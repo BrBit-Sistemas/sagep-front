@@ -70,7 +70,6 @@ export default function UnidadePrisionalCadastroPage() {
           page={searchParams.page}
           limit={searchParams.limit}
           onPaginationModelChange={handlePaginationModelChange}
-          getRowId={(row) => row.unidade_id}
         />
 
         <UnidadePrisionalFormDialog
@@ -79,7 +78,7 @@ export default function UnidadePrisionalCadastroPage() {
           onClose={closeCreateDialog}
           {...(selectedUnidadePrisional && {
             defaultValues: unidadePrisionalToFormValues(selectedUnidadePrisional),
-            unidadeId: selectedUnidadePrisional.unidade_id,
+            unidadeId: selectedUnidadePrisional.id,
           })}
         />
 

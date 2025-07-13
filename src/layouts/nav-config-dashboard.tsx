@@ -64,6 +64,16 @@ export const navData: NavSectionProps['data'] = [
         icon: ICONS.banking,
       },
       {
+        title: 'Regionais',
+        path: paths.regionais.root,
+        icon: ICONS.folder,
+      },
+      {
+        title: 'Secretarias',
+        path: paths.secretarias.root,
+        icon: ICONS.folder,
+      },
+      {
         title: 'Profissões',
         path: paths.profissoes.root,
         icon: ICONS.label,

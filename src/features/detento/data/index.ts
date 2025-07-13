@@ -13,8 +13,8 @@ const detento_fichas_cadastrais: DetentoFichaCadastral[] = [
     ja_trabalhou_funap: true,
     ano_trabalho_anterior: 2024,
     pdf_path: `${CONFIG.assetsDir}/files/pdf_example.pdf`,
-    created_at: '2021-01-01',
-    updated_at: '2021-01-01',
+    createdAt: '2021-01-01',
+    updatedAt: '2021-01-01',
     created_by: '1',
     updated_by: '1',
   },
@@ -30,8 +30,8 @@ let detentos: Detento[] = [
     regime: Regime.FECHADO,
     escolaridade: Escolaridade.FUNDAMENTAL,
     unidade_id: '1',
-    created_at: '2021-01-01',
-    updated_at: '2021-01-01',
+    createdAt: '2021-01-01',
+    updatedAt: '2021-01-01',
     created_by: '1',
     updated_by: '1',
   },
@@ -53,8 +53,8 @@ export const detentoService: DetentoService = {
     const newDetento: Detento = {
       ...data,
       detento_id: crypto.randomUUID(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       created_by: '1',
       updated_by: '1',
     };
@@ -82,7 +82,7 @@ export const detentoService: DetentoService = {
     const updatedDetento: Detento = {
       ...detento,
       ...data,
-      updated_at: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       updated_by: '1',
     };
 

@@ -41,7 +41,7 @@ export const useProfissaoListTable = () => {
         flex: 2,
       },
       {
-        field: 'created_at',
+        field: 'createdAt',
         headerName: 'Criado em',
         flex: 1,
         valueFormatter: (value) => new Date(value).toLocaleDateString('pt-BR'),

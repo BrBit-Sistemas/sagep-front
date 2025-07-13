@@ -9,8 +9,8 @@
 export type {Feature} = {
   {feature}_id: string;           // ID único da entidade
   // ... campos específicos da entidade
-  created_at: string;             // Data de criação (ISO string)
-  updated_at: string;             // Data de atualização (ISO string)
+  createdAt: string;             // Data de criação (ISO string)
+  updatedAt: string;             // Data de atualização (ISO string)
   created_by?: string;            // ID do usuário criador (opcional)
   updated_by?: string;            // ID do usuário que atualizou (opcional)
 };
@@ -21,14 +21,14 @@ export type {Feature} = {
 ```typescript
 // Use enums para campos com valores fixos
 export enum StatusEnum {
-  ATIVO = "ATIVO",
-  INATIVO = "INATIVO",
-  SUSPENSO = "SUSPENSO",
+  ATIVO = 'ATIVO',
+  INATIVO = 'INATIVO',
+  SUSPENSO = 'SUSPENSO',
 }
 
 export enum TipoEnum {
-  TIPO_A = "TIPO_A",
-  TIPO_B = "TIPO_B",
+  TIPO_A = 'TIPO_A',
+  TIPO_B = 'TIPO_B',
 }
 ```
 
@@ -48,16 +48,16 @@ export type {Feature}ListParams = {
 
 ```typescript
 export enum Regime {
-  FECHADO = "FECHADO",
-  SEMIABERTO = "SEMIABERTO",
-  ABERTO = "ABERTO",
+  FECHADO = 'FECHADO',
+  SEMIABERTO = 'SEMIABERTO',
+  ABERTO = 'ABERTO',
 }
 
 export enum Escolaridade {
-  FUNDAMENTAL = "FUNDAMENTAL",
-  MEDIO = "MEDIO",
-  SUPERIOR = "SUPERIOR",
-  ANALFABETO = "ANALFABETO",
+  FUNDAMENTAL = 'FUNDAMENTAL',
+  MEDIO = 'MEDIO',
+  SUPERIOR = 'SUPERIOR',
+  ANALFABETO = 'ANALFABETO',
 }
 
 export type Detento = {
@@ -69,8 +69,8 @@ export type Detento = {
   regime: Regime;
   escolaridade: Escolaridade;
   unidade_id: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
   created_by?: string;
   updated_by?: string;
 };
@@ -92,7 +92,7 @@ import { {Enum1}, {Enum2} } from '../types';
 
 export const create{Feature}Schema = z.object({
   // Inclua TODOS os campos obrigatórios para criação
-  // EXCLUA: {feature}_id, created_at, updated_at, created_by, updated_by
+  // EXCLUA: {feature}_id, createdAt, updatedAt, created_by, updated_by
   nome: z.string().min(1, 'Nome é obrigatório'),
   // ... outros campos com validações apropriadas
   status: z.nativeEnum(StatusEnum).default(StatusEnum.ATIVO),
@@ -142,17 +142,17 @@ idade: z.number().min(0, 'Idade deve ser positiva'),
 ### Exemplo Completo (Detento)
 
 ```typescript
-import { z } from "zod";
-import { Regime, Escolaridade } from "../types";
+import { z } from 'zod';
+import { Regime, Escolaridade } from '../types';
 
 export const createDetentoSchema = z.object({
-  nome: z.string().min(1, "Nome é obrigatório"),
-  prontuario: z.string().min(1, "Prontuário é obrigatório"),
-  cpf: z.string().min(11, "CPF deve ter 11 dígitos").max(14, "CPF inválido"),
-  data_nascimento: z.string().min(1, "Data de nascimento é obrigatória"),
+  nome: z.string().min(1, 'Nome é obrigatório'),
+  prontuario: z.string().min(1, 'Prontuário é obrigatório'),
+  cpf: z.string().min(11, 'CPF deve ter 11 dígitos').max(14, 'CPF inválido'),
+  data_nascimento: z.string().min(1, 'Data de nascimento é obrigatória'),
   regime: z.nativeEnum(Regime).default(Regime.FECHADO),
   escolaridade: z.nativeEnum(Escolaridade).default(Escolaridade.FUNDAMENTAL),
-  unidade_id: z.string().min(1, "Unidade é obrigatória"),
+  unidade_id: z.string().min(1, 'Unidade é obrigatória'),
 });
 
 export type CreateDetentoSchema = z.infer<typeof createDetentoSchema>;
@@ -164,7 +164,7 @@ export type UpdateDetentoSchema = CreateDetentoSchema & { detentoId: string };
 ### Tipos
 
 1. **SEMPRE** use `{feature}_id` como identificador único
-2. **SEMPRE** inclua `created_at`, `updated_at`, `created_by?`, `updated_by?`
+2. **SEMPRE** inclua `createdAt`, `updatedAt`, `created_by?`, `updated_by?`
 3. **SEMPRE** use enums para campos com valores fixos
 4. **SEMPRE** crie tipo `{Feature}ListParams` para paginação
 5. **NUNCA** use `any` ou tipos genéricos demais
@@ -197,8 +197,8 @@ export type {Feature} = {
   {feature}_id: string;
   nome: string;
   status: {Feature}Status;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
   created_by?: string;
   updated_by?: string;
 };

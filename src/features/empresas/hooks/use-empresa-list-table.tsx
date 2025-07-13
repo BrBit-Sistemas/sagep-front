@@ -49,7 +49,7 @@ export const useEmpresaListTable = () => {
         valueFormatter: (value: string) => formatCnpj(value),
       },
       {
-        field: 'created_at',
+        field: 'createdAt',
         headerName: 'Criado em',
         flex: 1,
         valueFormatter: (value) => new Date(value).toLocaleDateString('pt-BR'),

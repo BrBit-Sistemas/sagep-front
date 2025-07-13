@@ -44,7 +44,7 @@ export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadast
             withCredentials
           />
         </PdfWorker>
-        <CardContent>{fDateTime(fichaCadastral.created_at)}</CardContent>
+        <CardContent>{fDateTime(fichaCadastral.createdAt)}</CardContent>
       </CardActionArea>
     </Card>
   );

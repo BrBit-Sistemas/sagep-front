@@ -1,8 +1,10 @@
 import type { AuditableEntity } from 'src/types';
+import type { Regional } from 'src/features/regionais/types';
 
 export type UnidadePrisional = {
-  unidade_id: string;
+  id: string;
   nome: string;
+  regional: Regional;
 } & AuditableEntity;
 
 export type UnidadePrisionalListParams = {

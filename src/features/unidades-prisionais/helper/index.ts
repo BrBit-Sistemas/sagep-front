@@ -5,4 +5,5 @@ export const unidadePrisionalToFormValues = (
   unidade: UnidadePrisional
 ): CreateUnidadePrisionalSchema => ({
   nome: unidade?.nome ?? '',
+  regionalId: unidade?.regional?.id ?? '',
 });

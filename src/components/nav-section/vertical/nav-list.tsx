@@ -31,7 +31,7 @@ export function NavList({
     if (!isActive) {
       onClose();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [pathname]);
 
   const handleToggleMenu = useCallback(() => {

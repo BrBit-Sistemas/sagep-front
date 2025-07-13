@@ -49,7 +49,7 @@ export function SettingsProvider({
         onReset();
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   const memoizedValue = useMemo(

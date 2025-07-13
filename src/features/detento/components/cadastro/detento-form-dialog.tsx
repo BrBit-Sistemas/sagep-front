@@ -178,8 +178,8 @@ export const DetentoFormDialog = ({
                 ) : (
                   unidades.map((unidade) => (
                     <MenuItem
-                      key={unidade.unidade_id}
-                      value={unidade.unidade_id}
+                      key={unidade.id}
+                      value={unidade.id}
                       sx={{ textTransform: 'capitalize' }}
                     >
                       {unidade.nome}

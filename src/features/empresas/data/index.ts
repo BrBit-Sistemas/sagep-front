@@ -7,8 +7,8 @@ export const empresas: Empresa[] = [
     empresa_id: '1',
     razao_social: 'Construtora ABC Ltda',
     cnpj: '12345678000195',
-    created_at: '2021-01-01',
-    updated_at: '2021-01-01',
+    createdAt: '2021-01-01',
+    updatedAt: '2021-01-01',
     created_by: '1',
     updated_by: '1',
   },
@@ -16,8 +16,8 @@ export const empresas: Empresa[] = [
     empresa_id: '2',
     razao_social: 'Serviços XYZ S.A.',
     cnpj: '98765432000176',
-    created_at: '2021-01-01',
-    updated_at: '2021-01-01',
+    createdAt: '2021-01-01',
+    updatedAt: '2021-01-01',
     created_by: '1',
     updated_by: '1',
   },
@@ -25,8 +25,8 @@ export const empresas: Empresa[] = [
     empresa_id: '3',
     razao_social: 'Tecnologia DEF Eireli',
     cnpj: '11223344000155',
-    created_at: '2021-01-01',
-    updated_at: '2021-01-01',
+    createdAt: '2021-01-01',
+    updatedAt: '2021-01-01',
     created_by: '1',
     updated_by: '1',
   },
@@ -63,8 +63,8 @@ export const empresaService: CrudService<
     const newEmpresa: Empresa = {
       ...data,
       empresa_id: crypto.randomUUID(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       created_by: '1',
       updated_by: '1',
     };
@@ -90,7 +90,7 @@ export const empresaService: CrudService<
     empresas[empresaIndex] = {
       ...empresa,
       ...data,
-      updated_at: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       updated_by: '1',
     };
 

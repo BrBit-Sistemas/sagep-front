@@ -63,13 +63,13 @@ export const DetentoDetailsTab = ({ detento }: DetentoDetailsTabProps) => (
       <Grid size={{ xs: 12, md: 6 }}>
         <Typography variant="subtitle2">Criado em</Typography>
         <Typography variant="body2" color="text.secondary">
-          {detento.created_at}
+          {detento.createdAt}
         </Typography>
       </Grid>
       <Grid size={{ xs: 12, md: 6 }}>
         <Typography variant="subtitle2">Atualizado em</Typography>
         <Typography variant="body2" color="text.secondary">
-          {detento.updated_at}
+          {detento.updatedAt}
         </Typography>
       </Grid>
       {detento.created_by && (

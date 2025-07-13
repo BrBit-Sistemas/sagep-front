@@ -6,24 +6,24 @@ export const profissoes: Profissao[] = [
   {
     profissao_id: '1',
     nome: 'Advogado',
-    created_at: '2021-01-01',
-    updated_at: '2021-01-01',
+    createdAt: '2021-01-01',
+    updatedAt: '2021-01-01',
     created_by: '1',
     updated_by: '1',
   },
   {
     profissao_id: '2',
     nome: 'Pedreiro',
-    created_at: '2021-01-01',
-    updated_at: '2021-01-01',
+    createdAt: '2021-01-01',
+    updatedAt: '2021-01-01',
     created_by: '1',
     updated_by: '1',
   },
   {
     profissao_id: '3',
     nome: 'Professor',
-    created_at: '2021-01-01',
-    updated_at: '2021-01-01',
+    createdAt: '2021-01-01',
+    updatedAt: '2021-01-01',
     created_by: '1',
     updated_by: '1',
   },
@@ -59,8 +59,8 @@ export const profissaoService: CrudService<
     const newProfissao: Profissao = {
       ...data,
       profissao_id: crypto.randomUUID(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       created_by: '1',
       updated_by: '1',
     };
@@ -86,7 +86,7 @@ export const profissaoService: CrudService<
     profissoes[profissaoIndex] = {
       ...profissao,
       ...data,
-      updated_at: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       updated_by: '1',
     };
 

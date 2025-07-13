@@ -5,6 +5,8 @@ import { useMemo, useCallback } from 'react';
 
 import { useTheme } from '@mui/material/styles';
 
+import { fDateTime } from 'src/utils/format-time';
+
 import { Iconify } from 'src/components/iconify';
 import { CustomGridActionsCellItem } from 'src/components/custom-data-grid';
 
@@ -31,20 +33,20 @@ export const useUnidadePrisionalListTable = () => {
   const columns = useMemo(
     (): GridColDef<UnidadePrisional>[] => [
       {
-        field: 'unidade_id',
-        headerName: 'ID',
-        flex: 1,
-      },
-      {
         field: 'nome',
         headerName: 'Nome',
         flex: 2,
       },
       {
-        field: 'created_at',
+        field: 'regional',
+        headerName: 'Regional',
+        flex: 1,
+      },
+      {
+        field: 'createdAt',
         headerName: 'Criado em',
         flex: 1,
-        valueFormatter: (value) => new Date(value).toLocaleDateString('pt-BR'),
+        valueFormatter: (value) => fDateTime(value),
       },
       {
         type: 'actions',

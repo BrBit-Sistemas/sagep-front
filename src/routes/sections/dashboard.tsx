@@ -35,6 +35,10 @@ const UnidadePrisionalCadastroPage = lazy(
 );
 const EmpresaCadastroPage = lazy(() => import('src/features/empresas/pages/cadastro'));
 const ProfissaoCadastroPage = lazy(() => import('src/features/profissoes/pages/cadastro'));
+const RegionalCadastroPage = lazy(() => import('src/features/regionais/pages/regional-cadastro'));
+const SecretariaCadastroPage = lazy(
+  () => import('src/features/secretarias/pages/secretaria-cadastro')
+);
 const IndexPage = lazy(() => import('src/pages/dashboard/one'));
 
 export const dashboardRoutes: RouteObject[] = [
@@ -70,6 +74,14 @@ export const dashboardRoutes: RouteObject[] = [
       {
         path: 'profissoes',
         element: <ProfissaoCadastroPage />,
+      },
+      {
+        path: 'regionais',
+        element: <RegionalCadastroPage />,
+      },
+      {
+        path: 'secretarias',
+        element: <SecretariaCadastroPage />,
       },
     ],
   },
