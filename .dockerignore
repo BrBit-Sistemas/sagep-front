@@ -8,11 +8,7 @@ yarn-error.log*
 dist
 build
 
-# Development files
-.env.local
-.env.development
-.env.test
-*.local
+
 
 # IDE files
 .vscode

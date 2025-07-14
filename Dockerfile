@@ -16,6 +16,9 @@ RUN npm ci --silent && \
 # Copiar código fonte
 COPY . .
 
+# LOG do valor da variável de ambiente VITE_SERVER_URL
+RUN echo "VITE_SERVER_URL do .env:" && grep VITE_SERVER_URL .env || echo "VITE_SERVER_URL não encontrado no .env"
+
 # Build da aplicação
 RUN npm run build
 
