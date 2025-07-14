@@ -6,6 +6,46 @@ RUN apk add --no-cache git
 
 WORKDIR /app
 
+# Defina os argumentos de build para as variáveis de ambiente
+ARG VITE_SERVER_URL
+ARG VITE_ASSETS_DIR
+ARG VITE_MAPBOX_API_KEY
+ARG VITE_FIREBASE_API_KEY
+ARG VITE_FIREBASE_AUTH_DOMAIN
+ARG VITE_FIREBASE_PROJECT_ID
+ARG VITE_FIREBASE_STORAGE_BUCKET
+ARG VITE_FIREBASE_MESSAGING_SENDER_ID
+ARG VITE_FIREBASE_APPID
+ARG VITE_FIREBASE_MEASUREMENT_ID
+ARG VITE_AWS_AMPLIFY_USER_POOL_ID
+ARG VITE_AWS_AMPLIFY_USER_POOL_WEB_CLIENT_ID
+ARG VITE_AWS_AMPLIFY_REGION
+ARG VITE_AUTH0_CLIENT_ID
+ARG VITE_AUTH0_DOMAIN
+ARG VITE_AUTH0_CALLBACK_URL
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_ANON_KEY
+
+# Crie o arquivo .env a partir dos argumentos de build
+RUN echo "VITE_SERVER_URL=${VITE_SERVER_URL}" > .env && \
+    echo "VITE_ASSETS_DIR=${VITE_ASSETS_DIR}" >> .env && \
+    echo "VITE_MAPBOX_API_KEY=${VITE_MAPBOX_API_KEY}" >> .env && \
+    echo "VITE_FIREBASE_API_KEY=${VITE_FIREBASE_API_KEY}" >> .env && \
+    echo "VITE_FIREBASE_AUTH_DOMAIN=${VITE_FIREBASE_AUTH_DOMAIN}" >> .env && \
+    echo "VITE_FIREBASE_PROJECT_ID=${VITE_FIREBASE_PROJECT_ID}" >> .env && \
+    echo "VITE_FIREBASE_STORAGE_BUCKET=${VITE_FIREBASE_STORAGE_BUCKET}" >> .env && \
+    echo "VITE_FIREBASE_MESSAGING_SENDER_ID=${VITE_FIREBASE_MESSAGING_SENDER_ID}" >> .env && \
+    echo "VITE_FIREBASE_APPID=${VITE_FIREBASE_APPID}" >> .env && \
+    echo "VITE_FIREBASE_MEASUREMENT_ID=${VITE_FIREBASE_MEASUREMENT_ID}" >> .env && \
+    echo "VITE_AWS_AMPLIFY_USER_POOL_ID=${VITE_AWS_AMPLIFY_USER_POOL_ID}" >> .env && \
+    echo "VITE_AWS_AMPLIFY_USER_POOL_WEB_CLIENT_ID=${VITE_AWS_AMPLIFY_USER_POOL_WEB_CLIENT_ID}" >> .env && \
+    echo "VITE_AWS_AMPLIFY_REGION=${VITE_AWS_AMPLIFY_REGION}" >> .env && \
+    echo "VITE_AUTH0_CLIENT_ID=${VITE_AUTH0_CLIENT_ID}" >> .env && \
+    echo "VITE_AUTH0_DOMAIN=${VITE_AUTH0_DOMAIN}" >> .env && \
+    echo "VITE_AUTH0_CALLBACK_URL=${VITE_AUTH0_CALLBACK_URL}" >> .env && \
+    echo "VITE_SUPABASE_URL=${VITE_SUPABASE_URL}" >> .env && \
+    echo "VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}" >> .env
+
 # Copiar arquivos de dependências primeiro para aproveitar cache do Docker
 COPY package.json package-lock.json ./
 
@@ -15,9 +55,6 @@ RUN npm ci --silent && \
 
 # Copiar código fonte
 COPY . .
-
-# LOG do valor da variável de ambiente VITE_SERVER_URL
-RUN echo "VITE_SERVER_URL do .env:" && grep VITE_SERVER_URL .env || echo "VITE_SERVER_URL não encontrado no .env"
 
 # Build da aplicação
 RUN npm run build
