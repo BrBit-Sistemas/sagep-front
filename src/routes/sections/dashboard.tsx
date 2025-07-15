@@ -39,6 +39,7 @@ const RegionalCadastroPage = lazy(() => import('src/features/regionais/pages/reg
 const SecretariaCadastroPage = lazy(
   () => import('src/features/secretarias/pages/secretaria-cadastro')
 );
+const UserCadastroPage = lazy(() => import('src/features/users/pages/cadastro'));
 const IndexPage = lazy(() => import('src/pages/dashboard/one'));
 
 export const dashboardRoutes: RouteObject[] = [
@@ -62,6 +63,10 @@ export const dashboardRoutes: RouteObject[] = [
             element: <DetentoDetalhesPage />,
           },
         ],
+      },
+      {
+        path: 'users',
+        element: <UserCadastroPage />,
       },
       {
         path: 'unidades-prisionais',

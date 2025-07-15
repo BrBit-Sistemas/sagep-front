@@ -1,4 +1,4 @@
-import type { CreateSecretariaDto } from 'src/api/generated';
+import type { CreateSecretariaSchema } from '../schemas';
 
 import { toast } from 'sonner';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -12,7 +12,7 @@ export const useCreateSecretaria = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateSecretariaDto) => secretariaService.create(data),
+    mutationFn: (data: CreateSecretariaSchema) => secretariaService.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: secretariaKeys.all });
       toast.success('Secretaria criada com sucesso');

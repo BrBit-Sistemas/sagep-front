@@ -59,6 +59,11 @@ export const navData: NavSectionProps['data'] = [
     subheader: 'Core',
     items: [
       {
+        title: 'Usuários',
+        path: paths.users.root,
+        icon: ICONS.user,
+      },
+      {
         title: 'Unidades Prisionais',
         path: paths.unidadesPrisionais.root,
         icon: ICONS.banking,

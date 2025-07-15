@@ -1,4 +1,4 @@
-import type { Secretaria } from 'src/api/generated';
+import type { Secretaria } from 'src/api/generated.schemas';
 
 import { create } from 'zustand';
 

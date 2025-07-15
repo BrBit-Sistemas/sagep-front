@@ -96,11 +96,11 @@ export const schemaHelper = {
    * File
    * Apply for upload single file.
    */
-  file: (props?: { message: string }) =>
+  file: (props?: { message?: string; required?: boolean }) =>
     zod.custom<File | string | null>().transform((data, ctx) => {
       const hasFile = data instanceof File || (typeof data === 'string' && !!data.length);
 
-      if (!hasFile) {
+      if (!hasFile && props?.required) {
         ctx.addIssue({
           code: zod.ZodIssueCode.custom,
           message: props?.message ?? 'File is required!',

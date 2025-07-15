@@ -1,5 +1,5 @@
 import type { GridColDef } from '@mui/x-data-grid';
-import type { Secretaria } from 'src/api/generated';
+import type { Secretaria } from 'src/api/generated.schemas';
 
 import { useMemo } from 'react';
 

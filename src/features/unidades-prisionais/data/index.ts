@@ -3,11 +3,11 @@ import type {
   ReadUnidadePrisionalDto,
   CreateUnidadePrisionalDto,
   UpdateUnidadePrisionalDto,
-} from 'src/api/generated';
+} from 'src/api/generated.schemas';
 
-import { getSAGEPCoreAPI } from 'src/api/generated';
+import { getUnidadesPrisionais } from 'src/api/unidades-prisionais/unidades-prisionais';
 
-const api = getSAGEPCoreAPI();
+const api = getUnidadesPrisionais();
 
 export const unidadePrisionalService: CrudService<
   ReadUnidadePrisionalDto,
@@ -15,9 +15,9 @@ export const unidadePrisionalService: CrudService<
   UpdateUnidadePrisionalDto,
   PaginatedParams
 > = {
-  paginate: async ({ page, limit }) => api.unidadePrisionalFindAll({ page, limit }),
-  create: async (data) => api.unidadePrisionalCreate(data),
-  read: async (id) => api.unidadePrisionalFindOne(id),
-  update: async (id, data) => api.unidadePrisionalUpdate(id, data),
-  delete: async (id) => api.unidadePrisionalRemove(id),
+  paginate: async (params) => api.findAll(params),
+  create: async (data) => api.create(data),
+  read: async (id) => api.findOne(id),
+  update: async (id, data) => api.update(id, data),
+  delete: async (id) => api.remove(id),
 };

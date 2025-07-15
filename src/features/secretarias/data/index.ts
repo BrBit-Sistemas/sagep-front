@@ -3,11 +3,11 @@ import type {
   ReadSecretariaDto,
   CreateSecretariaDto,
   UpdateSecretariaDto,
-} from 'src/api/generated';
+} from 'src/api/generated.schemas';
 
-import { getSAGEPCoreAPI } from 'src/api/generated';
+import { getSecretarias } from 'src/api/secretarias/secretarias';
 
-const api = getSAGEPCoreAPI();
+const api = getSecretarias();
 
 export const secretariaService: CrudService<
   ReadSecretariaDto,
@@ -15,9 +15,9 @@ export const secretariaService: CrudService<
   UpdateSecretariaDto,
   PaginatedParams
 > = {
-  paginate: async (params: PaginatedParams) => api.secretariaFindAll(params),
-  create: async (data: CreateSecretariaDto) => api.secretariaCreate(data),
-  read: async (id: string) => api.secretariaFindOne(id),
-  update: async (id: string, data: UpdateSecretariaDto) => api.secretariaUpdate(id, data),
-  delete: async (id: string) => api.secretariaRemove(id),
+  paginate: async (params: PaginatedParams) => api.findAll(params),
+  create: async (data: CreateSecretariaDto) => api.create(data),
+  read: async (id: string) => api.findOne(id),
+  update: async (id: string, data: UpdateSecretariaDto) => api.update(id, data),
+  delete: async (id: string) => api.remove(id),
 };

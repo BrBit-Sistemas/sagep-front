@@ -6,6 +6,7 @@ export default defineConfig({
       target: 'http://localhost:3001/api/docs-json',
     },
     output: {
+      mode: 'tags-split',
       target: './src/api/generated.ts',
       client: 'axios',
       prettier: true,
@@ -15,7 +16,10 @@ export default defineConfig({
           name: 'customInstance',
         },
         transformer: (operation) => {
-          operation.operationName = operation.operationName.replace('Controller', '');
+          if (operation.operationId.includes('_')) {
+            const [, name] = operation.operationId.split('_');
+            operation.operationName = name;
+          }
           return operation;
         },
       },

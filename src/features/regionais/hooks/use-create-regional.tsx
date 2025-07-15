@@ -1,4 +1,4 @@
-import type { CreateRegionalDto } from 'src/api/generated';
+import type { CreateRegionalSchema } from '../schemas';
 
 import { toast } from 'sonner';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -12,7 +12,7 @@ export const useCreateRegional = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateRegionalDto) => regionalService.create(data),
+    mutationFn: (data: CreateRegionalSchema) => regionalService.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: regionalKeys.all });
       toast.success('Regional criada com sucesso');

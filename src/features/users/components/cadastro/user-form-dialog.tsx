@@ -1,0 +1,194 @@
+import type { z } from 'zod';
+import type { CreateUserSchema, UpdateUserSchema } from 'src/features/users/schemas';
+
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+import {
+  Grid,
+  Button,
+  Dialog,
+  MenuItem,
+  Typography,
+  DialogTitle,
+  DialogActions,
+  DialogContent,
+} from '@mui/material';
+
+import { useCreateUser } from 'src/features/users/hooks/use-create-user';
+import { useUpdateUser } from 'src/features/users/hooks/use-update-user';
+import { createUserSchema, updateUserSchema } from 'src/features/users/schemas';
+import { useListRegionais } from 'src/features/regionais/hooks/use-list-regionais';
+import { useListSecretarias } from 'src/features/secretarias/hooks/use-list-secretaria';
+import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/use-unidade-prisional-list';
+
+import { Form, Field } from 'src/components/hook-form';
+
+type UserFormDialogProps = {
+  onSuccess: () => void;
+  onClose: () => void;
+  open: boolean;
+  defaultValues?: UpdateUserSchema;
+  userId?: string;
+};
+
+const INITIAL_VALUES: CreateUserSchema = {
+  nome: '',
+  email: '',
+  avatarUrl: null,
+  senha: '',
+  confirmarSenha: '',
+};
+
+const getFormSchema = (isEditing: boolean) => (isEditing ? updateUserSchema : createUserSchema);
+
+export const UserFormDialog = ({
+  onSuccess,
+  onClose,
+  open,
+  defaultValues,
+  userId,
+}: UserFormDialogProps) => {
+  const { mutateAsync: createUser, isPending: isCreating } = useCreateUser();
+  const { mutateAsync: updateUser, isPending: isUpdating } = useUpdateUser();
+
+  const { data: { items: regionais } = { items: [] } } = useListRegionais({
+    page: 0,
+    limit: 1000,
+  });
+
+  const { data: { items: secretarias } = { items: [] } } = useListSecretarias({
+    page: 0,
+    limit: 1000,
+  });
+
+  const { data: { items: unidades } = { items: [] } } = useUnidadePrisionalList({
+    page: 0,
+    limit: 1000,
+  });
+
+  const isEditing = !!userId;
+  const isLoading = isCreating || isUpdating;
+
+  const schema = getFormSchema(isEditing);
+  type FormSchema = z.infer<typeof schema>;
+
+  const methods = useForm<FormSchema>({
+    resolver: zodResolver(schema),
+    defaultValues: isEditing ? defaultValues : INITIAL_VALUES,
+  });
+
+  const onSubmit = methods.handleSubmit(async (data) => {
+    if (isEditing) {
+      await updateUser(data as UpdateUserSchema);
+    } else {
+      await createUser(data as CreateUserSchema);
+    }
+    methods.reset(INITIAL_VALUES);
+    onSuccess();
+  });
+
+  const [regionalId, secretariaId, unidadeId] = methods.watch([
+    'regionalId',
+    'secretariaId',
+    'unidadeId',
+  ]);
+
+  useEffect(() => {
+    if (isEditing) methods.reset(defaultValues);
+    else methods.reset(INITIAL_VALUES);
+  }, [isEditing, defaultValues, methods]);
+
+  return (
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle>{isEditing ? 'Editar' : 'Adicionar'} Usuário</DialogTitle>
+
+      <DialogContent>
+        <Typography sx={{ mb: 3 }}>
+          Preencha os campos abaixo para {isEditing ? 'editar' : 'adicionar'} um novo usuário.
+        </Typography>
+
+        <Form methods={methods} onSubmit={onSubmit}>
+          <Grid container spacing={3}>
+            <Grid size={{ xs: 12 }}>
+              <Field.UploadAvatar name="avatarUrl" />
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <Field.Text name="nome" label="Nome Completo" />
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Field.Text name="email" label="Endereço de Email" />
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Field.Select
+                name="secretariaId"
+                label="Secretaria"
+                disabled={!!regionalId || !!unidadeId}
+              >
+                {secretarias.map((secretaria) => (
+                  <MenuItem key={secretaria.id} value={secretaria.id}>
+                    {secretaria.nome}
+                  </MenuItem>
+                ))}
+              </Field.Select>
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Field.Select
+                name="regionalId"
+                label="Regional"
+                disabled={!!secretariaId || !!unidadeId}
+              >
+                {regionais.map((regional) => (
+                  <MenuItem key={regional.id} value={regional.id}>
+                    {regional.nome}
+                  </MenuItem>
+                ))}
+              </Field.Select>
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Field.Select
+                name="unidadeId"
+                label="Unidade Prisional"
+                disabled={!!secretariaId || !!regionalId}
+              >
+                {unidades.map((unidade) => (
+                  <MenuItem key={unidade.id} value={unidade.id}>
+                    {unidade.nome}
+                  </MenuItem>
+                ))}
+              </Field.Select>
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <Field.Text
+                name="senha"
+                label="Senha"
+                type="password"
+                helperText={isEditing ? 'Deixe em branco para não alterar' : ''}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <Field.Text name="confirmarSenha" label="Confirmar Senha" type="password" />
+            </Grid>
+          </Grid>
+        </Form>
+      </DialogContent>
+
+      <DialogActions>
+        <Button onClick={onClose} variant="outlined">
+          Cancelar
+        </Button>
+        <Button onClick={onSubmit} variant="contained" color="primary" disabled={isLoading}>
+          {isEditing ? 'Atualizar' : 'Adicionar'}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};

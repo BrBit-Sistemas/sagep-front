@@ -1,4 +1,4 @@
-import type { CreateUnidadePrisionalDto } from 'src/api/generated';
+import type { CreateUnidadePrisionalSchema } from '../schemas';
 
 import { toast } from 'sonner';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -12,7 +12,7 @@ export const useCreateUnidadePrisional = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateUnidadePrisionalDto) => unidadePrisionalService.create(data),
+    mutationFn: (data: CreateUnidadePrisionalSchema) => unidadePrisionalService.create(data),
     onSuccess: () => toast.success('Unidade Prisional criada com sucesso'),
     onError: (error) => toast.error(handleError(error)),
     onSettled: () => queryClient.invalidateQueries({ queryKey: unidadePrisionalKeys.all }),
