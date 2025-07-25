@@ -22,6 +22,7 @@ export const DetentoFichaCadastralTab = ({ detento }: DetentoFichaCadastralTabPr
   return (
     <>
       <DetentoFichaCadastralDialogForm
+        detento={detento}
         detentoId={detento.detento_id}
         open={isFichaCadastralDialogOpen}
         onClose={closeFichaCadastralDialog}

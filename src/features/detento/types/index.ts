@@ -91,5 +91,10 @@ export type DetentoFichaCadastral = {
 export type DetentoService = {
   getFichasCadastrais: (detentoId: string) => Promise<DetentoFichaCadastral[]>;
   createFichaCadastral: (data: CreateDetentoFichaCadastralSchema) => Promise<any>;
+  updateFichaCadastral: (
+    fichacadastral_id: string,
+    data: CreateDetentoFichaCadastralSchema
+  ) => Promise<any>;
+  deleteFichaCadastral: (fichacadastral_id: string) => Promise<any>;
   getFichaCadastralPdfUrl: (fichacadastral_id: string) => Promise<string>;
 } & CrudService<Detento, CreateDetentoSchema, UpdateDetentoSchema, PaginatedParams>;

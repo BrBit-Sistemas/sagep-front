@@ -1,8 +1,10 @@
+import type { Detento } from '../../types';
 import type { CreateDetentoFichaCadastralSchema } from '../../schemas';
 
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
 
 import Grid from '@mui/material/Grid';
 import Dialog from '@mui/material/Dialog';
@@ -15,9 +17,11 @@ import DialogContent from '@mui/material/DialogContent';
 import { Form, Field } from 'src/components/hook-form';
 
 import { detentoService } from '../../data';
+import { detentoKeys } from '../../hooks/keys';
 import { createDetentoFichaCadastralSchema } from '../../schemas';
 
 type DetentoFichaCadastralDialogFormProps = {
+  detento: Detento;
   detentoId: string;
   fichaCadastralId?: string;
   defaultValues?: CreateDetentoFichaCadastralSchema;
@@ -78,6 +82,7 @@ const INITIAL_VALUES: CreateDetentoFichaCadastralSchema = {
 };
 
 export const DetentoFichaCadastralDialogForm = ({
+  detento,
   detentoId,
   fichaCadastralId,
   defaultValues,
@@ -85,16 +90,43 @@ export const DetentoFichaCadastralDialogForm = ({
   onClose,
 }: DetentoFichaCadastralDialogFormProps) => {
   const isEditing = !!fichaCadastralId;
+  const queryClient = useQueryClient();
+
+  console.log('detento', detento);
+
+  // Preenche valores iniciais com dados do detento se não for edição
+  const initialValues = isEditing
+    ? defaultValues
+    : {
+        ...INITIAL_VALUES,
+        detento_id: detento.detento_id,
+        nome: detento.nome,
+        cpf: detento.cpf,
+        prontuario: detento.prontuario,
+        data_nascimento: detento.data_nascimento,
+        regime: detento.regime,
+        escolaridade: detento.escolaridade,
+        unidade_prisional: detento.unidade_id,
+      };
 
   const methods = useForm({
     resolver: zodResolver(createDetentoFichaCadastralSchema),
-    defaultValues: isEditing ? defaultValues : INITIAL_VALUES,
+    defaultValues: initialValues,
   });
 
   const handleSubmit = methods.handleSubmit(
     async (data) => {
-      await detentoService.createFichaCadastral({ ...data, detento_id: detentoId });
-      alert('Ficha cadastral criada com sucesso!');
+      if (isEditing && fichaCadastralId) {
+        await detentoService.updateFichaCadastral(fichaCadastralId, {
+          ...data,
+          detento_id: detentoId,
+        });
+        alert('Ficha cadastral atualizada com sucesso!');
+      } else {
+        await detentoService.createFichaCadastral({ ...data, detento_id: detentoId });
+        alert('Ficha cadastral criada com sucesso!');
+      }
+      await queryClient.invalidateQueries({ queryKey: detentoKeys.fichasCadastrais(detentoId) });
       methods.reset();
       onClose();
     },
@@ -110,9 +142,23 @@ export const DetentoFichaCadastralDialogForm = ({
   };
 
   useEffect(() => {
-    if (isEditing) methods.reset(defaultValues);
-    else methods.reset(INITIAL_VALUES);
-  }, [isEditing, defaultValues, methods]);
+    if (isEditing) {
+      methods.reset(defaultValues);
+    } else if (open) {
+      // Preenche os campos com os dados do detento ao abrir para criar
+      methods.reset({
+        ...INITIAL_VALUES,
+        detento_id: detento.detento_id,
+        nome: detento.nome,
+        cpf: detento.cpf,
+        prontuario: detento.prontuario,
+        data_nascimento: detento.data_nascimento,
+        regime: detento.regime,
+        escolaridade: detento.escolaridade,
+        unidade_prisional: detento.unidade_id,
+      });
+    }
+  }, [isEditing, defaultValues, open, detento, methods]);
 
   return (
     <Dialog open={open} onClose={onClose}>

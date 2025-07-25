@@ -83,6 +83,10 @@ export const detentoService: DetentoService = {
     const ficha = await api.create(data as CreateFichaCadastralDto);
     return ficha;
   },
+  updateFichaCadastral: async (fichacadastral_id, data) => {
+    const api = getFichasCadastrais();
+    return api.update(fichacadastral_id, data);
+  },
   paginate: async ({ page, limit, search }) => ({
     totalPages: 1,
     page,
@@ -136,6 +140,10 @@ export const detentoService: DetentoService = {
       throw new Error('Detento não encontrado');
     }
     detentos = [...detentos.slice(0, detentoIndex), ...detentos.slice(detentoIndex + 1)];
+  },
+  deleteFichaCadastral: async (fichacadastral_id) => {
+    const api = getFichasCadastrais();
+    return api.remove(fichacadastral_id);
   },
   getFichaCadastralPdfUrl: async (fichacadastral_id: string) => {
     const { url } = await customInstance<{ url: string }>({
