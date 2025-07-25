@@ -462,3 +462,55 @@ export type RegionalControllerFindAllParams = {
    */
   search?: string;
 };
+
+export interface CreateFichaCadastralDto {
+  detento_id: string;
+  nome: string;
+  cpf: string;
+  rg: string;
+  rg_expedicao: string;
+  rg_orgao_uf: string;
+  data_nascimento: string;
+  naturalidade: string;
+  naturalidade_uf: string;
+  filiacao_mae: string;
+  filiacao_pai?: string;
+  regime: string;
+  unidade_prisional: string;
+  prontuario: string;
+  sei?: string;
+  planilha?: string;
+  cidade_processo?: string;
+  endereco: string;
+  regiao_administrativa: string;
+  telefone?: string;
+  escolaridade: string;
+  tem_problema_saude: boolean;
+  problema_saude?: string;
+  regiao_bloqueada?: string;
+  experiencia_profissional?: string;
+  fez_curso_sistema_prisional?: string;
+  ja_trabalhou_funap: boolean;
+  ano_trabalho_anterior?: string;
+  profissao_01?: string;
+  profissao_02?: string;
+  declaracao_veracidade: boolean;
+  responsavel_preenchimento?: string;
+  assinatura?: string;
+  data_assinatura?: string;
+  site_codigo?: string;
+  rodape_num_1?: string;
+  rodape_num_2?: string;
+  rodape_sei?: string;
+  pdf_path: string;
+}
+
+export interface UpdateFichaCadastralDto extends Partial<CreateFichaCadastralDto> {}
+
+export interface ReadFichaCadastralDto extends CreateFichaCadastralDto {
+  fichacadastral_id: string;
+  createdAt: string;
+  updatedAt: string;
+  created_by: string;
+  updated_by: string;
+}

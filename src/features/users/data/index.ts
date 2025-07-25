@@ -15,7 +15,13 @@ export const userService: CrudService<
 > = {
   paginate: (params: UserListParams) => api.paginate(params),
   read: (id: string) => api.findOne(id),
-  create: (data: CreateUserSchema) => api.create(data),
+  create: (data: CreateUserSchema) =>
+    api.create({
+      ...data,
+      secretariaId: data.secretariaId ?? '',
+      regionalId: data.regionalId ?? '',
+      unidadeId: data.unidadeId ?? '',
+    }),
   update: (id: string, data: UpdateUserSchema) => api.update(id, data),
   delete: (id: string) => api.remove(id),
 };
