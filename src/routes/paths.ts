@@ -9,6 +9,7 @@ const ROOTS = {
   REGIONAIS: '/regionais',
   DASHBOARD: '/dashboard',
   USERS: '/users',
+  SETTINGS: '/configuracoes',
 };
 
 // ----------------------------------------------------------------------
@@ -46,5 +47,8 @@ export const paths = {
   },
   users: {
     root: ROOTS.USERS,
+  },
+  settings: {
+    root: ROOTS.SETTINGS,
   },
 };

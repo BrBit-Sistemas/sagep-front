@@ -40,6 +40,7 @@ const ICONS = {
   ecommerce: icon('ic-ecommerce'),
   analytics: icon('ic-analytics'),
   dashboard: icon('ic-dashboard'),
+  settings: icon('ic-params'),
 };
 
 // ----------------------------------------------------------------------
@@ -92,6 +93,18 @@ export const navData: NavSectionProps['data'] = [
         title: 'Empresas',
         path: paths.empresas.root,
         icon: ICONS.ecommerce,
+      },
+    ],
+  },
+];
+
+export const navBottomData: NavSectionProps['data'] = [
+  {
+    items: [
+      {
+        title: 'Configurações',
+        path: paths.settings.root,
+        icon: ICONS.settings,
       },
     ],
   },

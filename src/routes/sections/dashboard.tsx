@@ -41,6 +41,7 @@ const SecretariaCadastroPage = lazy(
 );
 const UserCadastroPage = lazy(() => import('src/features/users/pages/cadastro'));
 const IndexPage = lazy(() => import('src/pages/dashboard/one'));
+const ConfiguracoesPage = lazy(() => import('src/features/configuracoes/pages/configuracoes'));
 
 export const dashboardRoutes: RouteObject[] = [
   {
@@ -50,6 +51,10 @@ export const dashboardRoutes: RouteObject[] = [
       {
         path: 'dashboard',
         element: <IndexPage />,
+      },
+      {
+        path: 'configuracoes',
+        element: <ConfiguracoesPage />,
       },
       {
         path: 'detentos',

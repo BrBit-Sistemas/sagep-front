@@ -68,6 +68,8 @@ export function NavVertical({
           sx={{ px: 2, pt: 2, flex: '1 1 auto' }}
         />
       </Scrollbar>
+
+      {slots?.bottomArea && <Box sx={{ px: 2, pb: 2, pt: 1 }}>{slots.bottomArea}</Box>}
     </>
   );
 

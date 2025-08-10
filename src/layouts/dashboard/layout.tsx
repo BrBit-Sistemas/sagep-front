@@ -1,5 +1,4 @@
 import type { Breakpoint } from '@mui/material/styles';
-import type { NavItemProps, NavSectionProps } from 'src/components/nav-section';
 import type { MainSectionProps, HeaderSectionProps, LayoutSectionProps } from '../core';
 
 import { merge } from 'es-toolkit';
@@ -12,6 +11,11 @@ import { iconButtonClasses } from '@mui/material/IconButton';
 
 import { Logo } from 'src/components/logo';
 import { useSettingsContext } from 'src/components/settings';
+import {
+  type NavItemProps,
+  NavSectionVertical,
+  type NavSectionProps,
+} from 'src/components/nav-section';
 
 import { useAuthContext } from 'src/auth/hooks';
 
@@ -23,9 +27,9 @@ import { _account } from '../nav-config-account';
 import { Searchbar } from '../components/searchbar';
 import { MenuButton } from '../components/menu-button';
 import { AccountDrawer } from '../components/account-drawer';
-import { navData as dashboardNavData } from '../nav-config-dashboard';
 import { dashboardLayoutVars, dashboardNavColorVars } from './css-vars';
 import { MainSection, layoutClasses, HeaderSection, LayoutSection } from '../core';
+import { navBottomData, navData as dashboardNavData } from '../nav-config-dashboard';
 
 // ----------------------------------------------------------------------
 
@@ -166,6 +170,16 @@ export function DashboardLayout({
           settings.state.navLayout === 'vertical' ? 'mini' : 'vertical'
         )
       }
+      slots={{
+        bottomArea: (
+          <NavSectionVertical
+            data={navBottomData}
+            cssVars={navVars.section}
+            checkPermissions={canDisplayItemByRole}
+            sx={{ px: 0 }}
+          />
+        ),
+      }}
     />
   );
 
