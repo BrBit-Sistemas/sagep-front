@@ -1,12 +1,15 @@
 # Step 1: Build the Vite React app
 FROM node:18-alpine AS build
 
-# Instalar dependências necessárias para builds
-RUN apk add --no-cache git
+# Toolchain e git (necessários para nativos e dependências via git)
+RUN apk add --no-cache git python3 make g++ pkgconfig libc6-compat
 
 WORKDIR /app
 
-# Defina os argumentos de build para as variáveis de ambiente
+# Se usar pacotes privados, descomente:
+# COPY .npmrc ./
+
+# Build args para .env de build do Vite
 ARG VITE_SERVER_URL
 ARG VITE_ASSETS_DIR
 ARG VITE_MAPBOX_API_KEY
@@ -26,7 +29,7 @@ ARG VITE_AUTH0_CALLBACK_URL
 ARG VITE_SUPABASE_URL
 ARG VITE_SUPABASE_ANON_KEY
 
-# Crie o arquivo .env a partir dos argumentos de build
+# Cria .env para o build do Vite
 RUN echo "VITE_SERVER_URL=${VITE_SERVER_URL}" > .env && \
     echo "VITE_ASSETS_DIR=${VITE_ASSETS_DIR}" >> .env && \
     echo "VITE_MAPBOX_API_KEY=${VITE_MAPBOX_API_KEY}" >> .env && \
@@ -46,65 +49,60 @@ RUN echo "VITE_SERVER_URL=${VITE_SERVER_URL}" > .env && \
     echo "VITE_SUPABASE_URL=${VITE_SUPABASE_URL}" >> .env && \
     echo "VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}" >> .env
 
-# Copiar arquivos de dependências primeiro para aproveitar cache do Docker
+# Copie apenas os manifests para aproveitar cache
 COPY package.json package-lock.json ./
 
-# Usar npm ci para instalar todas as dependências necessárias para o build
-RUN npm ci --silent && \
-    npm cache clean --force
+# (Opcional) alinhar versão do npm ao seu lockfile
+# RUN npm i -g npm@8   # se seu lock foi gerado no npm 8
 
-# Copiar código fonte
+# Instala dependências (sem --silent para ver erro)
+RUN npm ci --loglevel=info && npm cache clean --force
+
+# Copie o restante do código
 COPY . .
 
 # Build da aplicação
 RUN npm run build
 
-# Step 2: Serve the production build with nginx
+# Step 2: Nginx para servir
 FROM nginx:alpine
 
-# Instalar dumb-init para melhor handling de sinais
-RUN apk add --no-cache dumb-init
+# Necessário para o HEALTHCHECK que usa curl
+RUN apk add --no-cache dumb-init curl
 
-# Criar usuário não-root para segurança
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nextjs -u 1001
 
-# Copiar build da aplicação
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Configuração personalizada do nginx para SPA
-COPY <<EOF /etc/nginx/conf.d/default.conf
+# Config do nginx
+COPY <<'EOF' /etc/nginx/conf.d/default.conf
 server {
     listen 80;
     server_name localhost;
-    
+
     root /usr/share/nginx/html;
     index index.html;
-    
-    # Gzip compression
+
     gzip on;
     gzip_vary on;
     gzip_min_length 1024;
     gzip_types text/plain text/css text/xml text/javascript application/javascript application/xml+rss application/json;
-    
-    # Security headers
+
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-XSS-Protection "1; mode=block" always;
     add_header Referrer-Policy "no-referrer-when-downgrade" always;
-    
-    # Cache static assets
+
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
     }
-    
-    # Handle client-side routing
+
     location / {
-        try_files \$uri \$uri/ /index.html;
+        try_files $uri $uri/ /index.html;
     }
-    
-    # Health check endpoint
+
     location /health {
         access_log off;
         return 200 "healthy\n";
@@ -113,25 +111,15 @@ server {
 }
 EOF
 
-# Ajustar permissões
-RUN chown -R nextjs:nodejs /usr/share/nginx/html && \
-    chown -R nextjs:nodejs /var/cache/nginx && \
-    chown -R nextjs:nodejs /var/log/nginx && \
-    chown -R nextjs:nodejs /etc/nginx/conf.d && \
-    touch /var/run/nginx.pid && \
-    chown -R nextjs:nodejs /var/run/nginx.pid
-
-# Configurar nginx para rodar sem root
-RUN sed -i.bak 's/user nginx/user nextjs/' /etc/nginx/nginx.conf
+RUN chown -R nextjs:nodejs /usr/share/nginx/html /var/cache/nginx /var/log/nginx /etc/nginx/conf.d && \
+    touch /var/run/nginx.pid && chown -R nextjs:nodejs /var/run/nginx.pid && \
+    sed -i.bak 's/user nginx/user nextjs/' /etc/nginx/nginx.conf
 
 USER nextjs
-
 EXPOSE 80
 
-# Healthcheck
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost/health || exit 1
+  CMD curl -f http://localhost/health || exit 1
 
-# Usar dumb-init para melhor handling de sinais
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["nginx", "-g", "daemon off;"]
