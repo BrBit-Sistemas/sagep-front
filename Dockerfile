@@ -56,7 +56,9 @@ COPY package.json package-lock.json ./
 # RUN npm i -g npm@8   # se seu lock foi gerado no npm 8
 
 # Instala dependências (sem --silent para ver erro)
-RUN npm ci --loglevel=info && npm cache clean --force
+RUN npm install --package-lock-only --no-audit --no-fund \
+  && npm ci --loglevel=info \
+  && npm cache clean --force
 
 # Copie o restante do código
 COPY . .
