@@ -19,6 +19,7 @@ import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 
 import { type FieldError } from 'src/utils/handle-error';
+import { formatDateToDDMMYYYY } from 'src/utils/format-date';
 
 import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/use-unidade-prisional-list';
 
@@ -83,9 +84,15 @@ export const DetentoFormDialog = ({
     limit: 1000,
   });
 
+  // Format default values for display
+  const formattedDefaultValues = defaultValues ? {
+    ...defaultValues,
+    data_nascimento: defaultValues.data_nascimento ? formatDateToDDMMYYYY(defaultValues.data_nascimento) : '',
+  } : undefined;
+
   const methods = useForm({
     resolver: zodResolver(createDetentoSchema),
-    defaultValues: isEditing ? defaultValues : INITIAL_VALUES,
+    defaultValues: isEditing ? formattedDefaultValues : INITIAL_VALUES,
   });
 
   const handleSubmit = methods.handleSubmit(async (data) => {
@@ -125,9 +132,9 @@ export const DetentoFormDialog = ({
   });
 
   useEffect(() => {
-    if (isEditing) methods.reset(defaultValues);
+    if (isEditing) methods.reset(formattedDefaultValues);
     else methods.reset(INITIAL_VALUES);
-  }, [isEditing, defaultValues, methods]);
+  }, [isEditing, formattedDefaultValues, methods]);
 
   return (
     <Dialog open={open} onClose={onClose}>

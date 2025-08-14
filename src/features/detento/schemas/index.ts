@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { isValidRg } from 'src/utils/validate-rg';
 import { isValidCpf } from 'src/utils/validate-cpf';
 
 import { schemaHelper } from 'src/components/hook-form';
@@ -28,7 +29,10 @@ export const createDetentoFichaCadastralSchema = z.object({
     .string()
     .min(1, 'CPF é obrigatório')
     .refine((value) => isValidCpf(value), 'CPF inválido'),
-  rg: z.string().min(1, 'RG é obrigatório'),
+  rg: z
+    .string()
+    .min(1, 'RG é obrigatório')
+    .refine((value) => isValidRg(value), 'RG inválido'),
   rg_expedicao: z.string().min(1, 'Data de expedição é obrigatória'),
   rg_orgao_uf: z.string().min(1, 'Órgão expedidor/UF é obrigatório'),
   data_nascimento: z.string().min(1, 'Data de nascimento é obrigatória'),

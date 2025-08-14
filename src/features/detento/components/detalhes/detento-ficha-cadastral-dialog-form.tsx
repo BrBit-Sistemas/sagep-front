@@ -14,6 +14,10 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 
+import { formatDateToDDMMYYYY } from 'src/utils/format-date';
+
+import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/use-unidade-prisional-list';
+
 import { Form, Field } from 'src/components/hook-form';
 
 import { detentoService } from '../../data';
@@ -94,6 +98,17 @@ export const DetentoFichaCadastralDialogForm = ({
   const queryClient = useQueryClient();
   const [, setSearchParams] = useDetentoDetalhesSearchParams();
 
+  const { data: { items: unidades } = { items: [] } } = useUnidadePrisionalList({
+    page: 0,
+    limit: 1000,
+  });
+
+  // Find the unit name for display
+  const getUnidadeName = (unidadeId: string) => {
+    const unidade = unidades.find((u) => u.id === unidadeId);
+    return unidade?.nome || unidadeId;
+  };
+
   console.log('detento', detento);
 
   // Preenche valores iniciais com dados do detento se não for edição
@@ -105,10 +120,12 @@ export const DetentoFichaCadastralDialogForm = ({
         nome: detento.nome,
         cpf: detento.cpf,
         prontuario: detento.prontuario,
-        data_nascimento: detento.data_nascimento,
+        data_nascimento: detento.data_nascimento
+          ? formatDateToDDMMYYYY(detento.data_nascimento)
+          : '',
         regime: detento.regime,
         escolaridade: detento.escolaridade,
-        unidade_prisional: detento.unidade_id,
+        unidade_prisional: getUnidadeName(detento.unidade_id),
       };
 
   const methods = useForm({
@@ -156,13 +173,15 @@ export const DetentoFichaCadastralDialogForm = ({
         nome: detento.nome,
         cpf: detento.cpf,
         prontuario: detento.prontuario,
-        data_nascimento: detento.data_nascimento,
+        data_nascimento: detento.data_nascimento
+          ? formatDateToDDMMYYYY(detento.data_nascimento)
+          : '',
         regime: detento.regime,
         escolaridade: detento.escolaridade,
-        unidade_prisional: detento.unidade_id,
+        unidade_prisional: getUnidadeName(detento.unidade_id),
       });
     }
-  }, [isEditing, defaultValues, open, detento, methods]);
+  }, [isEditing, defaultValues, open, detento, methods, unidades]);
 
   return (
     <Dialog open={open} onClose={onClose}>
@@ -179,7 +198,7 @@ export const DetentoFichaCadastralDialogForm = ({
               <Field.Text name="nome" label="Nome completo" />
             </Grid>
             <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="cpf" label="CPF" />
+              <Field.Cpf name="cpf" label="CPF" />
             </Grid>
             <Grid size={{ md: 4, sm: 12 }}>
               <Field.Text name="rg" label="RG" />
