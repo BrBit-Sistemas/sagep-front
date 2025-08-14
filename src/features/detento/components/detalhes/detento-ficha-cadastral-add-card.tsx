@@ -5,11 +5,14 @@ import CardActionArea from '@mui/material/CardActionArea';
 import { Iconify } from 'src/components/iconify';
 
 import { useDetentoDetalhesStore } from '../../stores/detento-detalhes-store';
+import { useDetentoDetalhesSearchParams } from '../../hooks/use-dentento-detalhes-search-params';
 
 export const DetentoFichaCadastralAddCard = () => {
   const { openFichaCadastralCreateDialog } = useDetentoDetalhesStore();
+  const [, setSearchParams] = useDetentoDetalhesSearchParams();
 
   const handleCreate = () => {
+    setSearchParams({ tab: 'ficha_cadastral' });
     openFichaCadastralCreateDialog();
   };
 

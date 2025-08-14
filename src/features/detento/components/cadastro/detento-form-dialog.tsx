@@ -18,6 +18,8 @@ import {
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 
+import { type FieldError } from 'src/utils/handle-error';
+
 import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/use-unidade-prisional-list';
 
 import { Form, Field } from 'src/components/hook-form';
@@ -66,6 +68,16 @@ export const DetentoFormDialog = ({
 
   const isLoading = isEditing ? isUpdating : isCreating;
 
+  // Function to set field errors in the form
+  const setFieldErrors = (fieldErrors: FieldError[]) => {
+    fieldErrors.forEach(({ field, message }) => {
+      methods.setError(field as any, {
+        type: 'server',
+        message,
+      });
+    });
+  };
+
   const { data: { items: unidades } = { items: [] } } = useUnidadePrisionalList({
     page: 0,
     limit: 1000,
@@ -77,28 +89,39 @@ export const DetentoFormDialog = ({
   });
 
   const handleSubmit = methods.handleSubmit(async (data) => {
-    let _detentoId: string;
+    try {
+      let _detentoId: string;
 
-    if (isEditing) {
-      await updateDetento({ detentoId, ...data });
-      _detentoId = detentoId;
-    } else {
-      const newDetento = await createDetento(data);
-      _detentoId = newDetento.detento_id;
+      if (isEditing) {
+        await updateDetento({ detentoId, ...data });
+        _detentoId = detentoId;
+      } else {
+        const newDetento = await createDetento(data);
+        _detentoId = newDetento.id;
+      }
+
+      if (fillFichaCadastral) {
+        const path = paths.detentos.detalhes(_detentoId);
+        const url = detentoDetalhesSearchQuerySerializer(path, { tab: 'ficha_cadastral' });
+        router.push(url);
+        setTimeout(() => openFichaCadastralCreateDialog(), 0);
+      } else {
+        const path = paths.detentos.detalhes(_detentoId);
+        router.push(path);
+      }
+
+      methods.reset(INITIAL_VALUES);
+      onSuccess();
+    } catch (error: any) {
+      // Handle field-specific errors
+      if (error.fieldErrors && Array.isArray(error.fieldErrors)) {
+        setFieldErrors(error.fieldErrors);
+        return;
+      }
+
+      // Re-throw other errors to be handled by the mutation
+      throw error;
     }
-
-    if (fillFichaCadastral) {
-      const path = paths.detentos.detalhes(_detentoId);
-      const url = detentoDetalhesSearchQuerySerializer(path, { tab: 'ficha_cadastral' });
-      openFichaCadastralCreateDialog();
-      router.push(url);
-    } else {
-      const path = paths.detentos.detalhes(_detentoId);
-      router.push(path);
-    }
-
-    methods.reset(INITIAL_VALUES);
-    onSuccess();
   });
 
   useEffect(() => {
@@ -163,7 +186,7 @@ export const DetentoFormDialog = ({
 
             <Grid size={{ xs: 12, md: 6 }}>
               <Field.Select
-                name="unidadeId"
+                name="unidade_id"
                 label="Unidade Prisional"
                 disabled={!!defaultValues?.unidade_id}
               >
@@ -180,10 +203,13 @@ export const DetentoFormDialog = ({
 
       <DialogActions>
         <FormControlLabel
-          control={<Switch checked={fillFichaCadastral} />}
+          control={
+            <Switch
+              checked={fillFichaCadastral}
+              onChange={(_, checked) => setFillFichaCadastral(checked)}
+            />
+          }
           label="Preencher ficha cadastral?"
-          onChange={(_, checked) => setFillFichaCadastral(checked)}
-          checked={fillFichaCadastral}
           sx={{ mr: 'auto' }}
         />
         <Button onClick={onClose} variant="outlined" color="primary">

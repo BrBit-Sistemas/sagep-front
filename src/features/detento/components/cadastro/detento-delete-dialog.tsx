@@ -11,7 +11,7 @@ export const DetentoDeleteDialog = () => {
 
   const handleDeleteDetento = async () => {
     if (!selectedDetento) return;
-    await deleteDetento(selectedDetento.detento_id);
+    await deleteDetento(selectedDetento.id);
     closeDeleteDialog();
   };
 

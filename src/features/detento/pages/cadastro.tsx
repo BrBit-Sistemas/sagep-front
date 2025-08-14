@@ -74,7 +74,7 @@ export default function DetentoCadastroPage() {
           order={searchParams.order}
           onPaginationModelChange={handlePaginationModelChange}
           onSortModelChange={handleSortModelChange}
-          getRowId={(row) => row.detento_id}
+          getRowId={(row) => row.id}
         />
 
         <DetentoFormDialog
@@ -83,7 +83,7 @@ export default function DetentoCadastroPage() {
           onClose={closeCreateDialog}
           {...(selectedDetento && {
             defaultValues: detentoToFormValues(selectedDetento),
-            detentoId: selectedDetento.detento_id,
+            detentoId: selectedDetento.id,
           })}
         />
 

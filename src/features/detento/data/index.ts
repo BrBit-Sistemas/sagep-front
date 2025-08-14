@@ -1,35 +1,36 @@
-import type { Detento, DetentoService, DetentoFichaCadastral } from '../types';
-import type { CreateFichaCadastralDto, ReadFichaCadastralDto } from 'src/api/generated.schemas';
+import type { CreateFichaCadastralDto } from 'src/api/generated.schemas';
+import type { Regime, Detento, Escolaridade, DetentoService } from '../types';
 
-import { CONFIG } from 'src/global-config';
 import { customInstance } from 'src/lib/axios';
 import { getFichasCadastrais } from 'src/api/fichas-cadastrais';
-
-import { Regime, Escolaridade } from '../types';
+import { getDetentos, type ReadDetentoDto } from 'src/api/detentos/detentos';
 
 // Remover mock detento_fichas_cadastrais
 
-let detentos: Detento[] = [
-  {
-    detento_id: '1',
-    nome: 'João da Silva',
-    prontuario: '1234567890',
-    cpf: '12345678900',
-    data_nascimento: '1990-01-01',
-    regime: Regime.FECHADO,
-    escolaridade: Escolaridade.FUNDAMENTAL,
-    unidade_id: '1',
-    createdAt: '2021-01-01',
-    updatedAt: '2021-01-01',
-    created_by: '1',
-    updated_by: '1',
-  },
-];
+// API client
+const api = getDetentos();
+
+function toDetento(dto: ReadDetentoDto): Detento {
+  return {
+    id: dto.id,
+    nome: dto.nome,
+    prontuario: dto.prontuario,
+    cpf: dto.cpf,
+    data_nascimento: dto.data_nascimento,
+    regime: dto.regime as Regime,
+    escolaridade: dto.escolaridade as Escolaridade,
+    unidade_id: dto.unidade_id,
+    createdAt: dto.createdAt,
+    updatedAt: dto.updatedAt,
+    created_by: dto.created_by,
+    updated_by: dto.updated_by,
+  };
+}
 
 export const detentoService: DetentoService = {
   getFichasCadastrais: async (detentoId) => {
-    const api = getFichasCadastrais();
-    const response = await api.paginate({ detento_id: detentoId });
+    const fichasApi = getFichasCadastrais();
+    const response = await fichasApi.paginate({ detento_id: detentoId });
     return response.items.map((f: any) => ({
       fichacadastral_id: f.id,
       detento_id: f.detento_id,
@@ -79,71 +80,44 @@ export const detentoService: DetentoService = {
   },
   createFichaCadastral: async (data) => {
     // Chama a API real para criar a ficha cadastral
-    const api = getFichasCadastrais();
-    const ficha = await api.create(data as CreateFichaCadastralDto);
+    const fichasApi = getFichasCadastrais();
+    const ficha = await fichasApi.create(data as CreateFichaCadastralDto);
     return ficha;
   },
   updateFichaCadastral: async (fichacadastral_id, data) => {
-    const api = getFichasCadastrais();
-    return api.update(fichacadastral_id, data);
+    const fichasApi = getFichasCadastrais();
+    return fichasApi.update(fichacadastral_id, data);
   },
-  paginate: async ({ page, limit, search }) => ({
-    totalPages: 1,
-    page,
-    limit,
-    total: detentos.length,
-    hasNextPage: false,
-    hasPrevPage: false,
-    items: detentos,
-  }),
+  paginate: async ({ page, limit, search }) => {
+    const res = await api.findAll({ page, limit, search });
+    return {
+      items: res.items.map(toDetento),
+      page: res.page,
+      limit: res.limit,
+      total: res.total,
+      totalPages: Math.ceil((res.total ?? 0) / (res.limit || 1)) || 0,
+      hasNextPage: res.page * res.limit < res.total,
+      hasPrevPage: res.page > 1,
+    } as const;
+  },
   create: async (data) => {
-    const newDetento: Detento = {
-      ...data,
-      detento_id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      created_by: '1',
-      updated_by: '1',
-    };
-    detentos = [...detentos, newDetento];
-    return newDetento;
+    const dto = await api.create(data);
+    return toDetento(dto);
   },
   read: async (id) => {
-    const detento = detentos.find((d) => d.detento_id === id);
-    if (!detento) {
-      throw new Error('Detento não encontrado');
-    }
-    return detento;
+    const dto = await api.findOne(id);
+    return toDetento(dto);
   },
   update: async (id, data) => {
-    const detentoIndex = detentos.findIndex((d) => d.detento_id === id);
-    if (detentoIndex === -1) {
-      throw new Error('Detento não encontrado');
-    }
-    const detento = detentos[detentoIndex];
-    const updatedDetento: Detento = {
-      ...detento,
-      ...data,
-      updatedAt: new Date().toISOString(),
-      updated_by: '1',
-    };
-    detentos = [
-      ...detentos.slice(0, detentoIndex),
-      updatedDetento,
-      ...detentos.slice(detentoIndex + 1),
-    ];
-    return updatedDetento;
+    const dto = await api.update(id, data);
+    return toDetento(dto);
   },
   delete: async (id) => {
-    const detentoIndex = detentos.findIndex((d) => d.detento_id === id);
-    if (detentoIndex === -1) {
-      throw new Error('Detento não encontrado');
-    }
-    detentos = [...detentos.slice(0, detentoIndex), ...detentos.slice(detentoIndex + 1)];
+    await api.remove(id);
   },
   deleteFichaCadastral: async (fichacadastral_id) => {
-    const api = getFichasCadastrais();
-    return api.remove(fichacadastral_id);
+    const fichasApi = getFichasCadastrais();
+    return fichasApi.remove(fichacadastral_id);
   },
   getFichaCadastralPdfUrl: async (fichacadastral_id: string) => {
     const { url } = await customInstance<{ url: string }>({

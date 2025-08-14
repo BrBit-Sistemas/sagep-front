@@ -17,13 +17,13 @@ interface DetentoFichaCadastralTabProps {
 export const DetentoFichaCadastralTab = ({ detento }: DetentoFichaCadastralTabProps) => {
   const { isFichaCadastralDialogOpen, closeFichaCadastralDialog, selectedFichaCadastral } =
     useDetentoDetalhesStore();
-  const { data: fichasCadastrais } = useSuspenseGetDetentoFichasCadastrais(detento.detento_id);
+  const { data: fichasCadastrais } = useSuspenseGetDetentoFichasCadastrais(detento.id);
 
   return (
     <>
       <DetentoFichaCadastralDialogForm
         detento={detento}
-        detentoId={detento.detento_id}
+        detentoId={detento.id}
         open={isFichaCadastralDialogOpen}
         onClose={closeFichaCadastralDialog}
         {...(selectedFichaCadastral && {

@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
 import Card from '@mui/material/Card';
@@ -11,6 +13,7 @@ import { DetentoDetailsTab } from './tabs/detento-details-tab';
 import { DetentoDetalhesCover } from './detento-detalhes-cover';
 import { useSuspenseReadDetentoDetails } from '../../hooks/use-read-details';
 import { DetentoFichaCadastralTab } from './tabs/detento-ficha-cadastral-tab';
+import { useDetentoDetalhesStore } from '../../stores/detento-detalhes-store';
 import { useDetentoDetalhesSearchParams } from '../../hooks/use-dentento-detalhes-search-params';
 
 interface DetentoDetalhesProps {
@@ -29,10 +32,18 @@ const NAV_ITEMS = [
 export const DetentoDetalhes = ({ detentoId }: DetentoDetalhesProps) => {
   const { data } = useSuspenseReadDetentoDetails(detentoId);
   const [{ tab }, setSearchParams] = useDetentoDetalhesSearchParams();
+  const { isFichaCadastralDialogOpen } = useDetentoDetalhesStore();
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: string) => {
     setSearchParams({ tab: newValue as 'detalhes' | 'ficha_cadastral' });
   };
+
+  // Ensure the ficha cadastral tab is active if the dialog is opened externally
+  useEffect(() => {
+    if (isFichaCadastralDialogOpen && tab !== 'ficha_cadastral') {
+      setSearchParams({ tab: 'ficha_cadastral' });
+    }
+  }, [isFichaCadastralDialogOpen, tab, setSearchParams]);
 
   const tabs = {
     detalhes: <DetentoDetailsTab detento={data} />,

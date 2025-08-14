@@ -19,6 +19,7 @@ import { Form, Field } from 'src/components/hook-form';
 import { detentoService } from '../../data';
 import { detentoKeys } from '../../hooks/keys';
 import { createDetentoFichaCadastralSchema } from '../../schemas';
+import { useDetentoDetalhesSearchParams } from '../../hooks/use-dentento-detalhes-search-params';
 
 type DetentoFichaCadastralDialogFormProps = {
   detento: Detento;
@@ -91,6 +92,7 @@ export const DetentoFichaCadastralDialogForm = ({
 }: DetentoFichaCadastralDialogFormProps) => {
   const isEditing = !!fichaCadastralId;
   const queryClient = useQueryClient();
+  const [, setSearchParams] = useDetentoDetalhesSearchParams();
 
   console.log('detento', detento);
 
@@ -99,7 +101,7 @@ export const DetentoFichaCadastralDialogForm = ({
     ? defaultValues
     : {
         ...INITIAL_VALUES,
-        detento_id: detento.detento_id,
+        detento_id: detento.id,
         nome: detento.nome,
         cpf: detento.cpf,
         prontuario: detento.prontuario,
@@ -129,6 +131,8 @@ export const DetentoFichaCadastralDialogForm = ({
       await queryClient.invalidateQueries({ queryKey: detentoKeys.fichasCadastrais(detentoId) });
       methods.reset();
       onClose();
+      // Keep user on ficha cadastral tab after submit
+      setSearchParams({ tab: 'ficha_cadastral' });
     },
     (errors) => {
       // Loga os erros do zod
@@ -148,7 +152,7 @@ export const DetentoFichaCadastralDialogForm = ({
       // Preenche os campos com os dados do detento ao abrir para criar
       methods.reset({
         ...INITIAL_VALUES,
-        detento_id: detento.detento_id,
+        detento_id: detento.id,
         nome: detento.nome,
         cpf: detento.cpf,
         prontuario: detento.prontuario,

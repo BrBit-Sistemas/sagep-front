@@ -1,8 +1,8 @@
 import type { CrudService, AuditableEntity, PaginatedParams } from 'src/types';
 import type {
-  CreateDetentoFichaCadastralSchema,
   CreateDetentoSchema,
   UpdateDetentoSchema,
+  CreateDetentoFichaCadastralSchema,
 } from '../schemas';
 
 export enum Regime {
@@ -19,7 +19,7 @@ export enum Escolaridade {
 }
 
 export type Detento = {
-  detento_id: string;
+  id: string;
   nome: string;
   prontuario: string;
   cpf: string;
