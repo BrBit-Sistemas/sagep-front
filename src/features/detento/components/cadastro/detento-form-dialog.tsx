@@ -66,12 +66,10 @@ export const DetentoFormDialog = ({
 
   const isLoading = isEditing ? isUpdating : isCreating;
 
-  const { data: unidadesData, isLoading: isLoadingUnidades } = useUnidadePrisionalList({
-    page: 1,
-    limit: 100,
+  const { data: { items: unidades } = { items: [] } } = useUnidadePrisionalList({
+    page: 0,
+    limit: 1000,
   });
-
-  const unidades = unidadesData?.items || [];
 
   const methods = useForm({
     resolver: zodResolver(createDetentoSchema),
@@ -163,29 +161,17 @@ export const DetentoFormDialog = ({
               </Field.Select>
             </Grid>
 
-            <Grid size={{ md: 6, sm: 12 }}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Field.Select
-                fullWidth
-                name="unidade_id"
-                label="Unidade"
-                slotProps={{ inputLabel: { shrink: true } }}
-                disabled={isLoadingUnidades}
+                name="unidadeId"
+                label="Unidade Prisional"
+                disabled={!!defaultValues?.unidade_id}
               >
-                {isLoadingUnidades ? (
-                  <MenuItem value="" disabled>
-                    Carregando...
+                {unidades.map((unidade) => (
+                  <MenuItem key={unidade.id} value={unidade.id}>
+                    {unidade.nome}
                   </MenuItem>
-                ) : (
-                  unidades.map((unidade) => (
-                    <MenuItem
-                      key={unidade.id}
-                      value={unidade.id}
-                      sx={{ textTransform: 'capitalize' }}
-                    >
-                      {unidade.nome}
-                    </MenuItem>
-                  ))
-                )}
+                ))}
               </Field.Select>
             </Grid>
           </Grid>

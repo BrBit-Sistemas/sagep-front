@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { isValidCpf } from 'src/utils/validate-cpf';
+
 import { schemaHelper } from 'src/components/hook-form';
 
 import { Regime, Escolaridade } from '../types';
@@ -7,7 +9,11 @@ import { Regime, Escolaridade } from '../types';
 export const createDetentoSchema = z.object({
   nome: z.string().min(1, 'Nome é obrigatório'),
   prontuario: z.string().min(1, 'Prontuário é obrigatório'),
-  cpf: z.string().min(11, 'CPF deve ter 11 dígitos').max(14, 'CPF inválido'),
+  cpf: z
+    .string()
+    .min(11, 'CPF deve ter 11 dígitos')
+    .max(14, 'CPF inválido')
+    .refine((value) => isValidCpf(value), 'CPF inválido'),
   data_nascimento: z.string().min(1, 'Data de nascimento é obrigatória'),
   regime: z.nativeEnum(Regime).default(Regime.FECHADO),
   escolaridade: z.nativeEnum(Escolaridade).default(Escolaridade.FUNDAMENTAL),
@@ -18,7 +24,10 @@ export const createDetentoFichaCadastralSchema = z.object({
   detento_id: z.string().optional(),
   // Identificação pessoal
   nome: z.string().min(1, 'Nome completo é obrigatório'),
-  cpf: z.string().min(1, 'CPF é obrigatório'),
+  cpf: z
+    .string()
+    .min(1, 'CPF é obrigatório')
+    .refine((value) => isValidCpf(value), 'CPF inválido'),
   rg: z.string().min(1, 'RG é obrigatório'),
   rg_expedicao: z.string().min(1, 'Data de expedição é obrigatória'),
   rg_orgao_uf: z.string().min(1, 'Órgão expedidor/UF é obrigatório'),
