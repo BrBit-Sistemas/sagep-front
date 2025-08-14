@@ -6,9 +6,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 
+import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Dialog from '@mui/material/Dialog';
 import Button from '@mui/material/Button';
+import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
@@ -184,166 +186,240 @@ export const DetentoFichaCadastralDialogForm = ({
   }, [isEditing, defaultValues, open, detento, methods, unidades]);
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Ficha Cadastral</DialogTitle>
-      <DialogContent>
-        <Typography sx={{ mb: 2 }}>
+    <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
+      <DialogTitle>
+        <Typography variant="h6" component="div">
+          Ficha Cadastral
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
           Preencha os campos abaixo para adicionar uma nova ficha cadastral.
         </Typography>
+      </DialogTitle>
 
+      <DialogContent sx={{ pb: 0 }}>
         <Form methods={methods} onSubmit={handleSubmit}>
-          <Grid container spacing={2}>
-            {/* 1. Identificação pessoal */}
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="nome" label="Nome completo" />
-            </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Cpf name="cpf" label="CPF" />
-            </Grid>
-            <Grid size={{ md: 4, sm: 12 }}>
-              <Field.Text name="rg" label="RG" />
-            </Grid>
-            <Grid size={{ md: 4, sm: 12 }}>
-              <Field.Text name="rg_expedicao" label="Data de expedição do RG" />
-            </Grid>
-            <Grid size={{ md: 4, sm: 12 }}>
-              <Field.Text name="rg_orgao_uf" label="Órgão expedidor/UF" />
-            </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="data_nascimento" label="Data de nascimento" />
-            </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="naturalidade" label="Naturalidade (Cidade)" />
-            </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="naturalidade_uf" label="UF de naturalidade" />
-            </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="filiacao_mae" label="Nome da mãe" />
-            </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="filiacao_pai" label="Nome do pai (ou N/D)" />
-            </Grid>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* 1. Identificação Pessoal */}
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
+                1. Identificação Pessoal
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid size={{ md: 6, sm: 12 }}>
+                  <Field.Text name="nome" label="Nome completo" />
+                </Grid>
+                <Grid size={{ md: 6, sm: 12 }}>
+                  <Field.Cpf name="cpf" label="CPF" />
+                </Grid>
+                <Grid size={{ md: 4, sm: 12 }}>
+                  <Field.Text name="rg" label="RG" />
+                </Grid>
+                <Grid size={{ md: 4, sm: 12 }}>
+                  <Field.Text name="rg_expedicao" label="Data de expedição do RG" />
+                </Grid>
+                <Grid size={{ md: 4, sm: 12 }}>
+                  <Field.Text name="rg_orgao_uf" label="Órgão expedidor/UF" />
+                </Grid>
+                <Grid size={{ md: 6, sm: 12 }}>
+                  <Field.Text name="data_nascimento" label="Data de nascimento" />
+                </Grid>
+                <Grid size={{ md: 6, sm: 12 }}>
+                  <Field.Text name="naturalidade" label="Naturalidade (Cidade)" />
+                </Grid>
+                <Grid size={{ md: 6, sm: 12 }}>
+                  <Field.Text name="naturalidade_uf" label="UF de naturalidade" />
+                </Grid>
+                <Grid size={{ md: 6, sm: 12 }}>
+                  <Field.Text name="filiacao_mae" label="Nome da mãe" />
+                </Grid>
+                <Grid size={{ md: 6, sm: 12 }}>
+                  <Field.Text name="filiacao_pai" label="Nome do pai (ou N/D)" />
+                </Grid>
+              </Grid>
+            </Box>
 
-            {/* 2. Situação prisional */}
-            <Grid size={{ md: 4, sm: 12 }}>
-              <Field.Text name="regime" label="Regime" />
-            </Grid>
-            <Grid size={{ md: 4, sm: 12 }}>
-              <Field.Text name="unidade_prisional" label="Unidade prisional" />
-            </Grid>
-            <Grid size={{ md: 4, sm: 12 }}>
-              <Field.Text name="prontuario" label="Prontuário" />
-            </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="sei" label="Número SEI (processo)" />
-            </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="planilha" label="Planilha" />
-            </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="cidade_processo" label="Cidade (processo/planilha)" />
-            </Grid>
+            <Divider />
 
-            {/* 3. Endereço e contato */}
-            <Grid size={{ md: 8, sm: 12 }}>
-              <Field.Text name="endereco" label="Endereço completo" />
-            </Grid>
-            <Grid size={{ md: 4, sm: 12 }}>
-              <Field.Text name="regiao_administrativa" label="Região Administrativa (RA)" />
-            </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="telefone" label="Telefone(s)" />
-            </Grid>
+            {/* 2. Situação Prisional */}
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
+                2. Situação Prisional
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid size={{ md: 4, sm: 12 }}>
+                  <Field.Text name="regime" label="Regime" />
+                </Grid>
+                <Grid size={{ md: 4, sm: 12 }}>
+                  <Field.Text name="unidade_prisional" label="Unidade prisional" />
+                </Grid>
+                <Grid size={{ md: 4, sm: 12 }}>
+                  <Field.Text name="prontuario" label="Prontuário" />
+                </Grid>
+                <Grid size={{ md: 6, sm: 12 }}>
+                  <Field.Text name="sei" label="Número SEI (processo)" />
+                </Grid>
+                <Grid size={{ md: 6, sm: 12 }}>
+                  <Field.Text name="planilha" label="Planilha" />
+                </Grid>
+                <Grid size={{ md: 6, sm: 12 }}>
+                  <Field.Text name="cidade_processo" label="Cidade (processo/planilha)" />
+                </Grid>
+              </Grid>
+            </Box>
 
-            {/* 4. Escolaridade */}
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="escolaridade" label="Escolaridade" />
-            </Grid>
+            <Divider />
 
-            {/* 5. Saúde */}
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Switch name="tem_problema_saude" label="Tem problema de saúde?" />
-            </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="problema_saude" label="Qual(is) problema(s) de saúde?" />
-            </Grid>
+            {/* 3. Endereço e Contato */}
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
+                3. Endereço e Contato
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid size={{ md: 8, sm: 12 }}>
+                  <Field.Text name="endereco" label="Endereço completo" />
+                </Grid>
+                <Grid size={{ md: 4, sm: 12 }}>
+                  <Field.Text name="regiao_administrativa" label="Região Administrativa (RA)" />
+                </Grid>
+                <Grid size={{ md: 6, sm: 12 }}>
+                  <Field.Text name="telefone" label="Telefone(s)" />
+                </Grid>
+              </Grid>
+            </Box>
 
-            {/* 6. Restrições de trabalho */}
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text
-                name="regiao_bloqueada"
-                label="Região Administrativa onde não pode trabalhar"
-              />
-            </Grid>
+            <Divider />
 
-            {/* 7. Experiência e qualificação */}
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="experiencia_profissional" label="Experiência profissional" />
-            </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text
-                name="fez_curso_sistema_prisional"
-                label="Fez curso no sistema prisional? Qual?"
-              />
-            </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Switch name="ja_trabalhou_funap" label="Já trabalhou pela FUNAP?" />
-            </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text
-                name="ano_trabalho_anterior"
-                label="Ano do trabalho anterior pela FUNAP"
-              />
-            </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="profissao_01" label="Profissão 01" />
-            </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="profissao_02" label="Profissão 02 (opcional)" />
-            </Grid>
+            {/* 4. Escolaridade e Saúde */}
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
+                4. Escolaridade e Saúde
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid size={{ md: 6, sm: 12 }}>
+                  <Field.Text name="escolaridade" label="Escolaridade" />
+                </Grid>
+                <Grid size={{ md: 6, sm: 12 }}>
+                  <Field.Switch name="tem_problema_saude" label="Tem problema de saúde?" />
+                </Grid>
+                <Grid size={{ md: 6, sm: 12 }}>
+                  <Field.Text name="problema_saude" label="Qual(is) problema(s) de saúde?" />
+                </Grid>
+                <Grid size={{ md: 6, sm: 12 }}>
+                  <Field.Text
+                    name="regiao_bloqueada"
+                    label="Região Administrativa onde não pode trabalhar"
+                  />
+                </Grid>
+              </Grid>
+            </Box>
 
-            {/* 8. Declarações e responsáveis */}
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Switch
-                name="declaracao_veracidade"
-                label="Declaro que as informações são verídicas"
-              />
-            </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="responsavel_preenchimento" label="Quem preencheu" />
-            </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="assinatura" label="Assinatura do interno/responsável" />
-            </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="data_assinatura" label="Data da assinatura" />
-            </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="site_codigo" label="Código/Site" />
-            </Grid>
+            <Divider />
 
-            {/* 9. Metadados do formulário */}
-            <Grid size={{ md: 4, sm: 12 }}>
-              <Field.Text name="rodape_num_1" label="Rodapé numérico 1" />
-            </Grid>
-            <Grid size={{ md: 4, sm: 12 }}>
-              <Field.Text name="rodape_num_2" label="Rodapé numérico 2" />
-            </Grid>
-            <Grid size={{ md: 4, sm: 12 }}>
-              <Field.Text name="rodape_sei" label="Rodapé SEI" />
-            </Grid>
+            {/* 5. Experiência e Qualificação */}
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
+                5. Experiência e Qualificação
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid size={{ md: 6, sm: 12 }}>
+                  <Field.Text name="experiencia_profissional" label="Experiência profissional" />
+                </Grid>
+                <Grid size={{ md: 6, sm: 12 }}>
+                  <Field.Text
+                    name="fez_curso_sistema_prisional"
+                    label="Fez curso no sistema prisional? Qual?"
+                  />
+                </Grid>
+                <Grid size={{ md: 6, sm: 12 }}>
+                  <Field.Switch name="ja_trabalhou_funap" label="Já trabalhou pela FUNAP?" />
+                </Grid>
+                <Grid size={{ md: 6, sm: 12 }}>
+                  <Field.Text
+                    name="ano_trabalho_anterior"
+                    label="Ano do trabalho anterior pela FUNAP"
+                  />
+                </Grid>
+                <Grid size={{ md: 6, sm: 12 }}>
+                  <Field.Text name="profissao_01" label="Profissão 01" />
+                </Grid>
+                <Grid size={{ md: 6, sm: 12 }}>
+                  <Field.Text name="profissao_02" label="Profissão 02 (opcional)" />
+                </Grid>
+              </Grid>
+            </Box>
+
+            <Divider />
+
+            {/* 6. Declarações e Responsáveis */}
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
+                6. Declarações e Responsáveis
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid size={{ md: 6, sm: 12 }}>
+                  <Field.Switch
+                    name="declaracao_veracidade"
+                    label="Declaro que as informações são verídicas"
+                  />
+                </Grid>
+                <Grid size={{ md: 6, sm: 12 }}>
+                  <Field.Text name="responsavel_preenchimento" label="Quem preencheu" />
+                </Grid>
+                <Grid size={{ md: 6, sm: 12 }}>
+                  <Field.Text name="assinatura" label="Assinatura do interno/responsável" />
+                </Grid>
+                <Grid size={{ md: 6, sm: 12 }}>
+                  <Field.Text name="data_assinatura" label="Data da assinatura" />
+                </Grid>
+                <Grid size={{ md: 6, sm: 12 }}>
+                  <Field.Text name="site_codigo" label="Código/Site" />
+                </Grid>
+              </Grid>
+            </Box>
+
+            <Divider />
+
+            {/* 7. Metadados do Formulário */}
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
+                7. Metadados do Formulário
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid size={{ md: 4, sm: 12 }}>
+                  <Field.Text name="rodape_num_1" label="Rodapé numérico 1" />
+                </Grid>
+                <Grid size={{ md: 4, sm: 12 }}>
+                  <Field.Text name="rodape_num_2" label="Rodapé numérico 2" />
+                </Grid>
+                <Grid size={{ md: 4, sm: 12 }}>
+                  <Field.Text name="rodape_sei" label="Rodapé SEI" />
+                </Grid>
+              </Grid>
+            </Box>
 
             {/* PDF gerado (upload manual, se necessário) */}
-            {/* <Grid size={{ sm: 12 }}><Field.Upload name="pdf_path" onDelete={handleRemovePdf} /></Grid> */}
-          </Grid>
-          <DialogActions>
-            <Button variant="contained" color="primary" type="submit">
-              Salvar
-            </Button>
-          </DialogActions>
+            {/* <Box>
+              <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
+                8. Documento PDF
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid size={{ sm: 12 }}>
+                  <Field.Upload name="pdf_path" onDelete={handleRemovePdf} />
+                </Grid>
+              </Grid>
+            </Box> */}
+          </Box>
         </Form>
       </DialogContent>
+
+      <DialogActions sx={{ p: 3, pt: 2 }}>
+        <Button onClick={onClose} variant="outlined" color="primary">
+          Cancelar
+        </Button>
+        <Button onClick={handleSubmit} variant="contained" color="primary">
+          Salvar
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 };

@@ -85,10 +85,14 @@ export const DetentoFormDialog = ({
   });
 
   // Format default values for display
-  const formattedDefaultValues = defaultValues ? {
-    ...defaultValues,
-    data_nascimento: defaultValues.data_nascimento ? formatDateToDDMMYYYY(defaultValues.data_nascimento) : '',
-  } : undefined;
+  const formattedDefaultValues = defaultValues
+    ? {
+        ...defaultValues,
+        data_nascimento: defaultValues.data_nascimento
+          ? formatDateToDDMMYYYY(defaultValues.data_nascimento)
+          : '',
+      }
+    : undefined;
 
   const methods = useForm({
     resolver: zodResolver(createDetentoSchema),

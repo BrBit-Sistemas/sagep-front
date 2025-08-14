@@ -3,7 +3,7 @@ export function isValidRg(input: string): boolean {
 
   // Remove all non-digit characters
   const digitsOnly = input.replace(/\D/g, '');
-  
+
   // RG must have between 8 and 12 digits (varies by state)
   if (digitsOnly.length < 8 || digitsOnly.length > 12) return false;
 
