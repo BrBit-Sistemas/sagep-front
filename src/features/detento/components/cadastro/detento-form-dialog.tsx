@@ -19,7 +19,6 @@ import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 
 import { type FieldError } from 'src/utils/handle-error';
-import { formatDateToDDMMYYYY } from 'src/utils/format-date';
 
 import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/use-unidade-prisional-list';
 
@@ -84,13 +83,12 @@ export const DetentoFormDialog = ({
     limit: 1000,
   });
 
-  // Format default values for display
+  // Format default values for display - keep date in YYYY-MM-DD format for DatePicker
   const formattedDefaultValues = defaultValues
     ? {
         ...defaultValues,
-        data_nascimento: defaultValues.data_nascimento
-          ? formatDateToDDMMYYYY(defaultValues.data_nascimento)
-          : '',
+        // Keep the date in YYYY-MM-DD format for the DatePicker component
+        data_nascimento: defaultValues.data_nascimento || '',
       }
     : undefined;
 
