@@ -80,25 +80,44 @@ export const UserFormDialog = ({
   });
 
   const onSubmit = methods.handleSubmit(async (data) => {
-    if (isEditing) {
-      await updateUser(data as UpdateUserSchema);
-    } else {
-      await createUser(data as CreateUserSchema);
+    try {
+      if (isEditing) {
+        await updateUser(data as UpdateUserSchema);
+      } else {
+        await createUser(data as CreateUserSchema);
+      }
+      methods.reset(INITIAL_VALUES);
+      onSuccess();
+    } catch (error: any) {
+      // Handle field errors
+      if (error.fieldErrors && Array.isArray(error.fieldErrors)) {
+        error.fieldErrors.forEach((fieldError: any) => {
+          methods.setError(fieldError.field as any, {
+            type: 'server',
+            message: fieldError.message,
+          });
+        });
+      }
     }
-    methods.reset(INITIAL_VALUES);
-    onSuccess();
   });
 
-  const [regionalId, secretariaId, unidadeId] = methods.watch([
-    'regionalId',
-    'secretariaId',
-    'unidadeId',
-  ]);
+  const [regionalId, secretariaId] = methods.watch(['regionalId', 'secretariaId']);
 
   useEffect(() => {
     if (isEditing) methods.reset(defaultValues);
     else methods.reset(INITIAL_VALUES);
   }, [isEditing, defaultValues, methods]);
+
+  useEffect(() => {
+    // When secretaria changes, clear regional and unidade selections
+    methods.setValue('regionalId', undefined);
+    methods.setValue('unidadeId', undefined);
+  }, [secretariaId, methods]);
+
+  useEffect(() => {
+    // When regional changes, clear unidade selection
+    methods.setValue('unidadeId', undefined);
+  }, [regionalId, methods]);
 
   return (
     <Dialog open={open} onClose={onClose}>
@@ -124,11 +143,7 @@ export const UserFormDialog = ({
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>
-              <Field.Select
-                name="secretariaId"
-                label="Secretaria"
-                disabled={!!regionalId || !!unidadeId}
-              >
+              <Field.Select name="secretariaId" label="Secretaria">
                 {secretarias.map((secretaria) => (
                   <MenuItem key={secretaria.id} value={secretaria.id}>
                     {secretaria.nome}
@@ -137,11 +152,12 @@ export const UserFormDialog = ({
               </Field.Select>
             </Grid>
 
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid size={{ md: 6, sm: 12 }}>
               <Field.Select
                 name="regionalId"
                 label="Regional"
-                disabled={!!secretariaId || !!unidadeId}
+                slotProps={{ inputLabel: { shrink: true } }}
+                disabled={isLoading || !regionais?.length}
               >
                 {regionais.map((regional) => (
                   <MenuItem key={regional.id} value={regional.id}>
@@ -155,7 +171,7 @@ export const UserFormDialog = ({
               <Field.Select
                 name="unidadeId"
                 label="Unidade Prisional"
-                disabled={!!secretariaId || !!regionalId}
+                disabled={!secretariaId || !regionalId}
               >
                 {unidades.map((unidade) => (
                   <MenuItem key={unidade.id} value={unidade.id}>

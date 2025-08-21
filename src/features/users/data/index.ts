@@ -15,13 +15,26 @@ export const userService: CrudService<
 > = {
   paginate: (params: UserListParams) => api.paginate(params),
   read: (id: string) => api.findOne(id),
-  create: (data: CreateUserSchema) =>
-    api.create({
-      ...data,
+  create: (data: CreateUserSchema) => {
+    const payload = {
+      nome: data.nome,
+      email: data.email,
+      senha: data.senha,
       secretariaId: data.secretariaId ?? '',
       regionalId: data.regionalId ?? '',
       unidadeId: data.unidadeId ?? '',
-    }),
-  update: (id: string, data: UpdateUserSchema) => api.update(id, data),
+    };
+    return api.create(payload);
+  },
+  update: (id: string, data: UpdateUserSchema) => {
+    const payload: Record<string, unknown> = {};
+    if (typeof data.nome !== 'undefined') payload.nome = data.nome;
+    if (typeof data.email !== 'undefined') payload.email = data.email;
+    if (typeof data.senha !== 'undefined' && data.senha !== '') payload.senha = data.senha;
+    if (typeof data.secretariaId !== 'undefined') payload.secretariaId = data.secretariaId;
+    if (typeof data.regionalId !== 'undefined') payload.regionalId = data.regionalId;
+    if (typeof data.unidadeId !== 'undefined') payload.unidadeId = data.unidadeId;
+    return api.update(id, payload as UpdateUserSchema);
+  },
   delete: (id: string) => api.remove(id),
 };

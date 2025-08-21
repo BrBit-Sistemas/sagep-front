@@ -1,5 +1,6 @@
 import type { GridColDef } from '@mui/x-data-grid/models';
 import type { UnidadePrisional } from '../types';
+import type { Regional } from 'src/features/regionais/types';
 
 import { useMemo, useCallback } from 'react';
 
@@ -40,6 +41,7 @@ export const useUnidadePrisionalListTable = () => {
       {
         field: 'regional',
         headerName: 'Regional',
+        valueFormatter: (value: Regional) => value.nome,
         flex: 1,
       },
       {

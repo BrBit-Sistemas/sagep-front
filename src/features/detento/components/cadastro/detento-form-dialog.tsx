@@ -1,24 +1,19 @@
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import {
   Grid,
   Button,
   Dialog,
-  Switch,
   MenuItem,
   Typography,
   DialogTitle,
   DialogActions,
   DialogContent,
-  FormControlLabel,
 } from '@mui/material';
 
-import { paths } from 'src/routes/paths';
-import { useRouter } from 'src/routes/hooks';
-
-import { type FieldError } from 'src/utils/handle-error';
+import { formatDateToYYYYMMDD } from 'src/utils/format-date';
 
 import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/use-unidade-prisional-list';
 
@@ -28,8 +23,6 @@ import { Regime, Escolaridade } from '../../types';
 import { useCreateDetento } from '../../hooks/use-create-detento';
 import { useUpdateDetento } from '../../hooks/use-update-detento';
 import { createDetentoSchema, type CreateDetentoSchema } from '../../schemas';
-import { useDetentoDetalhesStore } from '../../stores/detento-detalhes-store';
-import { detentoDetalhesSearchQuerySerializer } from '../../hooks/use-dentento-detalhes-search-params';
 
 type DetentoFormDialogProps = {
   onSuccess: () => void;
@@ -58,25 +51,11 @@ export const DetentoFormDialog = ({
 }: DetentoFormDialogProps) => {
   const isEditing = !!detentoId;
 
-  const [fillFichaCadastral, setFillFichaCadastral] = useState(false);
-
   const { mutateAsync: createDetento, isPending: isCreating } = useCreateDetento();
   const { mutateAsync: updateDetento, isPending: isUpdating } = useUpdateDetento();
-  const { openFichaCadastralCreateDialog } = useDetentoDetalhesStore();
-
-  const router = useRouter();
+  // const { openFichaCadastralCreateDialog } = useDetentoDetalhesStore();
 
   const isLoading = isEditing ? isUpdating : isCreating;
-
-  // Function to set field errors in the form
-  const setFieldErrors = (fieldErrors: FieldError[]) => {
-    fieldErrors.forEach(({ field, message }) => {
-      methods.setError(field as any, {
-        type: 'server',
-        message,
-      });
-    });
-  };
 
   const { data: { items: unidades } = { items: [] } } = useUnidadePrisionalList({
     page: 0,
@@ -88,9 +67,11 @@ export const DetentoFormDialog = ({
     ? {
         ...defaultValues,
         // Keep the date in YYYY-MM-DD format for the DatePicker component
-        data_nascimento: defaultValues.data_nascimento || '',
+        data_nascimento: formatDateToYYYYMMDD(defaultValues.data_nascimento) || '',
       }
     : undefined;
+
+  console.log(formattedDefaultValues);
 
   const methods = useForm({
     resolver: zodResolver(createDetentoSchema),
@@ -98,53 +79,34 @@ export const DetentoFormDialog = ({
   });
 
   const handleSubmit = methods.handleSubmit(async (data) => {
-    try {
-      let _detentoId: string;
+    const payload = {
+      ...data,
+      data_nascimento: formatDateToYYYYMMDD(data.data_nascimento) || '',
+    };
 
-      if (isEditing) {
-        await updateDetento({ detentoId, ...data });
-        _detentoId = detentoId;
-      } else {
-        const newDetento = await createDetento(data);
-        _detentoId = newDetento.id;
-      }
-
-      if (fillFichaCadastral) {
-        const path = paths.detentos.detalhes(_detentoId);
-        const url = detentoDetalhesSearchQuerySerializer(path, { tab: 'ficha_cadastral' });
-        router.push(url);
-        setTimeout(() => openFichaCadastralCreateDialog(), 0);
-      } else {
-        const path = paths.detentos.detalhes(_detentoId);
-        router.push(path);
-      }
-
-      methods.reset(INITIAL_VALUES);
-      onSuccess();
-    } catch (error: any) {
-      // Handle field-specific errors
-      if (error.fieldErrors && Array.isArray(error.fieldErrors)) {
-        setFieldErrors(error.fieldErrors);
-        return;
-      }
-
-      // Re-throw other errors to be handled by the mutation
-      throw error;
+    if (isEditing) {
+      await updateDetento({ detentoId, ...payload });
+    } else {
+      await createDetento(payload);
     }
+    methods.reset(INITIAL_VALUES);
+    onSuccess();
   });
 
   useEffect(() => {
-    if (isEditing) methods.reset(formattedDefaultValues);
+    if (isEditing) methods.reset(defaultValues);
     else methods.reset(INITIAL_VALUES);
-  }, [isEditing, formattedDefaultValues, methods]);
+  }, [isEditing, defaultValues, methods]);
 
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Adicionar detento</DialogTitle>
+      <DialogTitle>{isEditing ? 'Editar detento' : 'Adicionar detento'}</DialogTitle>
 
       <DialogContent>
         <Typography sx={{ mb: 2 }}>
-          Preencha os campos abaixo para adicionar um novo detento.
+          {isEditing
+            ? 'Edite os campos abaixo para atualizar o detento.'
+            : 'Preencha os campos abaixo para adicionar um novo detento.'}
         </Typography>
 
         <Form methods={methods} onSubmit={handleSubmit}>
@@ -194,11 +156,7 @@ export const DetentoFormDialog = ({
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>
-              <Field.Select
-                name="unidade_id"
-                label="Unidade Prisional"
-                disabled={!!defaultValues?.unidade_id}
-              >
+              <Field.Select name="unidade_id" label="Unidade Prisional">
                 {unidades.map((unidade) => (
                   <MenuItem key={unidade.id} value={unidade.id}>
                     {unidade.nome}
@@ -211,26 +169,10 @@ export const DetentoFormDialog = ({
       </DialogContent>
 
       <DialogActions>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={fillFichaCadastral}
-              onChange={(_, checked) => setFillFichaCadastral(checked)}
-            />
-          }
-          label="Preencher ficha cadastral?"
-          sx={{ mr: 'auto' }}
-        />
-        <Button onClick={onClose} variant="outlined" color="primary">
+        <Button onClick={onClose} variant="outlined">
           Cancelar
         </Button>
-        <Button
-          onClick={handleSubmit}
-          variant="contained"
-          color="primary"
-          loading={isLoading}
-          disabled={isLoading}
-        >
+        <Button onClick={handleSubmit} variant="contained" loading={isLoading}>
           {isEditing ? 'Atualizar' : 'Adicionar'}
         </Button>
       </DialogActions>

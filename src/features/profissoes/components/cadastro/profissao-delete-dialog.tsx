@@ -18,12 +18,8 @@ export function ProfissaoDeleteDialog() {
   const handleDelete = async () => {
     if (!selectedProfissao) return;
 
-    try {
-      await deleteMutation.mutateAsync(selectedProfissao.id);
-      closeDeleteDialog();
-    } catch (error) {
-      // Error handling is done in the hooks
-    }
+    await deleteMutation.mutateAsync(selectedProfissao.id);
+    closeDeleteDialog();
   };
 
   return (

@@ -66,6 +66,25 @@ export const extractFieldErrors = (error: unknown): FieldError[] => {
       if (message.includes('unidade')) {
         return [{ field: 'unidade_id', message }];
       }
+      // User-specific field mappings
+      if (message.includes('email')) {
+        return [{ field: 'email', message }];
+      }
+      if (message.includes('senha') || message.includes('password')) {
+        return [{ field: 'senha', message }];
+      }
+      if (message.includes('confirmar') || message.includes('confirm')) {
+        return [{ field: 'confirmarSenha', message }];
+      }
+      if (message.includes('secretaria')) {
+        return [{ field: 'secretariaId', message }];
+      }
+      if (message.includes('regional')) {
+        return [{ field: 'regionalId', message }];
+      }
+      if (message.includes('unidade')) {
+        return [{ field: 'unidadeId', message }];
+      }
     }
   }
 

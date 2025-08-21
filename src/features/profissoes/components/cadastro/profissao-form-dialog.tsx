@@ -1,24 +1,31 @@
 import type { CreateProfissaoSchema } from '../../schemas';
 
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import {
+  Grid,
   Dialog,
+  Button,
+  Switch,
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button,
-  TextField,
   FormControlLabel,
-  Switch,
-  Stack,
 } from '@mui/material';
+
+import { Form, Field } from 'src/components/hook-form';
 
 import { createProfissaoSchema } from '../../schemas';
 import { useCreateProfissao } from '../../hooks/use-create-profissao';
 import { useUpdateProfissao } from '../../hooks/use-update-profissao';
 
+const INITIAL_VALUES: CreateProfissaoSchema = {
+  nome: '',
+  descricao: '',
+  ativo: true,
+};
 interface ProfissaoFormDialogProps {
   open: boolean;
   onClose: () => void;
@@ -36,74 +43,62 @@ export function ProfissaoFormDialog({
 }: ProfissaoFormDialogProps) {
   const isEditing = !!profissaoId;
 
-  const form = useForm<CreateProfissaoSchema>({
+  const methods = useForm({
     resolver: zodResolver(createProfissaoSchema),
-    defaultValues: defaultValues || {
-      nome: '',
-      descricao: '',
-      ativo: true,
-    },
+    defaultValues: isEditing ? defaultValues : INITIAL_VALUES,
   });
 
-  const createMutation = useCreateProfissao();
-  const updateMutation = useUpdateProfissao();
+  const { mutateAsync: createProfissao, isPending: isCreating } = useCreateProfissao();
+  const { mutateAsync: updateProfissao, isPending: isUpdating } = useUpdateProfissao();
 
-  const onSubmit = async (data: CreateProfissaoSchema) => {
-    try {
-      if (isEditing) {
-        await updateMutation.mutateAsync({ id: profissaoId!, ...data });
-      } else {
-        await createMutation.mutateAsync(data);
-      }
-      onSuccess();
-    } catch (error) {
-      // Error handling is done in the hooks
+  const isLoading = isEditing ? isUpdating : isCreating;
+
+  const handleSubmit = methods.handleSubmit(async (data) => {
+    if (isEditing) {
+      await updateProfissao({ id: profissaoId, ...data });
+    } else {
+      await createProfissao(data);
     }
-  };
+    methods.reset(INITIAL_VALUES);
+    onSuccess();
+  });
 
-  const isLoading = createMutation.isPending || updateMutation.isPending;
+  useEffect(() => {
+    if (isEditing) methods.reset(defaultValues);
+    else methods.reset(INITIAL_VALUES);
+  }, [isEditing, defaultValues, methods]);
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>{isEditing ? 'Editar Profissão' : 'Nova Profissão'}</DialogTitle>
 
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <DialogContent>
-          <Stack spacing={3}>
-            <TextField
-              {...form.register('nome')}
-              label="Nome"
-              fullWidth
-              error={!!form.formState.errors.nome}
-              helperText={form.formState.errors.nome?.message}
-            />
+      <DialogContent>
+        <Form methods={methods} onSubmit={handleSubmit}>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid size={{ md: 6, sm: 12 }}>
+              <Field.Text name="nome" label="Nome" placeholder="Digite o nome da profissão" />
+            </Grid>
 
-            <TextField
-              {...form.register('descricao')}
-              label="Descrição"
-              fullWidth
-              multiline
-              rows={3}
-              error={!!form.formState.errors.descricao}
-              helperText={form.formState.errors.descricao?.message}
-            />
+            <Grid size={{ md: 6, sm: 12 }}>
+              <Field.Text name="descricao" label="Descrição" fullWidth multiline rows={3} />
+            </Grid>
 
             <FormControlLabel
-              control={<Switch {...form.register('ativo')} checked={form.watch('ativo')} />}
+              control={<Switch {...methods.register('ativo')} checked={methods.watch('ativo')} />}
               label="Ativo"
             />
-          </Stack>
-        </DialogContent>
+          </Grid>
+        </Form>
+      </DialogContent>
 
-        <DialogActions>
-          <Button onClick={onClose} disabled={isLoading}>
-            Cancelar
-          </Button>
-          <Button type="submit" variant="contained" disabled={isLoading}>
-            {isLoading ? 'Salvando...' : isEditing ? 'Atualizar' : 'Criar'}
-          </Button>
-        </DialogActions>
-      </form>
+      <DialogActions>
+        <Button onClick={onClose} variant="outlined">
+          Cancelar
+        </Button>
+        <Button onClick={handleSubmit} variant="contained" loading={isLoading}>
+          {isEditing ? 'Atualizar' : 'Adicionar'}
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 }
