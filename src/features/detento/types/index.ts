@@ -54,8 +54,6 @@ export type DetentoFichaCadastral = {
   unidade_prisional: string;
   prontuario: string;
   sei: string;
-  planilha: string;
-  cidade_processo: string;
   // Endereço e contato
   endereco: string;
   regiao_administrativa: string;
@@ -75,15 +73,9 @@ export type DetentoFichaCadastral = {
   profissao_01: string;
   profissao_02: string;
   // Declarações e responsáveis
-  declaracao_veracidade: boolean;
   responsavel_preenchimento: string;
   assinatura: string;
   data_assinatura: string;
-  site_codigo: string;
-  // Metadados do formulário
-  rodape_num_1: string;
-  rodape_num_2: string;
-  rodape_sei: string;
   // PDF gerado
   pdf_path: string;
 } & AuditableEntity;

@@ -22,7 +22,7 @@ export const createDetentoSchema = z.object({
 });
 
 export const createDetentoFichaCadastralSchema = z.object({
-  detento_id: z.string().optional(),
+  detento_id: z.string().min(1, 'ID do detento é obrigatório'),
   // Identificação pessoal
   nome: z.string().min(1, 'Nome completo é obrigatório'),
   cpf: z
@@ -45,8 +45,6 @@ export const createDetentoFichaCadastralSchema = z.object({
   unidade_prisional: z.string().min(1, 'Unidade prisional é obrigatória'),
   prontuario: z.string().min(1, 'Prontuário é obrigatório'),
   sei: z.string().optional(),
-  planilha: z.string().optional(),
-  cidade_processo: z.string().optional(),
   // Endereço e contato
   endereco: z.string().min(1, 'Endereço é obrigatório'),
   regiao_administrativa: z.string().min(1, 'Região Administrativa é obrigatória'),
@@ -66,17 +64,11 @@ export const createDetentoFichaCadastralSchema = z.object({
   profissao_01: z.string().optional(),
   profissao_02: z.string().optional(),
   // Declarações e responsáveis
-  declaracao_veracidade: z.boolean().default(false),
   responsavel_preenchimento: z.string().optional(),
   assinatura: z.string().optional(),
   data_assinatura: z.string().optional(),
-  site_codigo: z.string().optional(),
-  // Metadados do formulário
-  rodape_num_1: z.string().optional(),
-  rodape_num_2: z.string().optional(),
-  rodape_sei: z.string().optional(),
   // PDF gerado
-  pdf_path: schemaHelper.file({ message: 'PDF é obrigatório' }),
+  pdf_path: z.string().optional(),
 });
 
 export type CreateDetentoSchema = z.infer<typeof createDetentoSchema>;

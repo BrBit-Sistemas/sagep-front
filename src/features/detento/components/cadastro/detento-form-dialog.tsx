@@ -71,8 +71,6 @@ export const DetentoFormDialog = ({
       }
     : undefined;
 
-  console.log(formattedDefaultValues);
-
   const methods = useForm({
     resolver: zodResolver(createDetentoSchema),
     defaultValues: isEditing ? formattedDefaultValues : INITIAL_VALUES,

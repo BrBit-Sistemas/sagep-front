@@ -546,7 +546,6 @@ export interface CreateFichaCadastralDto {
   unidade_prisional: string;
   prontuario: string;
   sei?: string;
-  planilha?: string;
   cidade_processo?: string;
   endereco: string;
   regiao_administrativa: string;

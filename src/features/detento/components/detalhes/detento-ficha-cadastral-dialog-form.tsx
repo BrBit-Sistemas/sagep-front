@@ -1,20 +1,22 @@
 import type { Detento } from '../../types';
 import type { CreateDetentoFichaCadastralSchema } from '../../schemas';
 
-import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
-import Dialog from '@mui/material/Dialog';
+import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
+import CircularProgress from '@mui/material/CircularProgress';
 
 import { formatDateToDDMMYYYY } from 'src/utils/format-date';
 
@@ -54,8 +56,6 @@ const INITIAL_VALUES: CreateDetentoFichaCadastralSchema = {
   unidade_prisional: '',
   prontuario: '',
   sei: '',
-  planilha: '',
-  cidade_processo: '',
   // Endereço e contato
   endereco: '',
   regiao_administrativa: '',
@@ -75,15 +75,9 @@ const INITIAL_VALUES: CreateDetentoFichaCadastralSchema = {
   profissao_01: '',
   profissao_02: '',
   // Declarações e responsáveis
-  declaracao_veracidade: false,
   responsavel_preenchimento: '',
   assinatura: '',
   data_assinatura: '',
-  site_codigo: '',
-  // Metadados do formulário
-  rodape_num_1: '',
-  rodape_num_2: '',
-  rodape_sei: '',
   // PDF gerado
   pdf_path: '',
 };
@@ -99,6 +93,8 @@ export const DetentoFichaCadastralDialogForm = ({
   const isEditing = !!fichaCadastralId;
   const queryClient = useQueryClient();
   const [, setSearchParams] = useDetentoDetalhesSearchParams();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const { data: { items: unidades } = { items: [] } } = useUnidadePrisionalList({
     page: 0,
@@ -137,21 +133,30 @@ export const DetentoFichaCadastralDialogForm = ({
 
   const handleSubmit = methods.handleSubmit(
     async (data) => {
-      if (isEditing && fichaCadastralId) {
-        await detentoService.updateFichaCadastral(fichaCadastralId, {
-          ...data,
-          detento_id: detentoId,
-        });
-        alert('Ficha cadastral atualizada com sucesso!');
-      } else {
-        await detentoService.createFichaCadastral({ ...data, detento_id: detentoId });
-        alert('Ficha cadastral criada com sucesso!');
+      setLoading(true);
+      setError(null);
+      try {
+        if (isEditing && fichaCadastralId) {
+          await detentoService.updateFichaCadastral(fichaCadastralId, {
+            ...data,
+            detento_id: detentoId,
+          });
+          alert('Ficha cadastral atualizada com sucesso!');
+        } else {
+          await detentoService.createFichaCadastral({ ...data, detento_id: detentoId });
+          alert('Ficha cadastral criada com sucesso!');
+        }
+        await queryClient.invalidateQueries({ queryKey: detentoKeys.fichasCadastrais(detentoId) });
+        methods.reset();
+        onClose();
+        // Keep user on ficha cadastral tab after submit
+        setSearchParams({ tab: 'ficha_cadastral' });
+      } catch (err) {
+        setError('Erro ao salvar ficha cadastral.');
+        console.error('Erro ao salvar ficha cadastral:', err);
+      } finally {
+        setLoading(false);
       }
-      await queryClient.invalidateQueries({ queryKey: detentoKeys.fichasCadastrais(detentoId) });
-      methods.reset();
-      onClose();
-      // Keep user on ficha cadastral tab after submit
-      setSearchParams({ tab: 'ficha_cadastral' });
     },
     (errors) => {
       // Loga os erros do zod
@@ -199,8 +204,18 @@ export const DetentoFichaCadastralDialogForm = ({
       <DialogContent sx={{ pb: 0 }}>
         <Form methods={methods} onSubmit={handleSubmit}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
+            {loading && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                <CircularProgress />
+              </Box>
+            )}
             {/* 1. Identificação Pessoal */}
-            <Box>
+            <Box sx={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }}>
               <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
                 1. Identificação Pessoal
               </Typography>
@@ -241,7 +256,7 @@ export const DetentoFichaCadastralDialogForm = ({
             <Divider />
 
             {/* 2. Situação Prisional */}
-            <Box>
+            <Box sx={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }}>
               <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
                 2. Situação Prisional
               </Typography>
@@ -258,19 +273,13 @@ export const DetentoFichaCadastralDialogForm = ({
                 <Grid size={{ md: 6, sm: 12 }}>
                   <Field.Text name="sei" label="Número SEI (processo)" />
                 </Grid>
-                <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Text name="planilha" label="Planilha" />
-                </Grid>
-                <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Text name="cidade_processo" label="Cidade (processo/planilha)" />
-                </Grid>
               </Grid>
             </Box>
 
             <Divider />
 
             {/* 3. Endereço e Contato */}
-            <Box>
+            <Box sx={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }}>
               <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
                 3. Endereço e Contato
               </Typography>
@@ -290,7 +299,7 @@ export const DetentoFichaCadastralDialogForm = ({
             <Divider />
 
             {/* 4. Escolaridade e Saúde */}
-            <Box>
+            <Box sx={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }}>
               <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
                 4. Escolaridade e Saúde
               </Typography>
@@ -316,7 +325,7 @@ export const DetentoFichaCadastralDialogForm = ({
             <Divider />
 
             {/* 5. Experiência e Qualificação */}
-            <Box>
+            <Box sx={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }}>
               <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
                 5. Experiência e Qualificação
               </Typography>
@@ -351,17 +360,11 @@ export const DetentoFichaCadastralDialogForm = ({
             <Divider />
 
             {/* 6. Declarações e Responsáveis */}
-            <Box>
+            <Box sx={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }}>
               <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
                 6. Declarações e Responsáveis
               </Typography>
               <Grid container spacing={2}>
-                <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Switch
-                    name="declaracao_veracidade"
-                    label="Declaro que as informações são verídicas"
-                  />
-                </Grid>
                 <Grid size={{ md: 6, sm: 12 }}>
                   <Field.Text name="responsavel_preenchimento" label="Quem preencheu" />
                 </Grid>
@@ -370,29 +373,6 @@ export const DetentoFichaCadastralDialogForm = ({
                 </Grid>
                 <Grid size={{ md: 6, sm: 12 }}>
                   <Field.Text name="data_assinatura" label="Data da assinatura" />
-                </Grid>
-                <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Text name="site_codigo" label="Código/Site" />
-                </Grid>
-              </Grid>
-            </Box>
-
-            <Divider />
-
-            {/* 7. Metadados do Formulário */}
-            <Box>
-              <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
-                7. Metadados do Formulário
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid size={{ md: 4, sm: 12 }}>
-                  <Field.Text name="rodape_num_1" label="Rodapé numérico 1" />
-                </Grid>
-                <Grid size={{ md: 4, sm: 12 }}>
-                  <Field.Text name="rodape_num_2" label="Rodapé numérico 2" />
-                </Grid>
-                <Grid size={{ md: 4, sm: 12 }}>
-                  <Field.Text name="rodape_sei" label="Rodapé SEI" />
                 </Grid>
               </Grid>
             </Box>
@@ -413,11 +393,17 @@ export const DetentoFichaCadastralDialogForm = ({
       </DialogContent>
 
       <DialogActions sx={{ p: 3, pt: 2 }}>
-        <Button onClick={onClose} variant="outlined" color="primary">
+        <Button onClick={onClose} variant="outlined" color="primary" disabled={loading}>
           Cancelar
         </Button>
-        <Button onClick={handleSubmit} variant="contained" color="primary">
-          Salvar
+        <Button
+          onClick={handleSubmit}
+          variant="contained"
+          color="primary"
+          disabled={loading}
+          startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
+        >
+          {loading ? 'Salvando...' : 'Salvar'}
         </Button>
       </DialogActions>
     </Dialog>
