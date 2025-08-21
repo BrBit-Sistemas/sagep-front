@@ -17,3 +17,5 @@ export function formatDateToYYYYMMDD(date: string | Date): string {
 
   return parsedDate.format('YYYY-MM-DD');
 }
+
+

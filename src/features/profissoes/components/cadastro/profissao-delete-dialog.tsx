@@ -1,36 +1,53 @@
-import { Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import {
+  Dialog,
+  Button,
+  Typography,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from '@mui/material';
 
+import { useProfissaoCadastroStore } from '../../stores';
 import { useDeleteProfissao } from '../../hooks/use-delete-profissao';
-import { useProfissaoCadastroStore } from '../../stores/profissao-cadastro-store';
 
-export const ProfissaoDeleteDialog = () => {
-  const { isDeleteDialogOpen, selectedProfissao, closeDeleteDialog } = useProfissaoCadastroStore();
-  const { mutateAsync: deleteProfissao, isPending } = useDeleteProfissao();
+export function ProfissaoDeleteDialog() {
+  const { selectedProfissao, isDeleteDialogOpen, closeDeleteDialog } = useProfissaoCadastroStore();
+
+  const deleteMutation = useDeleteProfissao();
 
   const handleDelete = async () => {
-    if (selectedProfissao) {
-      await deleteProfissao(selectedProfissao.profissao_id);
+    if (!selectedProfissao) return;
+
+    try {
+      await deleteMutation.mutateAsync(selectedProfissao.id);
       closeDeleteDialog();
+    } catch (error) {
+      // Error handling is done in the hooks
     }
   };
 
-  if (!selectedProfissao) return null;
-
   return (
     <Dialog open={isDeleteDialogOpen} onClose={closeDeleteDialog}>
-      <DialogTitle>Confirmar exclusão</DialogTitle>
+      <DialogTitle>Confirmar Exclusão</DialogTitle>
       <DialogContent>
-        Tem certeza que deseja excluir &quot;{selectedProfissao.nome}&quot;? Esta ação não pode ser
-        desfeita.
+        <Typography>
+          Tem certeza que deseja excluir a profissão &quot;{selectedProfissao?.nome}?&quot; Esta
+          ação não pode ser desfeita.
+        </Typography>
       </DialogContent>
       <DialogActions>
-        <Button onClick={closeDeleteDialog} variant="outlined">
+        <Button onClick={closeDeleteDialog} disabled={deleteMutation.isPending}>
           Cancelar
         </Button>
-        <Button onClick={handleDelete} variant="contained" color="error" loading={isPending}>
-          Excluir
+        <Button
+          onClick={handleDelete}
+          color="error"
+          variant="contained"
+          disabled={deleteMutation.isPending}
+        >
+          {deleteMutation.isPending ? 'Excluindo...' : 'Excluir'}
         </Button>
       </DialogActions>
     </Dialog>
   );
-};
+}

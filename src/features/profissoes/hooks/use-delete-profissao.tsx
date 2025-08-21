@@ -11,8 +11,10 @@ export const useDeleteProfissao = () => {
 
   return useMutation({
     mutationFn: (profissaoId: string) => profissaoService.delete(profissaoId),
-    onSuccess: () => toast.success('Profissão excluída com sucesso'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: profissaoKeys.all });
+      toast.success('Profissão deletada com sucesso');
+    },
     onError: (error) => toast.error(handleError(error)),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: profissaoKeys.all }),
   });
 };

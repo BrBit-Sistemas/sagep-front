@@ -1,102 +1,37 @@
-import type { Profissao } from '../types';
-import type { CrudService, PaginatedParams } from 'src/types';
-import type { CreateProfissaoSchema, UpdateProfissaoSchema } from '../schemas';
+import type { CrudService, PaginatedParams, PaginatedResponse } from 'src/types';
+import type {
+  ReadProfissaoDto,
+  CreateProfissaoDto,
+  UpdateProfissaoDto,
+} from 'src/api/generated.schemas';
 
-export const profissoes: Profissao[] = [
-  {
-    profissao_id: '1',
-    nome: 'Advogado',
-    createdAt: '2021-01-01',
-    updatedAt: '2021-01-01',
-    created_by: '1',
-    updated_by: '1',
-  },
-  {
-    profissao_id: '2',
-    nome: 'Pedreiro',
-    createdAt: '2021-01-01',
-    updatedAt: '2021-01-01',
-    created_by: '1',
-    updated_by: '1',
-  },
-  {
-    profissao_id: '3',
-    nome: 'Professor',
-    createdAt: '2021-01-01',
-    updatedAt: '2021-01-01',
-    created_by: '1',
-    updated_by: '1',
-  },
-];
+import { getProfissoes } from 'src/api/profissoes/profissoes';
+
+const api = getProfissoes();
 
 export const profissaoService: CrudService<
-  Profissao,
-  CreateProfissaoSchema,
-  UpdateProfissaoSchema,
+  ReadProfissaoDto,
+  CreateProfissaoDto,
+  UpdateProfissaoDto,
   PaginatedParams
 > = {
-  paginate: async ({ page, limit, search }) => {
-    let filteredProfissoes = profissoes;
-
-    if (search) {
-      const searchLower = search.toLowerCase();
-      filteredProfissoes = profissoes.filter((profissao) =>
-        profissao.nome.toLowerCase().includes(searchLower)
-      );
-    }
-
-    return {
-      totalPages: 1,
-      page,
-      limit,
-      total: filteredProfissoes.length,
-      hasNextPage: false,
-      hasPrevPage: false,
-      items: filteredProfissoes,
-    };
+  paginate: async (params: PaginatedParams): Promise<PaginatedResponse<ReadProfissaoDto>> => {
+    const response = await api.findAll(params);
+    return response;
   },
-  create: async (data) => {
-    const newProfissao: Profissao = {
-      ...data,
-      profissao_id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      created_by: '1',
-      updated_by: '1',
-    };
-    profissoes.push(newProfissao);
-    return newProfissao;
+  create: async (data: CreateProfissaoDto): Promise<ReadProfissaoDto> => {
+    const response = await api.create(data);
+    return response;
   },
-  read: async (id) => {
-    const profissao = profissoes.find((p) => p.profissao_id === id);
-    if (!profissao) {
-      throw new Error('Profissão não encontrada');
-    }
-    return profissao;
+  read: async (id: string): Promise<ReadProfissaoDto> => {
+    const response = await api.findOne(id);
+    return response;
   },
-  update: async (id, data) => {
-    const profissaoIndex = profissoes.findIndex((p) => p.profissao_id === id);
-
-    if (profissaoIndex === -1) {
-      throw new Error('Profissão não encontrada');
-    }
-
-    const profissao = profissoes[profissaoIndex];
-
-    profissoes[profissaoIndex] = {
-      ...profissao,
-      ...data,
-      updatedAt: new Date().toISOString(),
-      updated_by: '1',
-    };
-
-    return profissoes[profissaoIndex];
+  update: async (id: string, data: UpdateProfissaoDto): Promise<ReadProfissaoDto> => {
+    const response = await api.update(id, data);
+    return response;
   },
-  delete: async (id) => {
-    const profissaoIndex = profissoes.findIndex((p) => p.profissao_id === id);
-    if (profissaoIndex === -1) {
-      throw new Error('Profissão não encontrada');
-    }
-    profissoes.splice(profissaoIndex, 1);
+  delete: async (id: string): Promise<void> => {
+    await api.remove(id);
   },
 };

@@ -306,6 +306,56 @@ export interface UpdateRegionalDto {
   secretariaId?: string;
 }
 
+export interface CreateProfissaoDto {
+  /** Nome da profissão */
+  nome: string;
+  /** Descrição da profissão */
+  descricao?: string;
+  /** Status ativo da profissão */
+  ativo?: boolean;
+}
+
+export interface ReadProfissaoDto {
+  /** ID da profissão */
+  id: string;
+  /** Nome da profissão */
+  nome: string;
+  /** Descrição da profissão */
+  descricao?: string;
+  /** Status ativo da profissão */
+  ativo: boolean;
+  /** Data de criação */
+  createdAt: string;
+  /** Data de atualização */
+  updatedAt: string;
+}
+
+export interface UpdateProfissaoDto {
+  /** Nome da profissão */
+  nome?: string;
+  /** Descrição da profissão */
+  descricao?: string;
+  /** Status ativo da profissão */
+  ativo?: boolean;
+}
+
+export interface PaginateProfissaoDto {
+  /** Total de páginas */
+  totalPages: number;
+  /** Número da página */
+  page: number;
+  /** Limite de itens por página */
+  limit: number;
+  /** Total de itens */
+  total: number;
+  /** Se há uma página posterior */
+  hasNextPage: boolean;
+  /** Se há uma página anterior */
+  hasPrevPage: boolean;
+  /** Itens da página */
+  items: ReadProfissaoDto[];
+}
+
 /**
  * @nullable
  */
@@ -447,6 +497,23 @@ export type UnidadePrisionalControllerFindAllParams = {
 };
 
 export type RegionalControllerFindAllParams = {
+  /**
+   * Número da página
+   * @minimum 0
+   */
+  page?: number;
+  /**
+   * Quantidade de itens por página
+   * @minimum 1
+   */
+  limit?: number;
+  /**
+   * Filtro para a busca
+   */
+  search?: string;
+};
+
+export type ProfissaoControllerFindAllParams = {
   /**
    * Número da página
    * @minimum 0

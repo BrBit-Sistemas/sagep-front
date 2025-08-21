@@ -12,10 +12,11 @@ export const useUpdateProfissao = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ profissaoId, ...data }: { profissaoId: string } & UpdateProfissaoSchema) =>
-      profissaoService.update(profissaoId, data),
-    onSuccess: () => toast.success('Profissão atualizada com sucesso'),
+    mutationFn: ({ id, ...data }: UpdateProfissaoSchema) => profissaoService.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: profissaoKeys.all });
+      toast.success('Profissão atualizada com sucesso');
+    },
     onError: (error) => toast.error(handleError(error)),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: profissaoKeys.all }),
   });
 };

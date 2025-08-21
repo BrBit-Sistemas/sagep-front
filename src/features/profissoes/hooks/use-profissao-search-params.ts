@@ -8,7 +8,7 @@ import {
 
 export const profissaoSearchQueryParsers = {
   search: parseAsString.withDefault(''),
-  page: parseAsInteger.withDefault(1),
+  page: parseAsInteger.withDefault(0),
   limit: parseAsInteger.withDefault(10),
 };
 

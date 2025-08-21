@@ -1,30 +1,29 @@
-import type { GridPaginationModel } from '@mui/x-data-grid/models';
+import type { GridPaginationModel } from '@mui/x-data-grid';
 
 import { Card, Button } from '@mui/material';
 
 import { paths } from 'src/routes/paths';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+import { profissaoToFormValues } from 'src/features/profissoes/helper';
 
 import { Iconify } from 'src/components/iconify';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import CustomDataGrid from 'src/components/custom-data-grid/custom-data-grid';
 
-import { profissaoToFormValues } from '../helper';
-import { useProfissaoList } from '../hooks/use-profissao-list';
+import { useProfissaoCadastroStore } from '../stores';
+import { useListProfissoes } from '../hooks/use-list-profissoes';
 import { useProfissaoListTable } from '../hooks/use-profissao-list-table';
-import { useProfissaoCadastroStore } from '../stores/profissao-cadastro-store';
+import { ProfissaoFormDialog, ProfissaoDeleteDialog } from '../components';
 import { useProfissaoSearchParams } from '../hooks/use-profissao-search-params';
-import { ProfissaoFormDialog } from '../components/cadastro/profissao-form-dialog';
-import { ProfissaoDeleteDialog } from '../components/cadastro/profissao-delete-dialog';
 
 export default function ProfissaoCadastroPage() {
   const [searchParams, setSearchParams] = useProfissaoSearchParams();
 
-  const { selectedProfissao, isFormDialogOpen, openCreateDialog, closeCreateDialog } =
+  const { selectedProfissao, isFormDialogOpen, openCreateDialog, closeFormDialog } =
     useProfissaoCadastroStore();
 
-  const { data, isLoading } = useProfissaoList(searchParams);
+  const { data, isLoading } = useListProfissoes(searchParams);
 
   const { columns } = useProfissaoListTable();
 
@@ -70,16 +69,15 @@ export default function ProfissaoCadastroPage() {
           page={searchParams.page}
           limit={searchParams.limit}
           onPaginationModelChange={handlePaginationModelChange}
-          getRowId={(row) => row.profissao_id}
         />
 
         <ProfissaoFormDialog
           open={isFormDialogOpen}
-          onSuccess={closeCreateDialog}
-          onClose={closeCreateDialog}
+          onSuccess={closeFormDialog}
+          onClose={closeFormDialog}
           {...(selectedProfissao && {
             defaultValues: profissaoToFormValues(selectedProfissao),
-            profissaoId: selectedProfissao.profissao_id,
+            profissaoId: selectedProfissao.id,
           })}
         />
 

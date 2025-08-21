@@ -1,80 +1,60 @@
-import type { GridColDef } from '@mui/x-data-grid/models';
-import type { Profissao } from '../types';
+import type { GridColDef } from '@mui/x-data-grid';
 
-import { useMemo, useCallback } from 'react';
-
-import { useTheme } from '@mui/material/styles';
+import { Stack, IconButton } from '@mui/material';
 
 import { Iconify } from 'src/components/iconify';
-import { CustomGridActionsCellItem } from 'src/components/custom-data-grid';
 
-import { useProfissaoCadastroStore } from '../stores/profissao-cadastro-store';
+import { useProfissaoCadastroStore } from '../stores';
 
 export const useProfissaoListTable = () => {
-  const theme = useTheme();
-  const { openDeleteDialog, openEditDialog } = useProfissaoCadastroStore();
+  const { openEditDialog, openDeleteDialog } = useProfissaoCadastroStore();
 
-  const onDelete = useCallback(
-    (profissao: Profissao) => {
-      openDeleteDialog(profissao);
+  const columns: GridColDef[] = [
+    {
+      field: 'nome',
+      headerName: 'Nome',
+      flex: 1,
+      minWidth: 200,
     },
-    [openDeleteDialog]
-  );
-
-  const onEdit = useCallback(
-    (profissao: Profissao) => {
-      openEditDialog(profissao);
+    {
+      field: 'descricao',
+      headerName: 'Descrição',
+      flex: 1,
+      minWidth: 300,
     },
-    [openEditDialog]
-  );
-
-  const columns = useMemo(
-    (): GridColDef<Profissao>[] => [
-      {
-        field: 'profissao_id',
-        headerName: 'ID',
-        flex: 1,
-      },
-      {
-        field: 'nome',
-        headerName: 'Nome',
-        flex: 2,
-      },
-      {
-        field: 'createdAt',
-        headerName: 'Criado em',
-        flex: 1,
-        valueFormatter: (value) => new Date(value).toLocaleDateString('pt-BR'),
-      },
-      {
-        type: 'actions',
-        field: 'actions',
-        headerName: ' ',
-        width: 64,
-        align: 'right',
-        headerAlign: 'right',
-        sortable: false,
-        filterable: false,
-        disableColumnMenu: true,
-        getActions: (params) => [
-          <CustomGridActionsCellItem
-            showInMenu
-            label="Editar"
-            icon={<Iconify icon="solar:pen-bold" />}
-            onClick={() => onEdit(params.row)}
-          />,
-          <CustomGridActionsCellItem
-            showInMenu
-            label="Excluir"
-            icon={<Iconify icon="solar:trash-bin-trash-bold" />}
-            onClick={() => onDelete(params.row)}
-            style={{ color: theme.vars.palette.error.main }}
-          />,
-        ],
-      },
-    ],
-    [onDelete, onEdit, theme.vars.palette.error.main]
-  );
+    {
+      field: 'ativo',
+      headerName: 'Status',
+      width: 120,
+      renderCell: (params) => (
+        <span style={{ color: params.value ? 'green' : 'red' }}>
+          {params.value ? 'Ativo' : 'Inativo'}
+        </span>
+      ),
+    },
+    {
+      field: 'createdAt',
+      headerName: 'Data de Criação',
+      width: 150,
+      valueFormatter: (params) => new Date(params).toLocaleDateString('pt-BR'),
+    },
+    {
+      field: 'actions',
+      headerName: 'Ações',
+      width: 120,
+      sortable: false,
+      renderCell: (params) => (
+        <Stack direction="row" spacing={1}>
+          <IconButton size="small" color="primary" onClick={() => openEditDialog(params.row)}>
+            <Iconify icon="solar:pen-bold" />
+          </IconButton>
+          <IconButton size="small" color="error" onClick={() => openDeleteDialog(params.row)}>
+            <Iconify icon="solar:trash-bin-trash-bold" />
+          </IconButton>
+        </Stack>
+      ),
+    },
+  ];
 
   return { columns };
 };

@@ -13,8 +13,10 @@ export const useCreateProfissao = () => {
 
   return useMutation({
     mutationFn: (data: CreateProfissaoSchema) => profissaoService.create(data),
-    onSuccess: () => toast.success('Profissão criada com sucesso'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: profissaoKeys.all });
+      toast.success('Profissão criada com sucesso');
+    },
     onError: (error) => toast.error(handleError(error)),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: profissaoKeys.all }),
   });
 };

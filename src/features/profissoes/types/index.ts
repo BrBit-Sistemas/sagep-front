@@ -1,9 +1,28 @@
 import type { AuditableEntity } from 'src/types';
 
-export type Profissao = {
-  profissao_id: string;
+export interface Profissao {
+  id: string;
   nome: string;
-} & AuditableEntity;
+  descricao?: string;
+  ativo: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateProfissao {
+  nome: string;
+  descricao?: string;
+  ativo?: boolean;
+}
+
+export interface UpdateProfissao extends CreateProfissao {
+  id: string;
+}
+
+export interface ProfissaoFilters {
+  nome?: string;
+  ativo?: boolean;
+}
 
 export type ProfissaoListParams = {
   page: number;
