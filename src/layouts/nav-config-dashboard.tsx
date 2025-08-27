@@ -65,6 +65,11 @@ export const navData: NavSectionProps['data'] = [
         icon: ICONS.user,
       },
       {
+        title: 'Permissões',
+        path: paths.permissions.root,
+        icon: ICONS.lock,
+      },
+      {
         title: 'Unidades Prisionais',
         path: paths.unidadesPrisionais.root,
         icon: ICONS.banking,

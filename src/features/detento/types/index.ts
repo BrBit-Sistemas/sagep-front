@@ -21,6 +21,7 @@ export enum Escolaridade {
 export type Detento = {
   id: string;
   nome: string;
+  mae?: string;
   prontuario: string;
   cpf: string;
   data_nascimento: string;
@@ -33,6 +34,7 @@ export type DetentoListParams = {
   page: number;
   limit: number;
   search?: string;
+  cpf?: string;
 };
 
 export type DetentoFichaCadastral = {
@@ -78,6 +80,7 @@ export type DetentoFichaCadastral = {
   data_assinatura: string;
   // PDF gerado
   pdf_path: string;
+  status?: 'ativa' | 'inativa';
 } & AuditableEntity;
 
 export type DetentoService = {
@@ -89,4 +92,4 @@ export type DetentoService = {
   ) => Promise<any>;
   deleteFichaCadastral: (fichacadastral_id: string) => Promise<any>;
   getFichaCadastralPdfUrl: (fichacadastral_id: string) => Promise<string>;
-} & CrudService<Detento, CreateDetentoSchema, UpdateDetentoSchema, PaginatedParams>;
+} & CrudService<Detento, CreateDetentoSchema, UpdateDetentoSchema, DetentoListParams>;

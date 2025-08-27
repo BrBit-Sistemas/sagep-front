@@ -34,6 +34,7 @@ type DetentoFormDialogProps = {
 
 const INITIAL_VALUES: CreateDetentoSchema = {
   nome: '',
+  mae: '',
   prontuario: '',
   cpf: '',
   data_nascimento: '',
@@ -111,6 +112,9 @@ export const DetentoFormDialog = ({
           <Grid container spacing={2}>
             <Grid size={{ md: 6, sm: 12 }}>
               <Field.Text name="nome" label="Nome" />
+            </Grid>
+            <Grid size={{ md: 6, sm: 12 }}>
+              <Field.Text name="mae" label="Nome da mãe" />
             </Grid>
             <Grid size={{ md: 6, sm: 12 }}>
               <Field.Text name="prontuario" label="Prontuário" />

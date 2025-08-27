@@ -1,5 +1,3 @@
-import { paths } from 'src/routes/paths';
-
 import packageJson from '../package.json';
 
 // ----------------------------------------------------------------------
@@ -43,7 +41,7 @@ export const CONFIG: ConfigValue = {
   auth: {
     method: 'jwt',
     skip: false,
-    redirectPath: paths.dashboard.root,
+    redirectPath: '/como-criar-ficha-cadastral',
   },
   /**
    * Mapbox

@@ -8,6 +8,7 @@ import { customInstance } from '../../lib/axios';
 export interface ReadDetentoDto {
   id: string;
   nome: string;
+  mae?: string;
   prontuario: string;
   cpf: string;
   data_nascimento: string;
@@ -22,6 +23,7 @@ export interface ReadDetentoDto {
 
 export interface CreateDetentoDto {
   nome: string;
+  mae?: string;
   prontuario: string;
   cpf: string;
   data_nascimento: string;

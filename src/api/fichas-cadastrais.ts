@@ -69,7 +69,7 @@ export const getFichasCadastrais = () => {
    * @summary Listar fichas cadastrais (paginação)
    */
   const paginate = (
-    params?: Record<string, any>,
+    params?: { detento_id?: string; cpf?: string; status?: string } & Record<string, any>,
     options?: SecondParameter<typeof customInstance>
   ) =>
     customInstance<{ items: ReadFichaCadastralDto[]; total: number; page: number; limit: number }>(

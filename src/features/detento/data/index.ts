@@ -14,6 +14,7 @@ function toDetento(dto: ReadDetentoDto): Detento {
   return {
     id: dto.id,
     nome: dto.nome,
+    mae: dto.mae,
     prontuario: dto.prontuario,
     cpf: dto.cpf,
     data_nascimento: dto.data_nascimento,
@@ -65,6 +66,7 @@ export const detentoService: DetentoService = {
       assinatura: f.assinatura,
       data_assinatura: f.data_assinatura,
       pdf_path: f.pdf_path,
+      status: f.status,
       createdAt: f.createdAt,
       updatedAt: f.updatedAt,
       created_by: f.created_by,
@@ -81,8 +83,8 @@ export const detentoService: DetentoService = {
     const fichasApi = getFichasCadastrais();
     return fichasApi.update(fichacadastral_id, data);
   },
-  paginate: async ({ page, limit, search }) => {
-    const res = await api.findAll({ page, limit, search });
+  paginate: async ({ page, limit, search, cpf }: any) => {
+    const res = await api.findAll({ page, limit, search, cpf });
     return {
       items: res.items.map(toDetento),
       page: res.page,

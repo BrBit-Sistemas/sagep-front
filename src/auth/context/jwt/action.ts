@@ -51,9 +51,8 @@ export const signUp = async ({
 }: SignUpParams): Promise<void> => {
   const params = {
     email,
-    password,
-    firstName,
-    lastName,
+    senha: password,
+    nome: `${firstName} ${lastName}`.trim(),
   };
 
   try {
@@ -65,7 +64,7 @@ export const signUp = async ({
       throw new Error('Access token not found in response');
     }
 
-    sessionStorage.setItem(JWT_STORAGE_KEY, accessToken);
+    await setSession(accessToken);
   } catch (error) {
     console.error('Error during sign up:', error);
     throw error;

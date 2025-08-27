@@ -62,6 +62,12 @@ export const useDetentoListTable = () => {
         ),
       },
       {
+        field: 'mae',
+        headerName: 'Mãe',
+        flex: 1,
+        valueFormatter: (value: string) => value || '-',
+      },
+      {
         field: 'cpf',
         headerName: 'CPF',
         flex: 1,

@@ -5,11 +5,11 @@ import type { BodyType } from '../../lib/axios';
  * SAGEP Core API
  * OpenAPI spec version: 1.0
  */
+import type { RoleDto, PaginateDto, PermissionDto } from '../permissions/permissions';
 import type {
   LoginDto,
   ReadUsuarioDto,
   LoginResponseDto,
-  PaginateRolesDto,
   AuthControllerPaginateRolesParams,
 } from '../generated.schemas';
 
@@ -21,10 +21,8 @@ export const getAutenticação = () => {
   /**
    * @summary Autenticar usuário
    */
-  const login = (
-    loginDto: BodyType<LoginDto>,
-    options?: SecondParameter<typeof customInstance>
-  ) => customInstance<LoginResponseDto>(
+  const login = (loginDto: BodyType<LoginDto>, options?: SecondParameter<typeof customInstance>) =>
+    customInstance<LoginResponseDto>(
       {
         url: `/auth/login`,
         method: 'POST',
@@ -36,15 +34,50 @@ export const getAutenticação = () => {
   /**
    * @summary Obter perfil do usuário autenticado
    */
-  const me = (options?: SecondParameter<typeof customInstance>) => customInstance<ReadUsuarioDto>({ url: `/auth/me`, method: 'GET' }, options);
+  const me = (options?: SecondParameter<typeof customInstance>) =>
+    customInstance<ReadUsuarioDto>({ url: `/auth/me`, method: 'GET' }, options);
   /**
    * @summary Obter todos os papéis
    */
   const paginateRoles = (
     params?: AuthControllerPaginateRolesParams,
     options?: SecondParameter<typeof customInstance>
-  ) => customInstance<PaginateRolesDto>({ url: `/auth/roles`, method: 'GET', params }, options);
-  return { login, me, paginateRoles };
+  ) => customInstance<PaginateDto<RoleDto>>({ url: `/auth/roles`, method: 'GET', params }, options);
+
+  const listPermissions = (options?: SecondParameter<typeof customInstance>) =>
+    customInstance<PermissionDto[]>({ url: `/auth/permissions`, method: 'GET' }, options);
+
+  const createRole = (
+    dto: BodyType<{ nome: string; descricao: string; permissionIds?: string[] }>,
+    options?: SecondParameter<typeof customInstance>
+  ) =>
+    customInstance<RoleDto>(
+      {
+        url: `/auth/roles`,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        data: dto,
+      },
+      options
+    );
+  const updateRole = (
+    id: string,
+    dto: BodyType<{ nome?: string; descricao?: string; permissionIds?: string[] }>,
+    options?: SecondParameter<typeof customInstance>
+  ) =>
+    customInstance<RoleDto>(
+      {
+        url: `/auth/roles/${id}`,
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        data: dto,
+      },
+      options
+    );
+  const removeRole = (id: string, options?: SecondParameter<typeof customInstance>) =>
+    customInstance<void>({ url: `/auth/roles/${id}`, method: 'DELETE' }, options);
+
+  return { login, me, paginateRoles, listPermissions, createRole, updateRole, removeRole };
 };
 export type LoginResult = NonNullable<
   Awaited<ReturnType<ReturnType<typeof getAutenticação>['login']>>

@@ -48,6 +48,9 @@ export const paths = {
   users: {
     root: ROOTS.USERS,
   },
+  permissions: {
+    root: '/permissions',
+  },
   settings: {
     root: ROOTS.SETTINGS,
   },

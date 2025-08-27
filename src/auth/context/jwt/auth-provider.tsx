@@ -45,7 +45,6 @@ export function AuthProvider({ children }: Props) {
 
   useEffect(() => {
     checkUserSession();
-     
   }, []);
 
   // ----------------------------------------------------------------------

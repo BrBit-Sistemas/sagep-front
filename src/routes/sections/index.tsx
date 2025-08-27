@@ -8,14 +8,24 @@ import { CONFIG } from 'src/global-config';
 import { authRoutes } from './auth';
 import { dashboardRoutes } from './dashboard';
 
+const FichaCadastralExternaPage = lazy(
+  () => import('src/features/detento/pages/ficha-cadastral-externa')
+);
+
 // ----------------------------------------------------------------------
 
 const Page404 = lazy(() => import('src/pages/error/404'));
+
+const HowToPage = lazy(() => import('src/pages/how-to-ficha-cadastral'));
 
 export const routesSection: RouteObject[] = [
   {
     path: '/',
     element: <Navigate to={CONFIG.auth.redirectPath} replace />,
+  },
+  {
+    path: '/como-criar-ficha-cadastral',
+    element: <HowToPage />,
   },
 
   // Auth
@@ -23,6 +33,9 @@ export const routesSection: RouteObject[] = [
 
   // Dashboard
   ...dashboardRoutes,
+
+  // Public external route (outside dashboard)
+  { path: '/ficha-cadastral-externa', element: <FichaCadastralExternaPage /> },
 
   // No match
   { path: '*', element: <Page404 /> },

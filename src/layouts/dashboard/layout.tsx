@@ -70,7 +70,10 @@ export function DashboardLayout({
   const isNavVertical = isNavMini || settings.state.navLayout === 'vertical';
 
   const canDisplayItemByRole = (allowedRoles: NavItemProps['allowedRoles']): boolean =>
-    user?.roles?.some((role) => allowedRoles?.includes(role)) ?? false;
+    // Return true to HIDE when user DOES NOT HAVE required role(s)
+    allowedRoles ? !(user?.roles?.some((role) => allowedRoles.includes(role)) ?? false) : false;
+
+  console.log(user);
 
   const renderHeader = () => {
     const headerSlotProps: HeaderSectionProps['slotProps'] = {

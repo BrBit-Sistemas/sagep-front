@@ -2,14 +2,23 @@ import '@react-pdf-viewer/core/lib/styles/index.css';
 
 import type { DetentoFichaCadastral } from 'src/features/detento/types';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
-import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import IconButton from '@mui/material/IconButton';
-import CardContent from '@mui/material/CardContent';
-import CardActionArea from '@mui/material/CardActionArea';
+import {
+  Box,
+  Card,
+  Chip,
+  Dialog,
+  Button,
+  Tooltip,
+  IconButton,
+  CardContent,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  CardActionArea,
+} from '@mui/material';
 
 import { fDateTime } from 'src/utils/format-time';
 
@@ -32,6 +41,14 @@ export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadast
   const { openFichaCadastralEditDialog } = useDetentoDetalhesStore();
   const [hover, setHover] = useState(false);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
+  const [confirm, setConfirm] = useState<{
+    open: boolean;
+    type: 'delete' | 'activate' | 'deactivate' | null;
+  }>({ open: false, type: null });
+  const [pending, setPending] = useState(false);
+  const [localStatus, setLocalStatus] = useState<DetentoFichaCadastral['status']>(
+    fichaCadastral.status
+  );
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -53,13 +70,47 @@ export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadast
     if (signedUrl) window.open(signedUrl, '_blank');
   };
 
-  const handleDelete = async (e: React.MouseEvent) => {
+  const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (window.confirm('Tem certeza que deseja excluir esta ficha cadastral?')) {
-      await detentoService.deleteFichaCadastral(fichaCadastral.fichacadastral_id);
+    setConfirm({ open: true, type: 'delete' });
+  };
+
+  const handleDeactivate = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (fichaCadastral.status === 'inativa') return;
+    setConfirm({ open: true, type: 'deactivate' });
+  };
+
+  const handleActivate = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (fichaCadastral.status === 'ativa') return;
+    setConfirm({ open: true, type: 'activate' });
+  };
+
+  const onConfirm = async () => {
+    if (!confirm.type) return;
+    const type = confirm.type;
+    setConfirm({ open: false, type: null });
+    setPending(true);
+    try {
+      if (type === 'delete') {
+        await detentoService.deleteFichaCadastral(fichaCadastral.fichacadastral_id);
+      } else if (type === 'deactivate') {
+        setLocalStatus('inativa');
+        await detentoService.updateFichaCadastral(fichaCadastral.fichacadastral_id, {
+          status: 'inativa',
+        } as any);
+      } else if (type === 'activate') {
+        setLocalStatus('ativa');
+        await detentoService.updateFichaCadastral(fichaCadastral.fichacadastral_id, {
+          status: 'ativa',
+        } as any);
+      }
+    } finally {
       await queryClient.invalidateQueries({
         queryKey: detentoKeys.fichasCadastrais(fichaCadastral.detento_id),
       });
+      setPending(false);
     }
   };
 
@@ -81,7 +132,7 @@ export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadast
               <PdfThumbnail width={720} pageIndex={0} fileUrl={signedUrl} withCredentials />
             )}
           </PdfWorker>
-          {hover && (
+          {(hover || pending) && (
             <>
               <IconButton
                 onClick={handleView}
@@ -117,11 +168,89 @@ export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadast
               >
                 <Iconify icon="solar:trash-bin-trash-bold" width={22} height={22} />
               </IconButton>
+
+              {localStatus === 'ativa' ? (
+                <Tooltip title="Desativar ficha">
+                  <IconButton
+                    onClick={handleDeactivate}
+                    sx={{
+                      position: 'absolute',
+                      bottom: 8,
+                      right: 8,
+                      bgcolor: 'rgba(0,0,0,0.35)',
+                      color: 'warning.main',
+                      p: 0.5,
+                      zIndex: 2,
+                      '&:hover': { bgcolor: 'warning.main', color: 'common.white' },
+                      boxShadow: 1,
+                    }}
+                    size="small"
+                  >
+                    <Iconify icon="solar:pen-bold" width={22} height={22} />
+                  </IconButton>
+                </Tooltip>
+              ) : (
+                <Tooltip title="Ativar ficha">
+                  <IconButton
+                    onClick={handleActivate}
+                    sx={{
+                      position: 'absolute',
+                      bottom: 8,
+                      right: 8,
+                      bgcolor: 'rgba(0,0,0,0.35)',
+                      color: 'success.main',
+                      p: 0.5,
+                      zIndex: 2,
+                      '&:hover': { bgcolor: 'success.main', color: 'common.white' },
+                      boxShadow: 1,
+                    }}
+                    size="small"
+                  >
+                    <Iconify icon="solar:pen-bold" width={22} height={22} />
+                  </IconButton>
+                </Tooltip>
+              )}
             </>
           )}
         </Box>
-        <CardContent>{fDateTime(fichaCadastral.createdAt)}</CardContent>
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Chip
+              size="small"
+              color={localStatus === 'ativa' ? 'success' : 'default'}
+              label={localStatus === 'ativa' ? 'Ativa' : 'Inativa'}
+            />
+            {fDateTime(fichaCadastral.createdAt)}
+          </Box>
+        </CardContent>
       </CardActionArea>
+      <Dialog open={confirm.open} onClose={() => setConfirm({ open: false, type: null })}>
+        <DialogTitle>
+          {confirm.type === 'delete'
+            ? 'Excluir ficha cadastral'
+            : confirm.type === 'deactivate'
+              ? 'Desativar ficha cadastral'
+              : 'Ativar ficha cadastral'}
+        </DialogTitle>
+        <DialogContent>
+          {confirm.type === 'delete' && 'Tem certeza que deseja excluir esta ficha cadastral?'}
+          {confirm.type === 'deactivate' && 'Deseja desativar esta ficha cadastral?'}
+          {confirm.type === 'activate' &&
+            'Ativar esta ficha cadastral? Somente uma ficha pode permanecer ativa por detento.'}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirm({ open: false, type: null })} variant="outlined">
+            Cancelar
+          </Button>
+          <Button
+            onClick={onConfirm}
+            variant="contained"
+            color={confirm.type === 'delete' ? 'error' : 'primary'}
+          >
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Card>
   );
 };

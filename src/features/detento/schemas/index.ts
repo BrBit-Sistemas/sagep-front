@@ -9,6 +9,7 @@ import { Regime, Escolaridade } from '../types';
 
 export const createDetentoSchema = z.object({
   nome: z.string().min(1, 'Nome é obrigatório'),
+  mae: z.string().optional(),
   prontuario: z.string().min(1, 'Prontuário é obrigatório'),
   cpf: z
     .string()

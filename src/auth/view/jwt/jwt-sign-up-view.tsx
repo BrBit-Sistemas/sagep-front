@@ -28,18 +28,24 @@ import { SignUpTerms } from '../../components/sign-up-terms';
 
 export type SignUpSchemaType = zod.infer<typeof SignUpSchema>;
 
-export const SignUpSchema = zod.object({
-  firstName: zod.string().min(1, { message: 'First name is required!' }),
-  lastName: zod.string().min(1, { message: 'Last name is required!' }),
-  email: zod
-    .string()
-    .min(1, { message: 'Email is required!' })
-    .email({ message: 'Email must be a valid email address!' }),
-  password: zod
-    .string()
-    .min(1, { message: 'Password is required!' })
-    .min(6, { message: 'Password must be at least 6 characters!' }),
-});
+export const SignUpSchema = zod
+  .object({
+    firstName: zod.string().min(1, { message: 'O nome é obrigatório' }),
+    lastName: zod.string().min(1, { message: 'O sobrenome é obrigatório' }),
+    email: zod
+      .string()
+      .min(1, { message: 'O email é obrigatório' })
+      .email({ message: 'O email deve ser válido' }),
+    password: zod
+      .string()
+      .min(1, { message: 'A senha é obrigatória' })
+      .min(8, { message: 'A senha deve ter no mínimo 8 caracteres' }),
+    confirmPassword: zod.string().min(1, { message: 'Confirme a senha' }),
+  })
+  .refine((data) => data.password === (data as any).confirmPassword, {
+    message: 'As senhas devem coincidir',
+    path: ['confirmPassword'],
+  });
 
 // ----------------------------------------------------------------------
 
@@ -53,10 +59,11 @@ export function JwtSignUpView() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const defaultValues: SignUpSchemaType = {
-    firstName: 'Hello',
-    lastName: 'Friend',
-    email: 'hello@gmail.com',
-    password: '@2Minimal',
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
   };
 
   const methods = useForm<SignUpSchemaType>({
@@ -79,7 +86,7 @@ export function JwtSignUpView() {
       });
       await checkUserSession?.();
 
-      router.refresh();
+      router.replace('/como-criar-ficha-cadastral');
     } catch (error) {
       console.error(error);
       const feedbackMessage = getErrorMessage(error);
@@ -92,24 +99,20 @@ export function JwtSignUpView() {
       <Box
         sx={{ display: 'flex', gap: { xs: 3, sm: 2 }, flexDirection: { xs: 'column', sm: 'row' } }}
       >
-        <Field.Text
-          name="firstName"
-          label="First name"
-          slotProps={{ inputLabel: { shrink: true } }}
-        />
+        <Field.Text name="firstName" label="Nome" slotProps={{ inputLabel: { shrink: true } }} />
         <Field.Text
           name="lastName"
-          label="Last name"
+          label="Sobrenome"
           slotProps={{ inputLabel: { shrink: true } }}
         />
       </Box>
 
-      <Field.Text name="email" label="Email address" slotProps={{ inputLabel: { shrink: true } }} />
+      <Field.Text name="email" label="Email" slotProps={{ inputLabel: { shrink: true } }} />
 
       <Field.Text
         name="password"
-        label="Password"
-        placeholder="6+ characters"
+        label="Senha"
+        placeholder="No mínimo 8 caracteres"
         type={showPassword.value ? 'text' : 'password'}
         slotProps={{
           inputLabel: { shrink: true },
@@ -125,15 +128,23 @@ export function JwtSignUpView() {
         }}
       />
 
+      <Field.Text
+        name="confirmPassword"
+        label="Confirmar senha"
+        placeholder="Digite novamente a senha"
+        type={showPassword.value ? 'text' : 'password'}
+        slotProps={{ inputLabel: { shrink: true } }}
+      />
+
       <Button
         fullWidth
         size="large"
         type="submit"
         variant="contained"
         loading={isSubmitting}
-        loadingIndicator="Create account..."
+        loadingIndicator="Criando conta..."
       >
-        Create account
+        Criar conta
       </Button>
     </Box>
   );
@@ -141,12 +152,12 @@ export function JwtSignUpView() {
   return (
     <>
       <FormHead
-        title="Get started absolutely free"
+        title="Crie sua conta gratuitamente"
         description={
           <>
-            {`Already have an account? `}
+            {`Já possui uma conta? `}
             <Link component={RouterLink} href={paths.auth.jwt.signIn} variant="subtitle2">
-              Get started
+              Entrar
             </Link>
           </>
         }

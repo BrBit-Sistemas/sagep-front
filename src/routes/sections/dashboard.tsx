@@ -8,7 +8,7 @@ import { DashboardLayout } from 'src/layouts/dashboard';
 
 import { LoadingScreen } from 'src/components/loading-screen';
 
-import { AuthGuard } from 'src/auth/guard';
+import { AuthGuard, PermissionGuard } from 'src/auth/guard';
 
 import { usePathname } from '../hooks';
 
@@ -40,6 +40,7 @@ const SecretariaCadastroPage = lazy(
   () => import('src/features/secretarias/pages/secretaria-cadastro')
 );
 const UserCadastroPage = lazy(() => import('src/features/users/pages/cadastro'));
+const PermissionsPage = lazy(() => import('../../features/permissions/pages/permissions'));
 const IndexPage = lazy(() => import('src/pages/dashboard/one'));
 const ConfiguracoesPage = lazy(() => import('src/features/configuracoes/pages/configuracoes'));
 
@@ -72,6 +73,14 @@ export const dashboardRoutes: RouteObject[] = [
       {
         path: 'users',
         element: <UserCadastroPage />,
+      },
+      {
+        path: 'permissions',
+        element: (
+          <PermissionGuard requireAdmin>
+            <PermissionsPage />
+          </PermissionGuard>
+        ),
       },
       {
         path: 'unidades-prisionais',
