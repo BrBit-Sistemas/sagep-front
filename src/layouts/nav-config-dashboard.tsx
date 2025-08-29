@@ -50,7 +50,7 @@ export const navData: NavSectionProps['data'] = [
     subheader: 'Carceragem',
     items: [
       {
-        title: 'Detentos',
+        title: 'Reeducandos',
         path: paths.detentos.root,
         icon: ICONS.user,
         allowedRoles: ['read:detentos'],
