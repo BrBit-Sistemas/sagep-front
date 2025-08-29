@@ -99,13 +99,13 @@ export const DetentoFormDialog = ({
 
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>{isEditing ? 'Editar detento' : 'Adicionar detento'}</DialogTitle>
+      <DialogTitle>{isEditing ? 'Editar reeducando' : 'Adicionar reeducando'}</DialogTitle>
 
       <DialogContent>
         <Typography sx={{ mb: 2 }}>
           {isEditing
-            ? 'Edite os campos abaixo para atualizar o detento.'
-            : 'Preencha os campos abaixo para adicionar um novo detento.'}
+            ? 'Edite os campos abaixo para atualizar o reeducando.'
+            : 'Preencha os campos abaixo para adicionar um novo reeducando.'}
         </Typography>
 
         <Form methods={methods} onSubmit={handleSubmit}>

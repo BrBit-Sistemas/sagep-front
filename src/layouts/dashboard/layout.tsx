@@ -2,12 +2,15 @@ import type { Breakpoint } from '@mui/material/styles';
 import type { MainSectionProps, HeaderSectionProps, LayoutSectionProps } from '../core';
 
 import { merge } from 'es-toolkit';
+import { useQuery } from '@tanstack/react-query';
 import { useBoolean } from 'minimal-shared/hooks';
 
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import { useTheme } from '@mui/material/styles';
 import { iconButtonClasses } from '@mui/material/IconButton';
+
+import { getAutenticação } from 'src/api/autenticação/autenticação';
 
 import { Logo } from 'src/components/logo';
 import { useSettingsContext } from 'src/components/settings';
@@ -69,11 +72,27 @@ export function DashboardLayout({
   const isNavHorizontal = settings.state.navLayout === 'horizontal';
   const isNavVertical = isNavMini || settings.state.navLayout === 'vertical';
 
-  const canDisplayItemByRole = (allowedRoles: NavItemProps['allowedRoles']): boolean =>
-    // Return true to HIDE when user DOES NOT HAVE required role(s)
-    allowedRoles ? !(user?.roles?.some((role) => allowedRoles.includes(role)) ?? false) : false;
+  const authApi = getAutenticação();
+  const { data: me } = useQuery({ queryKey: ['me'], queryFn: () => authApi.me() });
 
-  console.log(user);
+  const isAdmin = Boolean((me as any)?.isAdmin);
+
+  const hasPermission = (token: string) => {
+    const [action, subject] = token.split(':');
+    if (isAdmin) return true;
+    return Boolean(
+      (me as any)?.roles?.some((role: any) =>
+        role?.permissions?.some((perm: any) => perm?.action === action && perm?.subject === subject)
+      )
+    );
+  };
+
+  const canDisplayItemByRole = (allowedRoles: NavItemProps['allowedRoles']): boolean => {
+    if (!allowedRoles) return false; // do not hide if no requirement
+    const tokens = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+    const isAllowed = tokens.some((t) => hasPermission(t));
+    return !isAllowed; // return true to hide when not allowed
+  };
 
   const renderHeader = () => {
     const headerSlotProps: HeaderSectionProps['slotProps'] = {

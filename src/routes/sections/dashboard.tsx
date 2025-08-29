@@ -43,6 +43,10 @@ const UserCadastroPage = lazy(() => import('src/features/users/pages/cadastro'))
 const PermissionsPage = lazy(() => import('../../features/permissions/pages/permissions'));
 const IndexPage = lazy(() => import('src/pages/dashboard/one'));
 const ConfiguracoesPage = lazy(() => import('src/features/configuracoes/pages/configuracoes'));
+const FichaCadastralExternaPage = lazy(
+  () => import('src/features/detento/pages/ficha-cadastral-externa')
+);
+const AccountProfilePage = lazy(() => import('src/sections/account/account-profile-page'));
 
 export const dashboardRoutes: RouteObject[] = [
   {
@@ -58,6 +62,14 @@ export const dashboardRoutes: RouteObject[] = [
         element: <ConfiguracoesPage />,
       },
       {
+        path: 'dashboard/perfil',
+        element: <AccountProfilePage />,
+      },
+      {
+        path: 'perfil',
+        element: <AccountProfilePage />,
+      },
+      {
         path: 'detentos',
         children: [
           {
@@ -71,20 +83,59 @@ export const dashboardRoutes: RouteObject[] = [
         ],
       },
       {
+        path: 'ficha-cadastral',
+        element: (
+          <PermissionGuard
+            required={[
+              { action: 'read', subject: 'ficha_cadastral_interno' },
+              { action: 'read', subject: 'ficha_cadastral_externo' },
+            ]}
+            hasContent={false}
+          >
+            <FichaCadastralExternaPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: 'dashboard/ficha-cadastral',
+        element: (
+          <PermissionGuard
+            required={[
+              { action: 'read', subject: 'ficha_cadastral_interno' },
+              { action: 'read', subject: 'ficha_cadastral_externo' },
+            ]}
+            hasContent={false}
+          >
+            <FichaCadastralExternaPage />
+          </PermissionGuard>
+        ),
+      },
+      {
         path: 'users',
-        element: <UserCadastroPage />,
+        element: (
+          <PermissionGuard required={{ action: 'read', subject: 'usuarios' }} hasContent={false}>
+            <UserCadastroPage />
+          </PermissionGuard>
+        ),
       },
       {
         path: 'permissions',
         element: (
-          <PermissionGuard requireAdmin>
+          <PermissionGuard requireAdmin hasContent={false}>
             <PermissionsPage />
           </PermissionGuard>
         ),
       },
       {
         path: 'unidades-prisionais',
-        element: <UnidadePrisionalCadastroPage />,
+        element: (
+          <PermissionGuard
+            required={{ action: 'read', subject: 'unidades_prisionais' }}
+            hasContent={false}
+          >
+            <UnidadePrisionalCadastroPage />
+          </PermissionGuard>
+        ),
       },
       {
         path: 'empresas',
@@ -92,15 +143,27 @@ export const dashboardRoutes: RouteObject[] = [
       },
       {
         path: 'profissoes',
-        element: <ProfissaoCadastroPage />,
+        element: (
+          <PermissionGuard required={{ action: 'read', subject: 'profissoes' }} hasContent={false}>
+            <ProfissaoCadastroPage />
+          </PermissionGuard>
+        ),
       },
       {
         path: 'regionais',
-        element: <RegionalCadastroPage />,
+        element: (
+          <PermissionGuard required={{ action: 'read', subject: 'regionais' }} hasContent={false}>
+            <RegionalCadastroPage />
+          </PermissionGuard>
+        ),
       },
       {
         path: 'secretarias',
-        element: <SecretariaCadastroPage />,
+        element: (
+          <PermissionGuard required={{ action: 'read', subject: 'secretarias' }} hasContent={false}>
+            <SecretariaCadastroPage />
+          </PermissionGuard>
+        ),
       },
     ],
   },

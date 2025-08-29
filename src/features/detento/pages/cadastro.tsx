@@ -39,8 +39,11 @@ export default function DetentoCadastroPage() {
   return (
     <DashboardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
       <CustomBreadcrumbs
-        heading="Cadastro de detentos"
-        links={[{ name: 'Detentos' }, { name: 'Cadastro de detentos', href: paths.detentos.root }]}
+        heading="Cadastro de Reeducandos"
+        links={[
+          { name: 'Reeducandos' },
+          { name: 'Cadastro de Reeducandos', href: paths.detentos.root },
+        ]}
         action={
           <Button
             color="primary"

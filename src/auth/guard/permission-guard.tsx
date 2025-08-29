@@ -11,18 +11,44 @@ import { getAutenticação } from 'src/api/autenticação/autenticação';
 type Props = {
   children: React.ReactNode;
   requireAdmin?: boolean;
+  required?: { action: string; subject: string } | { action: string; subject: string }[];
   hasContent?: boolean;
   sx?: SxProps<Theme>;
 };
 
 const authApi = getAutenticação();
 
-export function PermissionGuard({ children, requireAdmin = false, hasContent = true, sx }: Props) {
+export function PermissionGuard({
+  children,
+  requireAdmin = false,
+  required,
+  hasContent = true,
+  sx,
+}: Props) {
   const { data: me, isLoading } = useQuery({ queryKey: ['me'], queryFn: () => authApi.me() });
 
   if (isLoading) return null;
 
-  const allowed = requireAdmin ? Boolean((me as any)?.isAdmin) : true;
+  const isAdmin = Boolean((me as any)?.isAdmin);
+
+  console.log(me);
+
+  const hasPermission = (req: { action: string; subject: string }) =>
+    Boolean(
+      (me as any)?.roles?.some((role: any) =>
+        role?.permissions?.some(
+          (perm: any) => perm?.action === req.action && perm?.subject === req.subject
+        )
+      )
+    );
+
+  const hasAnyRequiredPermission = Array.isArray(required)
+    ? required.some((r) => hasPermission(r))
+    : required
+      ? hasPermission(required)
+      : true;
+
+  const allowed = (requireAdmin ? isAdmin : true) && hasAnyRequiredPermission;
 
   if (!allowed) {
     return hasContent ? (

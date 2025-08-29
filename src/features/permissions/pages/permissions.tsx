@@ -33,6 +33,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { getPermissionsApi } from 'src/api/permissions/permissions';
 import { getAutenticação } from 'src/api/autenticação/autenticação';
 
+import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
@@ -132,6 +133,25 @@ export default function PermissionsPage() {
   });
 
   const onAssignRolesToUser = async (user: ReadUsuarioDto, roleIds: string[]) => {
+    // Restrição: o usuário não pode alterar as próprias permissões de USUÁRIOS (ler/editar)
+    if (currentUser?.id === user.id) {
+      const rolesById = new Map(roles.map((r) => [r.id, r]));
+      const grantedPermissions = (
+        roleIds.map((id) => rolesById.get(id)).filter(Boolean) as RoleDto[]
+      ).flatMap((r) => r.permissions ?? []);
+
+      const hasReadUsuarios = grantedPermissions.some(
+        (p) => p.id === 'read:usuarios' || (p.action === 'read' && p.subject === 'usuarios')
+      );
+      const hasUpdateUsuarios = grantedPermissions.some(
+        (p) => p.id === 'update:usuarios' || (p.action === 'update' && p.subject === 'usuarios')
+      );
+
+      if (!hasReadUsuarios || !hasUpdateUsuarios) {
+        toast.error('Você não pode alterar suas próprias permissões de usuários (ler/editar).');
+        return;
+      }
+    }
     await permsApi.updateUserRoles(user.id, roleIds);
     await queryClient.invalidateQueries({ queryKey: ['users'] });
     setSelectedUser(await usersApi.findOne(user.id).then((r) => r));
@@ -202,19 +222,10 @@ export default function PermissionsPage() {
                             <Typography variant="body2" sx={{ flexGrow: 1 }}>
                               Papéis
                             </Typography>
-                            <Tooltip
-                              title={
-                                currentUser?.id === u.id && (currentUser as any)?.isAdmin
-                                  ? 'Não é permitido alterar suas próprias permissões (admin)'
-                                  : 'Remover todos os papéis'
-                              }
-                            >
+                            <Tooltip title="Remover todos os papéis">
                               <span>
                                 <IconButton
                                   size="small"
-                                  disabled={
-                                    currentUser?.id === u.id && (currentUser as any)?.isAdmin
-                                  }
                                   onClick={async (e) => {
                                     e.stopPropagation();
                                     await onAssignRolesToUser(u, []);
@@ -242,9 +253,6 @@ export default function PermissionsPage() {
                                   color={has ? 'primary' : 'default'}
                                   variant={has ? 'filled' : 'outlined'}
                                   label={r.nome}
-                                  disabled={
-                                    currentUser?.id === u.id && (currentUser as any)?.isAdmin
-                                  }
                                   onClick={async (e) => {
                                     e.stopPropagation();
                                     const current = new Set(currentIds);

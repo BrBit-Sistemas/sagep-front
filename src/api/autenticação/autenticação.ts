@@ -47,6 +47,20 @@ export const getAutenticação = () => {
   const listPermissions = (options?: SecondParameter<typeof customInstance>) =>
     customInstance<PermissionDto[]>({ url: `/auth/permissions`, method: 'GET' }, options);
 
+  const changePassword = (
+    dto: BodyType<{ oldPassword: string; newPassword: string }>,
+    options?: SecondParameter<typeof customInstance>
+  ) =>
+    customInstance<void>(
+      {
+        url: `/auth/change-password`,
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        data: dto,
+      },
+      options
+    );
+
   const createRole = (
     dto: BodyType<{ nome: string; descricao: string; permissionIds?: string[] }>,
     options?: SecondParameter<typeof customInstance>
@@ -77,7 +91,16 @@ export const getAutenticação = () => {
   const removeRole = (id: string, options?: SecondParameter<typeof customInstance>) =>
     customInstance<void>({ url: `/auth/roles/${id}`, method: 'DELETE' }, options);
 
-  return { login, me, paginateRoles, listPermissions, createRole, updateRole, removeRole };
+  return {
+    login,
+    me,
+    paginateRoles,
+    listPermissions,
+    createRole,
+    updateRole,
+    removeRole,
+    changePassword,
+  };
 };
 export type LoginResult = NonNullable<
   Awaited<ReturnType<ReturnType<typeof getAutenticação>['login']>>

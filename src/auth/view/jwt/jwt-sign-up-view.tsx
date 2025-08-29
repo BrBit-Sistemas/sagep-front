@@ -86,7 +86,7 @@ export function JwtSignUpView() {
       });
       await checkUserSession?.();
 
-      router.replace('/como-criar-ficha-cadastral');
+      router.replace(paths.dashboard.root);
     } catch (error) {
       console.error(error);
       const feedbackMessage = getErrorMessage(error);

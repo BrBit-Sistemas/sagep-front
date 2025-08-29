@@ -1,7 +1,6 @@
 import axios, { endpoints } from 'src/lib/axios';
 
 import { setSession } from './utils';
-import { JWT_STORAGE_KEY } from './constant';
 
 // ----------------------------------------------------------------------
 
@@ -15,6 +14,15 @@ export type SignUpParams = {
   password: string;
   firstName: string;
   lastName: string;
+};
+
+export type ForgotPasswordParams = {
+  email: string;
+};
+
+export type ResetPasswordParams = {
+  token: string;
+  newPassword: string;
 };
 
 /** **************************************
@@ -79,6 +87,30 @@ export const signOut = async (): Promise<void> => {
     await setSession(null);
   } catch (error) {
     console.error('Error during sign out:', error);
+    throw error;
+  }
+};
+
+/** **************************************
+ * Forgot password
+ *************************************** */
+export const forgotPassword = async ({ email }: ForgotPasswordParams): Promise<void> => {
+  try {
+    await axios.post('/auth/forgot-password', { email });
+  } catch (error) {
+    console.error('Error during forgot password:', error);
+    throw error;
+  }
+};
+
+/** **************************************
+ * Reset password
+ *************************************** */
+export const resetPassword = async ({ token, newPassword }: ResetPasswordParams): Promise<void> => {
+  try {
+    await axios.post('/auth/reset-password', { token, senha: newPassword });
+  } catch (error) {
+    console.error('Error during reset password:', error);
     throw error;
   }
 };

@@ -263,6 +263,8 @@ export default function ConfiguracoesDoSistemaPage() {
           </Card>
         </Grid>
 
+        {null}
+
         <Grid size={{ xs: 12 }}>
           <Stack direction="row" justifyContent="flex-end">
             <Button variant="contained" color="primary" onClick={handleSalvar}>

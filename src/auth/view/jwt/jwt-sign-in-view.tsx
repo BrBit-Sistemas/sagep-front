@@ -15,6 +15,8 @@ import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 import { RouterLink } from 'src/routes/components';
 
+import { getAutenticação } from 'src/api/autenticação/autenticação';
+
 import { Iconify } from 'src/components/iconify';
 import { Form, Field } from 'src/components/hook-form';
 
@@ -69,7 +71,51 @@ export function JwtSignInView() {
       await signInWithPassword({ email: data.email, password: data.password });
       await checkUserSession?.();
 
-      router.refresh();
+      // After session is set, fetch current user to decide redirect
+      try {
+        const authApi = getAutenticação();
+        const me = await authApi.me();
+
+        const isAdmin = Boolean((me as any)?.isAdmin);
+
+        const hasPermission = (action: string, subject: string) =>
+          Boolean(
+            (me as any)?.roles?.some((role: any) =>
+              role?.permissions?.some(
+                (perm: any) => perm?.action === action && perm?.subject === subject
+              )
+            )
+          );
+
+        if (isAdmin) {
+          router.replace(paths.detentos.root);
+          return;
+        }
+
+        const candidates: { allowed: boolean; path: string }[] = [
+          { allowed: hasPermission('read', 'detentos'), path: paths.detentos.root },
+          { allowed: hasPermission('read', 'usuarios'), path: paths.users.root },
+          {
+            allowed: hasPermission('read', 'unidades_prisionais'),
+            path: paths.unidadesPrisionais.root,
+          },
+          { allowed: hasPermission('read', 'regionais'), path: paths.regionais.root },
+          { allowed: hasPermission('read', 'secretarias'), path: paths.secretarias.root },
+          { allowed: hasPermission('read', 'profissoes'), path: paths.profissoes.root },
+          {
+            allowed:
+              hasPermission('read', 'ficha_cadastral_interno') ||
+              hasPermission('read', 'ficha_cadastral_externo'),
+            path: `${paths.dashboard.root}/ficha-cadastral`,
+          },
+        ];
+
+        const firstAllowed = candidates.find((c) => c.allowed);
+        router.replace(firstAllowed?.path ?? paths.dashboard.root);
+      } catch {
+        // Fallback: if we can't determine permissions, go to dashboard
+        router.replace(paths.dashboard.root);
+      }
     } catch (error) {
       console.error(error);
       const feedbackMessage = getErrorMessage(error);
@@ -86,7 +132,12 @@ export function JwtSignInView() {
       />
 
       <Box sx={{ gap: 1.5, display: 'flex', flexDirection: 'column' }}>
-        <Link component={RouterLink} href="#" variant="body2" sx={{ alignSelf: 'flex-end' }}>
+        <Link
+          component={RouterLink}
+          href={paths.auth.jwt.forgotPassword}
+          variant="body2"
+          sx={{ alignSelf: 'flex-end' }}
+        >
           Esqueceu a senha?
         </Link>
 

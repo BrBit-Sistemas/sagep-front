@@ -41,7 +41,7 @@ export const CONFIG: ConfigValue = {
   auth: {
     method: 'jwt',
     skip: false,
-    redirectPath: '/como-criar-ficha-cadastral',
+    redirectPath: '/dashboard',
   },
   /**
    * Mapbox

@@ -13,9 +13,23 @@ import {
   ListItemText,
 } from '@mui/material';
 
+import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components/router-link';
 
+import { getAutenticação } from 'src/api/autenticação/autenticação';
+
+import { useAuthContext } from 'src/auth/hooks/use-auth-context';
+
 export default function HowToFichaCadastralPage() {
+  const { authenticated } = useAuthContext();
+
+  const func = async () => {
+    const me = await getAutenticação().me();
+    console.log(me);
+  };
+
+  func();
+
   return (
     <Container maxWidth="md" sx={{ py: 6 }}>
       <Stack spacing={4}>
@@ -35,38 +49,71 @@ export default function HowToFichaCadastralPage() {
             subheader="Você precisa estar autenticado."
           />
           <CardContent>
-            <List sx={{ mb: 2 }}>
-              <ListItem>
-                <ListItemText
-                  primary="Já tem conta? Entrar no sistema"
-                  secondary="Use seu e-mail e senha para acessar."
-                />
-              </ListItem>
-              <ListItem>
-                <ListItemText
-                  primary="Ainda não tem conta? Crie uma agora"
-                  secondary="O cadastro é rápido e necessário para criar fichas-cadastrais externas."
-                />
-              </ListItem>
-            </List>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <Button
-                variant="contained"
-                color="primary"
-                component={RouterLink}
-                href="/auth/jwt/sign-in"
-              >
-                Entrar
-              </Button>
-              <Button
-                variant="outlined"
-                color="primary"
-                component={RouterLink}
-                href="/auth/jwt/sign-up"
-              >
-                Criar conta
-              </Button>
-            </Stack>
+            {authenticated ? (
+              <>
+                <List sx={{ mb: 2 }}>
+                  <ListItem>
+                    <ListItemText
+                      primary="Você já está autenticado"
+                      secondary="Siga para o painel ou para a Ficha Cadastral Externa."
+                    />
+                  </ListItem>
+                </List>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    component={RouterLink}
+                    href={paths.dashboard.root}
+                  >
+                    Ir para o painel
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    component={RouterLink}
+                    href="/ficha-cadastral-externa"
+                  >
+                    Ir para Ficha Cadastral Externa
+                  </Button>
+                </Stack>
+              </>
+            ) : (
+              <>
+                <List sx={{ mb: 2 }}>
+                  <ListItem>
+                    <ListItemText
+                      primary="Já tem conta? Entrar no sistema"
+                      secondary="Use seu e-mail e senha para acessar."
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemText
+                      primary="Ainda não tem conta? Crie uma agora"
+                      secondary="O cadastro é rápido e necessário para criar fichas-cadastrais externas."
+                    />
+                  </ListItem>
+                </List>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    component={RouterLink}
+                    href="/auth/jwt/sign-in"
+                  >
+                    Entrar
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    component={RouterLink}
+                    href="/auth/jwt/sign-up"
+                  >
+                    Criar conta
+                  </Button>
+                </Stack>
+              </>
+            )}
           </CardContent>
         </Card>
 
