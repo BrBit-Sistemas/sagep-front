@@ -2,7 +2,7 @@
 
 const ROOTS = {
   AUTH: '/auth',
-  DETENTOS: '/detentos',
+  DETENTOS: '/reeducandos',
   UNIDADES_PRISIONAIS: '/unidades-prisionais',
   SECRETARIAS: '/secretarias',
   EMPRESAS: '/empresas',

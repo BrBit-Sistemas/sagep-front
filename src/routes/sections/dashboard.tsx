@@ -70,7 +70,7 @@ export const dashboardRoutes: RouteObject[] = [
         element: <AccountProfilePage />,
       },
       {
-        path: 'detentos',
+        path: 'reeducandos',
         children: [
           {
             index: true,
