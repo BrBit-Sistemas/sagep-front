@@ -17,10 +17,7 @@ export const schemaHelper = {
    */
   phoneNumber: (props?: { message?: MessageMapProps; isValid?: (text: string) => boolean }) =>
     zod
-      .string({
-        required_error: props?.message?.required ?? 'Phone number is required!',
-        invalid_type_error: props?.message?.invalid_type ?? 'Invalid phone number!',
-      })
+      .string('Phone number is required!')
       .min(1, { message: props?.message?.required ?? 'Phone number is required!' })
       .refine((data) => props?.isValid?.(data), {
         message: props?.message?.invalid_type ?? 'Invalid phone number!',
@@ -44,8 +41,9 @@ export const schemaHelper = {
 
       if (!isValid) {
         ctx.addIssue({
-          code: zod.ZodIssueCode.invalid_date,
+          code: zod.ZodIssueCode.invalid_type,
           message: props?.message?.invalid_type ?? 'Invalid date!',
+          expected: 'date',
         });
       }
 
