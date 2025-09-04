@@ -114,6 +114,11 @@ export const navData: NavSectionProps['data'] = [
         path: paths.empresas.root,
         icon: ICONS.ecommerce,
       },
+      {
+        title: 'Convênios',
+        path: paths.empresaConvenios.root,
+        icon: ICONS.file,
+      },
     ],
   },
 ];

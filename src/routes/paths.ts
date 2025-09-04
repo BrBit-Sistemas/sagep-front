@@ -6,6 +6,7 @@ const ROOTS = {
   UNIDADES_PRISIONAIS: '/unidades-prisionais',
   SECRETARIAS: '/secretarias',
   EMPRESAS: '/empresas',
+  EMPRESA_CONVENIOS: '/empresa-convenios',
   REGIONAIS: '/regionais',
   DASHBOARD: '/dashboard',
   USERS: '/users',
@@ -40,6 +41,9 @@ export const paths = {
   },
   empresas: {
     root: ROOTS.EMPRESAS,
+  },
+  empresaConvenios: {
+    root: ROOTS.EMPRESA_CONVENIOS,
   },
   profissoes: {
     root: '/profissoes',

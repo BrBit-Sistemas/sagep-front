@@ -41,6 +41,7 @@ export function RHFSelect({
   const baseSlotProps: TextFieldProps['slotProps'] = {
     select: {
       sx: { textTransform: 'capitalize' },
+      displayEmpty: true,
       MenuProps: {
         slotProps: {
           paper: {
@@ -49,8 +50,9 @@ export function RHFSelect({
         },
       },
     },
+    input: { notched: true },
     htmlInput: { id: labelId },
-    inputLabel: { htmlFor: labelId },
+    inputLabel: { htmlFor: labelId, shrink: true },
   };
 
   return (
@@ -114,7 +116,12 @@ export function RHFMultiSelect({
       control={control}
       render={({ field, fieldState: { error } }) => {
         const renderLabel = () => (
-          <InputLabel htmlFor={labelId} {...slotProps?.inputLabel}>
+          <InputLabel
+            htmlFor={labelId}
+            shrink
+            sx={{ px: 0.5, bgcolor: 'background.paper', ...(slotProps?.inputLabel?.sx as object) }}
+            {...slotProps?.inputLabel}
+          >
             {label}
           </InputLabel>
         );
