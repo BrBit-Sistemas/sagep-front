@@ -17,6 +17,7 @@ import { useDetentoCadastroStore } from '../stores/detento-cadastro-store';
 import { useDetentoSearchParams } from '../hooks/use-detento-search-params';
 import { DetentoFormDialog } from '../components/cadastro/detento-form-dialog';
 import { DetentoDeleteDialog } from '../components/cadastro/detento-delete-dialog';
+import { DetentoTableToolbar } from '../components/cadastro/detento-table-toolbar';
 
 export default function DetentoCadastroPage() {
   const [searchParams, setSearchParams] = useDetentoSearchParams();
@@ -34,6 +35,10 @@ export default function DetentoCadastroPage() {
 
   const handleSortModelChange = (newModel: GridSortModel) => {
     setSearchParams({ sort: newModel[0]?.field || '', order: newModel[0]?.sort || 'asc' });
+  };
+
+  const handleFilterChange = (filters: { nome?: string; cpf?: string }) => {
+    setSearchParams(filters);
   };
 
   return (
@@ -65,12 +70,14 @@ export default function DetentoCadastroPage() {
           flexDirection: { md: 'column' },
         }}
       >
+        <DetentoTableToolbar searchParams={searchParams} onFilterChange={handleFilterChange} />
         <CustomDataGrid
           hasNextPage={data?.hasNextPage || false}
           total={data?.total || 0}
           rows={data?.items || []}
           columns={columns}
           loading={isLoading}
+          toolbar={() => null}
           page={searchParams.page}
           limit={searchParams.limit}
           sort={searchParams.sort}
@@ -79,7 +86,6 @@ export default function DetentoCadastroPage() {
           onSortModelChange={handleSortModelChange}
           getRowId={(row) => row.id}
         />
-
         <DetentoFormDialog
           open={isFormDialogOpen}
           onSuccess={closeCreateDialog}
@@ -89,7 +95,6 @@ export default function DetentoCadastroPage() {
             detentoId: selectedDetento.id,
           })}
         />
-
         <DetentoDeleteDialog />
       </Card>
     </DashboardContent>
