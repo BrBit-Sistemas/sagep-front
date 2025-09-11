@@ -1,7 +1,12 @@
 import type { EmpresaConvenio } from '../types';
-import type { Empresa } from 'src/features/empresas/types';
 import type { CrudService, PaginatedParams } from 'src/types';
 import type { CreateEmpresaConvenioSchema, UpdateEmpresaConvenioSchema } from '../schemas';
+
+import {
+  getEmpresaConvenios,
+  type ReadEmpresaConvenioDto,
+  type PaginateEmpresaConvenioDto,
+} from 'src/api/empresa-convenios/empresa-convenios';
 
 // Tipos de convênio (mock)
 export const convenioTipos = [
@@ -109,46 +114,6 @@ export const artigosPorCodigo: Record<'CP' | 'CTB' | 'ECA' | 'LD' | 'Outros', nu
   Outros: [],
 };
 
-// Mock de empresas importadas do módulo de empresas
-import { empresas as empresasMock } from 'src/features/empresas/data';
-
-export const empresaConvenios: EmpresaConvenio[] = [
-  {
-    convenio_id: 'c1',
-    empresa_id: empresasMock[0]?.empresa_id || '1',
-    tipo_codigo: 'CON',
-    modalidade_execucao: 'INTRAMUROS',
-    regimes_permitidos: [1, 2],
-    artigos_vedados: [157, 171],
-    quantitativo_maximo: 30,
-    data_inicio: '2024-01-01',
-    data_fim: null,
-    status: 'ATIVO',
-    observacoes: 'Execução de obras internas.',
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-10',
-    created_by: '1',
-    updated_by: '1',
-  },
-  {
-    convenio_id: 'c2',
-    empresa_id: empresasMock[1]?.empresa_id || '2',
-    tipo_codigo: 'LIM',
-    modalidade_execucao: 'EXTRAMUROS',
-    regimes_permitidos: [2, 3],
-    artigos_vedados: [121],
-    quantitativo_maximo: 15,
-    data_inicio: '2023-09-01',
-    data_fim: '2024-09-01',
-    status: 'ENCERRADO',
-    observacoes: 'Serviços concluídos.',
-    createdAt: '2023-08-15',
-    updatedAt: '2024-09-01',
-    created_by: '1',
-    updated_by: '1',
-  },
-];
-
 export const empresaConvenioService: CrudService<
   EmpresaConvenio,
   CreateEmpresaConvenioSchema,
@@ -156,64 +121,43 @@ export const empresaConvenioService: CrudService<
   PaginatedParams
 > = {
   paginate: async ({ page, limit, search }) => {
-    let items = empresaConvenios;
-
-    if (search) {
-      const searchLower = search.toLowerCase();
-      // Enriquecer busca por razão social
-      const empresasIndex = new Map<string, Empresa>(empresasMock.map((e) => [e.empresa_id, e]));
-      items = items.filter((c) => {
-        const empresa = empresasIndex.get(c.empresa_id);
-        const empresaMatch = empresa?.razao_social?.toLowerCase().includes(searchLower);
-        return (
-          c.tipo_codigo.toLowerCase().includes(searchLower) ||
-          c.status.toLowerCase().includes(searchLower) ||
-          !!empresaMatch
-        );
-      });
-    }
-
+    const api = getEmpresaConvenios();
+    const res: PaginateEmpresaConvenioDto = await api.findAll({ page, limit, search });
     return {
-      totalPages: 1,
-      page,
-      limit,
-      total: items.length,
-      hasNextPage: false,
-      hasPrevPage: false,
-      items,
+      totalPages: res.totalPages,
+      page: res.page,
+      limit: res.limit,
+      total: res.total,
+      hasNextPage: res.hasNextPage,
+      hasPrevPage: res.hasPrevPage,
+      items: res.items.map(fromApi),
     };
   },
   create: async (data) => {
-    const newItem: EmpresaConvenio = {
-      ...data,
-      convenio_id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      created_by: '1',
-      updated_by: '1',
-    } as EmpresaConvenio;
-    empresaConvenios.push(newItem);
-    return newItem;
+    const api = getEmpresaConvenios();
+    const created = await api.create(data);
+    return fromApi(created);
   },
   read: async (id) => {
-    const item = empresaConvenios.find((e) => e.convenio_id === id);
-    if (!item) throw new Error('Convênio não encontrado');
-    return item;
+    const api = getEmpresaConvenios();
+    const dto = await api.findOne(id);
+    return fromApi(dto);
   },
   update: async (id, data) => {
-    const idx = empresaConvenios.findIndex((e) => e.convenio_id === id);
-    if (idx === -1) throw new Error('Convênio não encontrado');
-    empresaConvenios[idx] = {
-      ...empresaConvenios[idx],
-      ...data,
-      updatedAt: new Date().toISOString(),
-      updated_by: '1',
-    } as EmpresaConvenio;
-    return empresaConvenios[idx];
+    const api = getEmpresaConvenios();
+    const dto = await api.update(id, data);
+    return fromApi(dto);
   },
   delete: async (id) => {
-    const idx = empresaConvenios.findIndex((e) => e.convenio_id === id);
-    if (idx === -1) throw new Error('Convênio não encontrado');
-    empresaConvenios.splice(idx, 1);
+    const api = getEmpresaConvenios();
+    await api.remove(id);
   },
 };
+
+const fromApi = (dto: ReadEmpresaConvenioDto): EmpresaConvenio => ({
+  ...dto,
+  artigos_vedados: dto.artigos_vedados ?? [],
+  regimes_permitidos: dto.regimes_permitidos ?? [],
+  quantitativo_maximo: dto.quantitativo_maximo ?? null,
+  data_fim: dto.data_fim ?? null,
+});
