@@ -40,7 +40,7 @@ export default function CustomDataGrid(props: CustomDataGridProps) {
       paginationMode="server"
       paginationMeta={{ hasNextPage: props.hasNextPage }}
       paginationModel={{ page: props.page, pageSize: props.limit }}
-      sortModel={[{ field: props?.sort || '', sort: props?.order as GridSortDirection }]}
+      sortModel={props.sort ? [{ field: props.sort, sort: props.order as GridSortDirection }] : []}
       sortingMode="server"
       rowCount={props.total}
       filterMode="server"
@@ -60,6 +60,17 @@ export default function CustomDataGrid(props: CustomDataGridProps) {
       }}
       getRowId={(row) => row.id}
       {...props}
+      slotProps={{
+        ...props.slotProps,
+        toolbar: {
+          showQuickFilter: true,
+          quickFilterProps: {
+            debounceMs: 500,
+            ...(props.slotProps as any)?.toolbar?.quickFilterProps,
+          },
+          ...(props.slotProps as any)?.toolbar,
+        },
+      }}
     />
   );
 }

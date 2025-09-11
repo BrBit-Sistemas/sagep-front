@@ -1,4 +1,4 @@
-import type { GridSortModel, GridPaginationModel } from '@mui/x-data-grid/models';
+import type { GridSortModel, GridFilterModel, GridPaginationModel } from '@mui/x-data-grid/models';
 
 import { Card, Button } from '@mui/material';
 
@@ -17,7 +17,6 @@ import { useDetentoCadastroStore } from '../stores/detento-cadastro-store';
 import { useDetentoSearchParams } from '../hooks/use-detento-search-params';
 import { DetentoFormDialog } from '../components/cadastro/detento-form-dialog';
 import { DetentoDeleteDialog } from '../components/cadastro/detento-delete-dialog';
-import { DetentoTableToolbar } from '../components/cadastro/detento-table-toolbar';
 
 export default function DetentoCadastroPage() {
   const [searchParams, setSearchParams] = useDetentoSearchParams();
@@ -37,8 +36,9 @@ export default function DetentoCadastroPage() {
     setSearchParams({ sort: newModel[0]?.field || '', order: newModel[0]?.sort || 'asc' });
   };
 
-  const handleFilterChange = (filters: { nome?: string; cpf?: string }) => {
-    setSearchParams(filters);
+  const handleFilterModelChange = (model: GridFilterModel) => {
+    const quick = Array.isArray(model.quickFilterValues) ? model.quickFilterValues.join(' ') : '';
+    setSearchParams({ search: quick, page: 1 });
   };
 
   return (
@@ -70,18 +70,22 @@ export default function DetentoCadastroPage() {
           flexDirection: { md: 'column' },
         }}
       >
-        <DetentoTableToolbar searchParams={searchParams} onFilterChange={handleFilterChange} />
         <CustomDataGrid
           hasNextPage={data?.hasNextPage || false}
           total={data?.total || 0}
           rows={data?.items || []}
           columns={columns}
           loading={isLoading}
-          toolbar={() => null}
+          // toolbar={() => null}
           page={searchParams.page}
           limit={searchParams.limit}
           sort={searchParams.sort}
           order={searchParams.order}
+          filterModel={{
+            items: [],
+            quickFilterValues: searchParams.search ? [searchParams.search] : [],
+          }}
+          onFilterModelChange={handleFilterModelChange}
           onPaginationModelChange={handlePaginationModelChange}
           onSortModelChange={handleSortModelChange}
           getRowId={(row) => row.id}
