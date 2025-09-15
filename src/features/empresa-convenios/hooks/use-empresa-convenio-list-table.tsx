@@ -54,9 +54,13 @@ export const useEmpresaConvenioListTable = () => {
         flex: 1,
       },
       {
-        field: 'quantitativo_maximo',
-        headerName: 'Qtd. Máxima',
+        field: 'quantitativos_profissoes',
+        headerName: 'Vagas (total)',
         flex: 1,
+        valueGetter: (params: any) => {
+          const items = params?.row?.quantitativos_profissoes || [];
+          return items.reduce((sum: number, it: { quantidade?: number }) => sum + (it?.quantidade || 0), 0);
+        },
       },
       {
         field: 'data_inicio',

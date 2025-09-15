@@ -7,7 +7,7 @@ export type CreateEmpresaConvenioDto = {
   modalidade_execucao: 'INTRAMUROS' | 'EXTRAMUROS';
   regimes_permitidos: number[];
   artigos_vedados?: number[];
-  quantitativo_maximo?: number | null;
+  quantitativos_profissoes?: { profissao_id: string; quantidade: number }[];
   data_inicio: string; // YYYY-MM-DD
   data_fim?: string | null;
   status: 'RASCUNHO' | 'ATIVO' | 'SUSPENSO' | 'ENCERRADO';

@@ -1,16 +1,16 @@
-import { useForm } from 'react-hook-form';
 import { useMemo, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm, useFieldArray } from 'react-hook-form';
 
 import MenuItem from '@mui/material/MenuItem';
 import { Grid, Dialog, Button, DialogTitle, DialogActions, DialogContent } from '@mui/material';
 
 import { formatDateToYYYYMMDD } from 'src/utils/format-date';
 
-import { empresas as empresasMock } from 'src/features/empresas/data';
-
 import { Form, Field } from 'src/components/hook-form';
 
+import { useEmpresasOptions } from '../../hooks/use-empresas-options';
+import { useProfissoesOptions } from '../../hooks/use-profissoes-options';
 import { useCreateEmpresaConvenio } from '../../hooks/use-create-empresa-convenio';
 import { useUpdateEmpresaConvenio } from '../../hooks/use-update-empresa-convenio';
 import { createEmpresaConvenioSchema, type CreateEmpresaConvenioSchema } from '../../schemas';
@@ -30,7 +30,7 @@ const INITIAL_VALUES: CreateEmpresaConvenioSchema = {
   modalidade_execucao: 'INTRAMUROS',
   regimes_permitidos: [],
   artigos_vedados: [],
-  quantitativo_maximo: null,
+  quantitativos_profissoes: [],
   data_inicio: formatDateToYYYYMMDD(new Date()),
   data_fim: null,
   status: 'RASCUNHO',
@@ -50,10 +50,8 @@ export const EmpresaConvenioFormDialog = ({
 
   const isLoading = isEditing ? isUpdating : isCreating;
 
-  const empresaOptions = useMemo(
-    () => empresasMock.map((e) => ({ label: e.razao_social, value: e.empresa_id })),
-    []
-  );
+  const { options: empresaOptions } = useEmpresasOptions('');
+  const { ids: profissaoIds, labelMap: profissaoLabels } = useProfissoesOptions('');
   const tipoOptions = useMemo(
     () => convenioTipos.map((t) => ({ label: `${t.descricao} (${t.codigo})`, value: t.codigo })),
     []
@@ -62,6 +60,11 @@ export const EmpresaConvenioFormDialog = ({
   const methods = useForm({
     resolver: zodResolver(createEmpresaConvenioSchema),
     defaultValues: isEditing ? defaultValues : INITIAL_VALUES,
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    name: 'quantitativos_profissoes',
+    control: methods.control,
   });
 
   const handleSubmit = methods.handleSubmit(async (data) => {
@@ -164,13 +167,45 @@ export const EmpresaConvenioFormDialog = ({
                 }}
               />
             </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text
-                type="number"
-                name="quantitativo_maximo"
-                label="Quantitativo Máximo"
-                placeholder="Ex.: 30"
-              />
+            <Grid size={{ md: 12, sm: 12 }}>
+              <Grid container spacing={1}>
+                {fields.map((field, idx) => (
+                  <Grid key={field.id} container spacing={1} alignItems="center">
+                    <Grid size={{ md: 6, sm: 12 }}>
+                      <Field.Autocomplete
+                        name={`quantitativos_profissoes.${idx}.profissao_id`}
+                        label="Profissão"
+                        options={profissaoIds}
+                        getOptionLabel={(id: unknown) =>
+                          profissaoLabels.get(String(id)) || String(id)
+                        }
+                        isOptionEqualToValue={(opt, val) => String(opt) === String(val)}
+                      />
+                    </Grid>
+                    <Grid size={{ md: 4, sm: 8 }}>
+                      <Field.Text
+                        type="number"
+                        name={`quantitativos_profissoes.${idx}.quantidade`}
+                        label="Qtd. Máxima"
+                        placeholder="Ex.: 10"
+                      />
+                    </Grid>
+                    <Grid size={{ md: 2, sm: 4 }}>
+                      <Button color="error" variant="outlined" onClick={() => remove(idx)}>
+                        Remover
+                      </Button>
+                    </Grid>
+                  </Grid>
+                ))}
+                <Grid size={{ md: 12, sm: 12 }} sx={{ mt: 3, mb: 3 }}>
+                  <Button
+                    variant="outlined"
+                    onClick={() => append({ profissao_id: '', quantidade: 1 })}
+                  >
+                    Adicionar quantitativo de vagas disponibilizadas
+                  </Button>
+                </Grid>
+              </Grid>
             </Grid>
             <Grid size={{ md: 6, sm: 12 }}>
               <Field.DatePicker name="data_inicio" label="Data Início" />

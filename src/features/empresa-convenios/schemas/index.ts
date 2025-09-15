@@ -18,10 +18,15 @@ export const createEmpresaConvenioSchema = z.object({
     .preprocess(toNumberArray, z.array(z.number()))
     .pipe(z.array(z.number()).min(1, 'Selecione ao menos um regime')),
   artigos_vedados: z.preprocess(toNumberArray, z.array(z.number())).default([]),
-  quantitativo_maximo: z
-    .union([z.number().int().positive(), z.null()])
+  quantitativos_profissoes: z
+    .array(
+      z.object({
+        profissao_id: z.string().min(1, 'Profissão é obrigatória'),
+        quantidade: z.number().int().positive('Quantidade deve ser positiva'),
+      })
+    )
     .optional()
-    .nullable(),
+    .default([]),
   data_inicio: z.string().min(1, 'Data de início é obrigatória'),
   data_fim: z.string().optional().nullable(),
   status: z.enum(statusConvenioValues as [StatusConvenio, ...StatusConvenio[]]),

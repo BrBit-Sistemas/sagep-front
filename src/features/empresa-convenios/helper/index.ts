@@ -9,7 +9,7 @@ export const empresaConvenioToFormValues = (
   modalidade_execucao: x.modalidade_execucao,
   regimes_permitidos: (x.regimes_permitidos ?? []).map(String) as unknown as number[],
   artigos_vedados: (x.artigos_vedados ?? []).map(String) as unknown as number[],
-  quantitativo_maximo: x.quantitativo_maximo ?? null,
+  quantitativos_profissoes: x.quantitativos_profissoes ?? [],
   data_inicio: x.data_inicio,
   data_fim: x.data_fim ?? null,
   status: x.status,

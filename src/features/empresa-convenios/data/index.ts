@@ -158,6 +158,6 @@ const fromApi = (dto: ReadEmpresaConvenioDto): EmpresaConvenio => ({
   ...dto,
   artigos_vedados: dto.artigos_vedados ?? [],
   regimes_permitidos: dto.regimes_permitidos ?? [],
-  quantitativo_maximo: dto.quantitativo_maximo ?? null,
+  quantitativos_profissoes: dto.quantitativos_profissoes ?? [],
   data_fim: dto.data_fim ?? null,
 });
