@@ -34,6 +34,9 @@ const UnidadePrisionalCadastroPage = lazy(
   () => import('src/features/unidades-prisionais/pages/cadastro')
 );
 const EmpresaCadastroPage = lazy(() => import('src/features/empresas/pages/cadastro'));
+const EmpresaConvenioCadastroPage = lazy(
+  () => import('src/features/empresa-convenios/pages/cadastro')
+);
 const ProfissaoCadastroPage = lazy(() => import('src/features/profissoes/pages/cadastro'));
 const RegionalCadastroPage = lazy(() => import('src/features/regionais/pages/regional-cadastro'));
 const SecretariaCadastroPage = lazy(
@@ -140,6 +143,10 @@ export const dashboardRoutes: RouteObject[] = [
       {
         path: 'empresas',
         element: <EmpresaCadastroPage />,
+      },
+      {
+        path: 'empresa-convenios',
+        element: <EmpresaConvenioCadastroPage />,
       },
       {
         path: 'profissoes',
