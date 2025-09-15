@@ -17,7 +17,7 @@ export const schemaHelper = {
    */
   phoneNumber: (props?: { message?: MessageMapProps; isValid?: (text: string) => boolean }) =>
     zod
-      .string('Phone number is required!')
+      .string()
       .min(1, { message: props?.message?.required ?? 'Phone number is required!' })
       .refine((data) => props?.isValid?.(data), {
         message: props?.message?.invalid_type ?? 'Invalid phone number!',
@@ -44,6 +44,7 @@ export const schemaHelper = {
           code: zod.ZodIssueCode.invalid_type,
           message: props?.message?.invalid_type ?? 'Invalid date!',
           expected: 'date',
+          received: typeof value,
         });
       }
 

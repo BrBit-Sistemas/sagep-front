@@ -1,6 +1,7 @@
 import { z as zod } from 'zod';
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useLocation } from 'react-router';
+import { useState, useEffect } from 'react';
 import { useBoolean } from 'minimal-shared/hooks';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -44,12 +45,23 @@ export const SignInSchema = zod.object({
 
 export function JwtSignInView() {
   const router = useRouter();
+  const location = useLocation();
 
   const showPassword = useBoolean();
 
   const { checkUserSession } = useAuthContext();
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const state = (location.state || {}) as { notice?: string };
+    if (state.notice) {
+      setNoticeMessage(state.notice);
+      // Clear the state to avoid showing it again on refresh/navigation
+      router.replace(paths.auth.jwt.signIn, { state: {} });
+    }
+  }, []);
 
   const defaultValues: SignInSchemaType = {
     email: '',
@@ -190,6 +202,12 @@ export function JwtSignInView() {
         }
         sx={{ textAlign: { xs: 'center', md: 'left' } }}
       />
+
+      {!!noticeMessage && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          {noticeMessage}
+        </Alert>
+      )}
 
       {!!errorMessage && (
         <Alert severity="error" sx={{ mb: 3 }}>

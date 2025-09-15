@@ -83,8 +83,8 @@ export const detentoService: DetentoService = {
     const fichasApi = getFichasCadastrais();
     return fichasApi.update(fichacadastral_id, data);
   },
-  paginate: async ({ page, limit, search, cpf }: any) => {
-    const res = await api.findAll({ page, limit, search, cpf });
+  paginate: async ({ page, limit, search, cpf, nome, sort, order }: any) => {
+    const res = await api.findAll({ page, limit, search, cpf, nome, sort, order });
     return {
       items: res.items.map(toDetento),
       page: res.page,

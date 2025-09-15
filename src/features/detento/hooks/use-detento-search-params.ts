@@ -9,6 +9,8 @@ import {
 
 export const detentoSearchQueryParsers = {
   search: parseAsString.withDefault(''),
+  nome: parseAsString.withDefault(''),
+  cpf: parseAsString.withDefault(''),
   page: parseAsInteger.withDefault(1),
   limit: parseAsInteger.withDefault(10),
   sort: parseAsString.withDefault(''),
@@ -17,6 +19,8 @@ export const detentoSearchQueryParsers = {
 
 export const detentoSearchQueryUrlKeys: UrlKeys<typeof detentoSearchQueryParsers> = {
   search: 'q',
+  nome: 'n',
+  cpf: 'c',
   page: 'p',
   limit: 'l',
   sort: 's',

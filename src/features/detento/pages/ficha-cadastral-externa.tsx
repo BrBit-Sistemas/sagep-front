@@ -35,7 +35,8 @@ const externalSchema = createDetentoFichaCadastralSchema
     detento_id: z.string().optional(),
     unidade_prisional: z.string().optional(),
     unidade_id: z
-      .string('Unidade prisional é obrigatória')
+      .string()
+      .min(1, { message: 'Unidade prisional é obrigatória' })
       .uuid('ID da unidade prisional inválido'),
   })
   .refine((data) => /^\d{4}-\d{2}-\d{2}$/.test(data.data_nascimento || ''), {

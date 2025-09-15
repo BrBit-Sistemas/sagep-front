@@ -1,3 +1,5 @@
+import type { AxiosError } from 'axios';
+
 import { z as zod } from 'zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -89,6 +91,19 @@ export function JwtSignUpView() {
       router.replace(paths.dashboard.root);
     } catch (error) {
       console.error(error);
+      // If backend returns 409 Conflict (email already exists), redirect to sign in with notice
+      const axiosErr = error as AxiosError<any>;
+      const status = axiosErr?.response?.status;
+      const message = (axiosErr?.response?.data as any)?.message || getErrorMessage(error);
+      if (status === 409) {
+        router.replace(paths.auth.jwt.signIn, {
+          state: {
+            notice:
+              message || 'Este e-mail já está cadastrado. Faça login ou use "Esqueceu a senha?"',
+          },
+        });
+        return;
+      }
       const feedbackMessage = getErrorMessage(error);
       setErrorMessage(feedbackMessage);
     }

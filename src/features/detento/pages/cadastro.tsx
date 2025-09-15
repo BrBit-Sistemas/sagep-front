@@ -1,4 +1,4 @@
-import type { GridSortModel, GridPaginationModel } from '@mui/x-data-grid/models';
+import type { GridSortModel, GridFilterModel, GridPaginationModel } from '@mui/x-data-grid/models';
 
 import { Card, Button } from '@mui/material';
 
@@ -36,6 +36,11 @@ export default function DetentoCadastroPage() {
     setSearchParams({ sort: newModel[0]?.field || '', order: newModel[0]?.sort || 'asc' });
   };
 
+  const handleFilterModelChange = (model: GridFilterModel) => {
+    const quick = Array.isArray(model.quickFilterValues) ? model.quickFilterValues.join(' ') : '';
+    setSearchParams({ search: quick, page: 1 });
+  };
+
   return (
     <DashboardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
       <CustomBreadcrumbs
@@ -71,15 +76,20 @@ export default function DetentoCadastroPage() {
           rows={data?.items || []}
           columns={columns}
           loading={isLoading}
+          // toolbar={() => null}
           page={searchParams.page}
           limit={searchParams.limit}
           sort={searchParams.sort}
           order={searchParams.order}
+          filterModel={{
+            items: [],
+            quickFilterValues: searchParams.search ? [searchParams.search] : [],
+          }}
+          onFilterModelChange={handleFilterModelChange}
           onPaginationModelChange={handlePaginationModelChange}
           onSortModelChange={handleSortModelChange}
           getRowId={(row) => row.id}
         />
-
         <DetentoFormDialog
           open={isFormDialogOpen}
           onSuccess={closeCreateDialog}
@@ -89,7 +99,6 @@ export default function DetentoCadastroPage() {
             detentoId: selectedDetento.id,
           })}
         />
-
         <DetentoDeleteDialog />
       </Card>
     </DashboardContent>

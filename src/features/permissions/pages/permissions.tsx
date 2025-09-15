@@ -60,6 +60,8 @@ export default function PermissionsPage() {
     queryFn: () => permsApi.paginateRoles({ page: 0, limit: 100 }).then((r) => r),
   });
 
+  console.log(rolesPage);
+
   const { data: permissions } = useQuery({
     queryKey: ['permissions'],
     queryFn: () => permsApi.listPermissions().then((r) => r),

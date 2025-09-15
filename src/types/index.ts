@@ -27,6 +27,8 @@ export type PaginatedParams = {
   page: number;
   limit: number;
   search?: string;
+  nome?: string;
+  cpf?: string;
   sort?: string;
   order?: 'asc' | 'desc';
 };
