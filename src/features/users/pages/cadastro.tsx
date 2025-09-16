@@ -1,4 +1,4 @@
-import type { GridPaginationModel } from '@mui/x-data-grid/models';
+import type { GridSortModel, GridFilterModel, GridPaginationModel } from '@mui/x-data-grid/models';
 
 import { Card, Button } from '@mui/material';
 
@@ -30,6 +30,15 @@ export default function UserCadastroPage() {
 
   const handlePaginationModelChange = (newModel: GridPaginationModel) => {
     setSearchParams({ page: newModel.page, limit: newModel.pageSize });
+  };
+
+  const handleSortModelChange = (newModel: GridSortModel) => {
+    setSearchParams({ sort: newModel[0]?.field || '', order: newModel[0]?.sort || 'asc' });
+  };
+
+  const handleFilterModelChange = (model: GridFilterModel) => {
+    const quick = Array.isArray(model.quickFilterValues) ? model.quickFilterValues.join(' ') : '';
+    setSearchParams({ search: quick, page: 1 });
   };
 
   return (
@@ -66,7 +75,15 @@ export default function UserCadastroPage() {
           loading={isLoading}
           page={searchParams.page}
           limit={searchParams.limit}
+          sort={searchParams.sort}
+          order={searchParams.order}
+          filterModel={{
+            items: [],
+            quickFilterValues: searchParams.search ? [searchParams.search] : [],
+          }}
+          onFilterModelChange={handleFilterModelChange}
           onPaginationModelChange={handlePaginationModelChange}
+          onSortModelChange={handleSortModelChange}
         />
 
         <UserFormDialog

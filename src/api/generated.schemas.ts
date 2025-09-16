@@ -460,6 +460,22 @@ export type UsuarioControllerPaginateParams = {
    * Filtro para a busca
    */
   search?: string;
+  /**
+   * Filtro por nome
+   */
+  nome?: string;
+  /**
+   * Filtro por email
+   */
+  email?: string;
+  /**
+   * Campo para ordenação
+   */
+  sort?: 'nome' | 'email' | 'createdAt' | 'updatedAt';
+  /**
+   * Direção da ordenação
+   */
+  order?: 'asc' | 'desc';
 };
 
 export type SecretariaControllerFindAllParams = {
