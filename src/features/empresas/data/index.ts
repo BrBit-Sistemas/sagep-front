@@ -2,35 +2,23 @@ import type { Empresa } from '../types';
 import type { CrudService, PaginatedParams } from 'src/types';
 import type { CreateEmpresaSchema, UpdateEmpresaSchema } from '../schemas';
 
-export const empresas: Empresa[] = [
-  {
-    empresa_id: '1',
-    razao_social: 'Construtora ABC Ltda',
-    cnpj: '12345678000195',
-    createdAt: '2021-01-01',
-    updatedAt: '2021-01-01',
-    created_by: '1',
-    updated_by: '1',
-  },
-  {
-    empresa_id: '2',
-    razao_social: 'Serviços XYZ S.A.',
-    cnpj: '98765432000176',
-    createdAt: '2021-01-01',
-    updatedAt: '2021-01-01',
-    created_by: '1',
-    updated_by: '1',
-  },
-  {
-    empresa_id: '3',
-    razao_social: 'Tecnologia DEF Eireli',
-    cnpj: '11223344000155',
-    createdAt: '2021-01-01',
-    updatedAt: '2021-01-01',
-    created_by: '1',
-    updated_by: '1',
-  },
-];
+import {
+  getEmpresas,
+  type ReadEmpresaDto,
+  type PaginateEmpresaDto,
+} from 'src/api/empresas/empresas';
+
+const sanitizeCnpj = (value: string) => value.replace(/\D/g, '');
+
+const fromApi = (dto: ReadEmpresaDto): Empresa => ({
+  empresa_id: dto.empresa_id,
+  razao_social: dto.razao_social,
+  cnpj: dto.cnpj,
+  createdAt: dto.createdAt,
+  updatedAt: dto.updatedAt,
+  created_by: undefined,
+  updated_by: undefined,
+});
 
 export const empresaService: CrudService<
   Empresa,
@@ -39,68 +27,43 @@ export const empresaService: CrudService<
   PaginatedParams
 > = {
   paginate: async ({ page, limit, search }) => {
-    let filteredEmpresas = empresas;
-
-    if (search) {
-      const searchLower = search.toLowerCase();
-      filteredEmpresas = empresas.filter(
-        (empresa) =>
-          empresa.razao_social.toLowerCase().includes(searchLower) || empresa.cnpj.includes(search)
-      );
-    }
+    const api = getEmpresas();
+    const response: PaginateEmpresaDto = await api.findAll({ page, limit, search });
 
     return {
-      totalPages: 1,
-      page,
-      limit,
-      total: filteredEmpresas.length,
-      hasNextPage: false,
-      hasPrevPage: false,
-      items: filteredEmpresas,
+      totalPages: response.totalPages,
+      page: response.page,
+      limit: response.limit,
+      total: response.total,
+      hasNextPage: response.hasNextPage,
+      hasPrevPage: response.hasPrevPage,
+      items: response.items.map(fromApi),
     };
   },
   create: async (data) => {
-    const newEmpresa: Empresa = {
-      ...data,
-      empresa_id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      created_by: '1',
-      updated_by: '1',
-    };
-    empresas.push(newEmpresa);
-    return newEmpresa;
+    const api = getEmpresas();
+    const dto = await api.create({
+      razao_social: data.razao_social,
+      cnpj: sanitizeCnpj(data.cnpj),
+    });
+    return fromApi(dto);
   },
   read: async (id) => {
-    const empresa = empresas.find((e) => e.empresa_id === id);
-    if (!empresa) {
-      throw new Error('Empresa não encontrada');
-    }
-    return empresa;
+    const api = getEmpresas();
+    const dto = await api.findOne(id);
+    return fromApi(dto);
   },
   update: async (id, data) => {
-    const empresaIndex = empresas.findIndex((e) => e.empresa_id === id);
-
-    if (empresaIndex === -1) {
-      throw new Error('Empresa não encontrada');
-    }
-
-    const empresa = empresas[empresaIndex];
-
-    empresas[empresaIndex] = {
-      ...empresa,
-      ...data,
-      updatedAt: new Date().toISOString(),
-      updated_by: '1',
+    const api = getEmpresas();
+    const payload = {
+      ...(data.razao_social ? { razao_social: data.razao_social } : {}),
+      ...(data.cnpj ? { cnpj: sanitizeCnpj(data.cnpj) } : {}),
     };
-
-    return empresas[empresaIndex];
+    const dto = await api.update(id, payload);
+    return fromApi(dto);
   },
   delete: async (id) => {
-    const empresaIndex = empresas.findIndex((e) => e.empresa_id === id);
-    if (empresaIndex === -1) {
-      throw new Error('Empresa não encontrada');
-    }
-    empresas.splice(empresaIndex, 1);
+    const api = getEmpresas();
+    await api.remove(id);
   },
 };
