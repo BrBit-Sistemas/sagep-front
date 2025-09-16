@@ -5,22 +5,17 @@ import { useMemo, useCallback } from 'react';
 
 import { useTheme } from '@mui/material/styles';
 
-import { empresas as empresasMock } from 'src/features/empresas/data';
-
 import { Iconify } from 'src/components/iconify';
 import { CustomGridActionsCellItem } from 'src/components/custom-data-grid';
 
 import { convenioTipos } from '../data';
+import { useEmpresasOptions } from '../hooks/use-empresas-options';
 import { useEmpresaConvenioCadastroStore } from '../stores/empresa-convenio-cadastro-store';
 
 export const useEmpresaConvenioListTable = () => {
   const theme = useTheme();
   const { openDeleteDialog, openEditDialog } = useEmpresaConvenioCadastroStore();
-
-  const empresasIndex = useMemo(
-    () => new Map(empresasMock.map((e) => [e.empresa_id, e.razao_social])),
-    []
-  );
+  const { indexMap: empresasIndex } = useEmpresasOptions('');
   const tiposIndex = useMemo(
     () => new Map(convenioTipos.map((t) => [t.codigo, t.descricao])),
     []
