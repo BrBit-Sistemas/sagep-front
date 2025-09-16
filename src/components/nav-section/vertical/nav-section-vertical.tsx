@@ -62,9 +62,27 @@ function Group({
 }: NavGroupProps) {
   const groupOpen = useBoolean(true);
 
+  const isItemVisible = (item: NavGroupProps['items'][number]): boolean => {
+    if (item.allowedRoles && checkPermissions?.(item.allowedRoles)) {
+      return false;
+    }
+
+    if (item.children?.length) {
+      return item.children.some(isItemVisible);
+    }
+
+    return true;
+  };
+
+  const visibleItems = items.filter(isItemVisible);
+
+  if (!visibleItems.length) {
+    return null;
+  }
+
   const renderContent = () => (
     <NavUl sx={{ gap: 'var(--nav-item-gap)' }}>
-      {items.map((list) => (
+      {visibleItems.map((list) => (
         <NavList
           key={list.title}
           data={list}
