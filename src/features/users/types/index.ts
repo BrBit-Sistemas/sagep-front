@@ -6,4 +6,8 @@ export type UserListParams = {
   page: number;
   limit: number;
   search?: string;
+  nome?: string;
+  email?: string;
+  sort?: string;
+  order?: 'asc' | 'desc';
 };

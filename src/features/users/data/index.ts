@@ -13,7 +13,18 @@ export const userService: CrudService<
   UpdateUserSchema,
   UserListParams
 > = {
-  paginate: (params: UserListParams) => api.paginate(params),
+  paginate: async ({ page, limit, search, nome, email, sort, order }: any) => {
+    const res = await api.paginate({ page, limit, search, nome, email, sort, order });
+    return {
+      items: res.items,
+      page: res.page,
+      limit: res.limit,
+      total: res.total,
+      totalPages: Math.ceil((res.total ?? 0) / (res.limit || 1)) || 0,
+      hasNextPage: res.page * res.limit < res.total,
+      hasPrevPage: res.page > 1,
+    } as const;
+  },
   read: (id: string) => api.findOne(id),
   create: (data: CreateUserSchema) => {
     const payload = {
