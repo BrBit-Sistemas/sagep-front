@@ -74,6 +74,14 @@ export const dashboardRoutes: RouteObject[] = [
       },
       {
         path: 'reeducandos',
+        element: (
+          <PermissionGuard
+            required={{ action: 'read', subject: 'detentos' }}
+            hasContent={false}
+          >
+            <SuspenseOutlet />
+          </PermissionGuard>
+        ),
         children: [
           {
             index: true,

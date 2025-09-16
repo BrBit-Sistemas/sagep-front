@@ -1,38 +1,74 @@
 import type { Theme, SxProps } from '@mui/material/styles';
 
+import { useMemo } from 'react';
 import { m } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
 
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 
 import { ForbiddenIllustration } from 'src/assets/illustrations';
+import { getAutenticação } from 'src/api/autenticação/autenticação';
 
 import { varBounce, MotionContainer } from 'src/components/animate';
 
 // ----------------------------------------------------------------------
 
-/**
- * NOTE:
- * This component is for reference only.
- * You can customize the logic and conditions to better suit your application's requirements.
- */
-
-export type RoleBasedGuardProp = {
-  sx?: SxProps<Theme>;
-  currentRole: string;
-  hasContent?: boolean;
-  allowedRoles: string | string[];
+export type RoleBasedGuardProps = {
   children: React.ReactNode;
+  allowedRoles?: string | string[];
+  hasContent?: boolean;
+  sx?: SxProps<Theme>;
 };
 
+const authApi = getAutenticação();
+
 export function RoleBasedGuard({
-  sx,
   children,
-  hasContent,
-  currentRole,
   allowedRoles,
-}: RoleBasedGuardProp) {
-  if (currentRole && allowedRoles && !allowedRoles.includes(currentRole)) {
+  hasContent = true,
+  sx,
+}: RoleBasedGuardProps) {
+  const tokens = useMemo(() => {
+    if (!allowedRoles) return [] as string[];
+    return Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+  }, [allowedRoles]);
+
+  const shouldCheckPermissions = tokens.length > 0;
+
+  const { data: me, isLoading } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => authApi.me(),
+    enabled: shouldCheckPermissions,
+  });
+
+  if (!shouldCheckPermissions) {
+    return <>{children}</>;
+  }
+
+  if (isLoading) {
+    return null;
+  }
+
+  const isAdmin = Boolean((me as any)?.isAdmin);
+
+  const hasPermission = (token: string) => {
+    if (isAdmin) return true;
+
+    const [action, subject] = token.split(':');
+
+    if (!action || !subject) return false;
+
+    return Boolean(
+      (me as any)?.roles?.some((role: any) =>
+        role?.permissions?.some((perm: any) => perm?.action === action && perm?.subject === subject)
+      )
+    );
+  };
+
+  const canAccess = tokens.some((token) => hasPermission(token));
+
+  if (!canAccess) {
     return hasContent ? (
       <Container
         component={MotionContainer}
@@ -40,13 +76,13 @@ export function RoleBasedGuard({
       >
         <m.div variants={varBounce('in')}>
           <Typography variant="h3" sx={{ mb: 2 }}>
-            Permission denied
+            Acesso negado
           </Typography>
         </m.div>
 
         <m.div variants={varBounce('in')}>
           <Typography sx={{ color: 'text.secondary' }}>
-            You do not have permission to access this page.
+            Você não possui permissão para acessar esta página.
           </Typography>
         </m.div>
 
@@ -57,5 +93,5 @@ export function RoleBasedGuard({
     ) : null;
   }
 
-  return <> {children} </>;
+  return <>{children}</>;
 }
