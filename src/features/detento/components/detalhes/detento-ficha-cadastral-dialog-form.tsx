@@ -20,6 +20,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 import { formatDateToDDMMYYYY } from 'src/utils/format-date';
 
+import { useProfissoesOptions } from 'src/features/empresa-convenios/hooks/use-profissoes-options';
 import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/use-unidade-prisional-list';
 
 import { Form, Field } from 'src/components/hook-form';
@@ -130,6 +131,16 @@ export const DetentoFichaCadastralDialogForm = ({
     resolver: zodResolver(createDetentoFichaCadastralSchema),
     defaultValues: initialValues,
   });
+
+  const { ids: profissaoIds, labelMap: profissaoLabels } = useProfissoesOptions('');
+
+  useEffect(() => {
+    const p1 = methods.watch('profissao_01');
+    const p2 = methods.watch('profissao_02');
+    if (p1 && p2 && String(p1) === String(p2)) {
+      methods.setValue('profissao_02', '');
+    }
+  }, [methods.watch('profissao_01'), methods.watch('profissao_02')]);
 
   const handleSubmit = methods.handleSubmit(
     async (data) => {
@@ -349,10 +360,30 @@ export const DetentoFichaCadastralDialogForm = ({
                   />
                 </Grid>
                 <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Text name="profissao_01" label="Profissão 01" />
+                  <Field.Autocomplete
+                    name="profissao_01"
+                    label="Profissão 01"
+                    nullToEmptyString
+                    options={profissaoIds.filter(
+                      (id: unknown) => String(id) !== String(methods.watch('profissao_02') || '')
+                    )}
+                    getOptionLabel={(id: unknown) => profissaoLabels.get(String(id)) || String(id)}
+                    isOptionEqualToValue={(opt, val) => String(opt) === String(val)}
+                    filterSelectedOptions
+                  />
                 </Grid>
                 <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Text name="profissao_02" label="Profissão 02 (opcional)" />
+                  <Field.Autocomplete
+                    name="profissao_02"
+                    label="Profissão 02 (opcional)"
+                    nullToEmptyString
+                    options={profissaoIds.filter(
+                      (id: unknown) => String(id) !== String(methods.watch('profissao_01') || '')
+                    )}
+                    getOptionLabel={(id: unknown) => profissaoLabels.get(String(id)) || String(id)}
+                    isOptionEqualToValue={(opt, val) => String(opt) === String(val)}
+                    filterSelectedOptions
+                  />
                 </Grid>
               </Grid>
             </Box>
