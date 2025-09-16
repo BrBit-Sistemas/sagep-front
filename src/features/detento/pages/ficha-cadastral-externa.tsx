@@ -29,6 +29,7 @@ import { Form, Field } from 'src/components/hook-form';
 
 import { detentoService } from '../data';
 import { createDetentoFichaCadastralSchema } from '../schemas';
+import { useProfissoesOptions } from '../../empresa-convenios/hooks/use-profissoes-options';
 
 const externalSchema = createDetentoFichaCadastralSchema
   .extend({
@@ -38,6 +39,9 @@ const externalSchema = createDetentoFichaCadastralSchema
       .string()
       .min(1, { message: 'Unidade prisional é obrigatória' })
       .uuid('ID da unidade prisional inválido'),
+    // Permitir null vindo do Autocomplete e normalizar para string vazia
+    profissao_01: z.preprocess((v) => (v === null ? '' : v), z.string().optional()),
+    profissao_02: z.preprocess((v) => (v === null ? '' : v), z.string().optional()),
   })
   .refine((data) => /^\d{4}-\d{2}-\d{2}$/.test(data.data_nascimento || ''), {
     path: ['data_nascimento'],
@@ -116,6 +120,8 @@ export default function FichaCadastralExternaPage() {
     limit: 1000,
   });
 
+  const { ids: profissaoIds, labelMap: profissaoLabels } = useProfissoesOptions('');
+
   const getUnidadeName = (unidadeId: string) => {
     const unidade = unidades.find((u) => u.id === unidadeId);
     return unidade?.nome || unidadeId;
@@ -143,7 +149,7 @@ export default function FichaCadastralExternaPage() {
         const url = `${window.location.pathname}${qs ? `?${qs}` : ''}`;
         window.history.replaceState({}, '', url);
       }
-    } catch (e) {
+    } catch {
       // ignore
     }
   }, []);
@@ -273,9 +279,11 @@ export default function FichaCadastralExternaPage() {
         phase = 'ficha';
         setCreatingFicha(true);
         const unidadeNome = getUnidadeName(data.unidade_id);
-        const { unidade_id: _omitUnidadeId, detento_id: _omitDetentoId, ...rest } = data;
+        const restData: any = { ...data };
+        delete (restData as any).unidade_id;
+        delete (restData as any).detento_id;
         await detentoService.createFichaCadastral({
-          ...rest,
+          ...restData,
           unidade_prisional: unidadeNome,
           detento_id: detentoId,
         });
@@ -338,6 +346,15 @@ export default function FichaCadastralExternaPage() {
       setErrorSummary(messages.length ? messages : ['Corrija os campos obrigatórios.']);
     }
   );
+
+  // Evita seleção duplicada entre profissão 01 e 02
+  useEffect(() => {
+    const p1 = methods.watch('profissao_01');
+    const p2 = methods.watch('profissao_02');
+    if (p1 && p2 && String(p1) === String(p2)) {
+      methods.setValue('profissao_02', '');
+    }
+  }, [methods.watch('profissao_01'), methods.watch('profissao_02')]);
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -539,10 +556,34 @@ export default function FichaCadastralExternaPage() {
                     />
                   </Grid>
                   <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Text name="profissao_01" label="Profissão 01" />
+                    <Field.Autocomplete
+                      name="profissao_01"
+                      label="Profissão 01"
+                      nullToEmptyString
+                      options={profissaoIds.filter(
+                        (id: unknown) => String(id) !== String(methods.watch('profissao_02') || '')
+                      )}
+                      getOptionLabel={(id: unknown) =>
+                        profissaoLabels.get(String(id)) || String(id)
+                      }
+                      isOptionEqualToValue={(opt, val) => String(opt) === String(val)}
+                      filterSelectedOptions
+                    />
                   </Grid>
                   <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Text name="profissao_02" label="Profissão 02 (opcional)" />
+                    <Field.Autocomplete
+                      name="profissao_02"
+                      label="Profissão 02 (opcional)"
+                      nullToEmptyString
+                      options={profissaoIds.filter(
+                        (id: unknown) => String(id) !== String(methods.watch('profissao_01') || '')
+                      )}
+                      getOptionLabel={(id: unknown) =>
+                        profissaoLabels.get(String(id)) || String(id)
+                      }
+                      isOptionEqualToValue={(opt, val) => String(opt) === String(val)}
+                      filterSelectedOptions
+                    />
                   </Grid>
                 </Grid>
 
