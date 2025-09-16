@@ -71,6 +71,23 @@ export const useEmpresaConvenioListTable = () => {
       },
       { field: 'status', headerName: 'Status', flex: 1 },
       {
+        field: 'locais_execucao',
+        headerName: 'Locais de Execução',
+        flex: 1.5,
+        valueGetter: (params: any) =>
+          (params?.row as EmpresaConvenio)?.locais_execucao?.length ?? 0,
+        valueFormatter: (_value, params: any) => {
+          const locais = (params?.row as EmpresaConvenio)?.locais_execucao ?? [];
+          if (!locais.length) return '—';
+          if (locais.length === 1) {
+            const local = locais[0];
+            const desc = local.logradouro || local.cidade;
+            return `${desc} (${local.cidade}/${local.estado})`;
+          }
+          return `${locais.length} locais`;
+        },
+      },
+      {
         type: 'actions',
         field: 'actions',
         headerName: ' ',

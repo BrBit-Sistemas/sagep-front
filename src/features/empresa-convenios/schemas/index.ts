@@ -10,6 +10,27 @@ const toNumberArray = (val: unknown) => {
   return [] as number[];
 };
 
+const localExecucaoSchema = z.object({
+  local_id: z.string().uuid().optional(),
+  logradouro: z.string().min(1, 'Logradouro é obrigatório'),
+  numero: z.string().optional().nullable(),
+  complemento: z.string().optional().nullable(),
+  bairro: z.string().optional().nullable(),
+  cidade: z.string().min(1, 'Cidade é obrigatória'),
+  estado: z
+    .string()
+    .min(2, 'UF deve ter 2 caracteres')
+    .max(2, 'UF deve ter 2 caracteres')
+    .transform((val) => val.toUpperCase()),
+  cep: z
+    .string()
+    .regex(/^\d{8}$/u, 'CEP deve conter 8 dígitos')
+    .optional()
+    .or(z.literal(''))
+    .transform((val) => (val ? val : undefined)),
+  referencia: z.string().optional().nullable(),
+});
+
 export const createEmpresaConvenioSchema = z.object({
   empresa_id: z.string().min(1, 'Empresa é obrigatória'),
   tipo_codigo: z.string().min(1, 'Tipo é obrigatório'),
@@ -31,7 +52,9 @@ export const createEmpresaConvenioSchema = z.object({
   data_fim: z.string().optional().nullable(),
   status: z.enum(statusConvenioValues as [StatusConvenio, ...StatusConvenio[]]),
   observacoes: z.string().optional(),
+  locais_execucao: z.array(localExecucaoSchema).optional().default([]),
 });
 
 export type CreateEmpresaConvenioSchema = z.infer<typeof createEmpresaConvenioSchema>;
 export type UpdateEmpresaConvenioSchema = CreateEmpresaConvenioSchema;
+export type EmpresaConvenioLocalSchema = z.infer<typeof localExecucaoSchema>;
