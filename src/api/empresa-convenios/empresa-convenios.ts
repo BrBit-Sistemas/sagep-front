@@ -1,6 +1,18 @@
 import { customInstance, type BodyType } from '../../lib/axios';
 
-// DTOs aligned with backend controller
+export type EmpresaConvenioLocalDto = {
+  local_id?: string;
+  logradouro: string;
+  numero?: string | null;
+  complemento?: string | null;
+  bairro?: string | null;
+  cidade: string;
+  estado: string;
+  cep?: string | null;
+  referencia?: string | null;
+};
+
+// DTOs alinhados com backend controller
 export type CreateEmpresaConvenioDto = {
   empresa_id: string;
   tipo_codigo: string;
@@ -12,14 +24,18 @@ export type CreateEmpresaConvenioDto = {
   data_fim?: string | null;
   status: 'RASCUNHO' | 'ATIVO' | 'SUSPENSO' | 'ENCERRADO';
   observacoes?: string;
+  locais_execucao?: EmpresaConvenioLocalDto[];
 };
 
-export type UpdateEmpresaConvenioDto = Partial<CreateEmpresaConvenioDto>;
+export type UpdateEmpresaConvenioDto = Partial<CreateEmpresaConvenioDto> & {
+  locais_execucao?: EmpresaConvenioLocalDto[];
+};
 
 export type ReadEmpresaConvenioDto = CreateEmpresaConvenioDto & {
   convenio_id: string;
   createdAt: string;
   updatedAt: string;
+  locais_execucao?: (EmpresaConvenioLocalDto & { local_id: string })[];
 };
 
 export type PaginateEmpresaConvenioDto = {

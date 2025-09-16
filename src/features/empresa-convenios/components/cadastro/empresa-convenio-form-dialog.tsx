@@ -3,7 +3,16 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useFieldArray } from 'react-hook-form';
 
 import MenuItem from '@mui/material/MenuItem';
-import { Grid, Dialog, Button, DialogTitle, DialogActions, DialogContent } from '@mui/material';
+import {
+  Grid,
+  Dialog,
+  Button,
+  DialogTitle,
+  DialogActions,
+  DialogContent,
+  Divider,
+  Typography,
+} from '@mui/material';
 
 import { formatDateToYYYYMMDD } from 'src/utils/format-date';
 
@@ -31,6 +40,7 @@ const INITIAL_VALUES: CreateEmpresaConvenioSchema = {
   regimes_permitidos: [],
   artigos_vedados: [],
   quantitativos_profissoes: [],
+  locais_execucao: [],
   data_inicio: formatDateToYYYYMMDD(new Date()),
   data_fim: null,
   status: 'RASCUNHO',
@@ -64,6 +74,15 @@ export const EmpresaConvenioFormDialog = ({
 
   const { fields, append, remove } = useFieldArray({
     name: 'quantitativos_profissoes',
+    control: methods.control,
+  });
+
+  const {
+    fields: locaisFields,
+    append: appendLocal,
+    remove: removeLocal,
+  } = useFieldArray({
+    name: 'locais_execucao',
     control: methods.control,
   });
 
@@ -168,6 +187,12 @@ export const EmpresaConvenioFormDialog = ({
               />
             </Grid>
             <Grid size={{ md: 12, sm: 12 }}>
+              <Divider sx={{ mt: 2, mb: 1 }} />
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
+                Quantitativo de vagas por profissão
+              </Typography>
+            </Grid>
+            <Grid size={{ md: 12, sm: 12 }}>
               <Grid container spacing={1}>
                 {fields.map((field, idx) => (
                   <Grid key={field.id} container spacing={1} alignItems="center">
@@ -204,6 +229,116 @@ export const EmpresaConvenioFormDialog = ({
                   >
                     Adicionar quantitativo de vagas disponibilizadas
                   </Button>
+                </Grid>
+              </Grid>
+            </Grid>
+            <Grid size={{ md: 12, sm: 12 }}>
+              <Divider sx={{ mt: 2, mb: 1 }} />
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
+                Locais de execução
+              </Typography>
+            </Grid>
+            <Grid size={{ md: 12, sm: 12 }}>
+              <Grid container spacing={1}>
+                {locaisFields.map((field, idx) => (
+                  <Grid
+                    key={field.id}
+                    container
+                    spacing={1}
+                    sx={{
+                      border: (theme) => `1px solid ${theme.palette.divider}`,
+                      borderRadius: 1,
+                      p: 2,
+                      mb: 2,
+                    }}
+                  >
+                    <Grid size={{ md: 6, sm: 12 }}>
+                      <Field.Text
+                        name={`locais_execucao.${idx}.logradouro`}
+                        label="Logradouro"
+                        placeholder="Av. Brasil"
+                      />
+                    </Grid>
+                    <Grid size={{ md: 2, sm: 6 }}>
+                      <Field.Text
+                        name={`locais_execucao.${idx}.numero`}
+                        label="Número"
+                        placeholder="123"
+                      />
+                    </Grid>
+                    <Grid size={{ md: 4, sm: 6 }}>
+                      <Field.Text
+                        name={`locais_execucao.${idx}.complemento`}
+                        label="Complemento"
+                        placeholder="Galpão, sala..."
+                      />
+                    </Grid>
+                    <Grid size={{ md: 4, sm: 12 }}>
+                      <Field.Text
+                        name={`locais_execucao.${idx}.bairro`}
+                        label="Bairro"
+                      />
+                    </Grid>
+                    <Grid size={{ md: 4, sm: 12 }}>
+                      <Field.Text
+                        name={`locais_execucao.${idx}.cidade`}
+                        label="Cidade"
+                        placeholder="Boa Vista"
+                      />
+                    </Grid>
+                    <Grid size={{ md: 2, sm: 6 }}>
+                      <Field.Text
+                        name={`locais_execucao.${idx}.estado`}
+                        label="UF"
+                        placeholder="RR"
+                        inputProps={{ maxLength: 2 }}
+                      />
+                    </Grid>
+                    <Grid size={{ md: 2, sm: 6 }}>
+                      <Field.Text
+                        name={`locais_execucao.${idx}.cep`}
+                        label="CEP"
+                        placeholder="69300000"
+                        inputProps={{ maxLength: 8 }}
+                      />
+                    </Grid>
+                    <Grid size={{ md: 10, sm: 12 }}>
+                      <Field.Text
+                        name={`locais_execucao.${idx}.referencia`}
+                        label="Referência"
+                        placeholder="Ponto de referência"
+                      />
+                    </Grid>
+                    <Grid size={{ md: 2, sm: 12 }} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <Button
+                        color="error"
+                        variant="outlined"
+                        onClick={() => removeLocal(idx)}
+                      >
+                        Remover local
+                      </Button>
+                    </Grid>
+                  </Grid>
+                ))}
+                <Grid size={{ md: 12, sm: 12 }} sx={{ mt: 2 }}>
+                  <Button
+                    variant="outlined"
+                    onClick={() =>
+                      appendLocal({
+                        logradouro: '',
+                        numero: '',
+                        complemento: '',
+                        bairro: '',
+                        cidade: '',
+                        estado: '',
+                        cep: '',
+                        referencia: '',
+                      })
+                    }
+                  >
+                    Adicionar local de execução
+                  </Button>
+                  <Divider sx={{ mt: 3, mb: 4 }} />
                 </Grid>
               </Grid>
             </Grid>

@@ -135,7 +135,7 @@ export const empresaConvenioService: CrudService<
   },
   create: async (data) => {
     const api = getEmpresaConvenios();
-    const created = await api.create(data);
+    const created = await api.create(serializeDto(data));
     return fromApi(created);
   },
   read: async (id) => {
@@ -145,7 +145,7 @@ export const empresaConvenioService: CrudService<
   },
   update: async (id, data) => {
     const api = getEmpresaConvenios();
-    const dto = await api.update(id, data);
+    const dto = await api.update(id, serializeDto(data));
     return fromApi(dto);
   },
   delete: async (id) => {
@@ -160,4 +160,31 @@ const fromApi = (dto: ReadEmpresaConvenioDto): EmpresaConvenio => ({
   regimes_permitidos: dto.regimes_permitidos ?? [],
   quantitativos_profissoes: dto.quantitativos_profissoes ?? [],
   data_fim: dto.data_fim ?? null,
+  locais_execucao: (dto.locais_execucao ?? []).map((local) => ({
+    local_id: local.local_id!,
+    logradouro: local.logradouro,
+    numero: local.numero ?? null,
+    complemento: local.complemento ?? null,
+    bairro: local.bairro ?? null,
+    cidade: local.cidade,
+    estado: local.estado,
+    cep: local.cep ?? null,
+    referencia: local.referencia ?? null,
+  })),
+});
+
+const serializeDto = (
+  data: CreateEmpresaConvenioSchema | UpdateEmpresaConvenioSchema,
+) => ({
+  ...data,
+  locais_execucao: data.locais_execucao?.map((local) => ({
+    ...local,
+    local_id: local.local_id || undefined,
+    numero: local.numero || undefined,
+    complemento: local.complemento || undefined,
+    bairro: local.bairro || undefined,
+    referencia: local.referencia || undefined,
+    cep: local.cep ? local.cep.replace(/\D/g, '') : undefined,
+    estado: local.estado?.toUpperCase(),
+  })),
 });
