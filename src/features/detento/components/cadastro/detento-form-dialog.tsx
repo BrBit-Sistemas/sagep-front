@@ -19,6 +19,7 @@ import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/
 
 import { Form, Field } from 'src/components/hook-form';
 
+import { detentoService } from '../../data';
 import { Regime, Escolaridade } from '../../types';
 import { useCreateDetento } from '../../hooks/use-create-detento';
 import { useUpdateDetento } from '../../hooks/use-update-detento';
@@ -83,13 +84,55 @@ export const DetentoFormDialog = ({
       data_nascimento: formatDateToYYYYMMDD(data.data_nascimento) || '',
     };
 
-    if (isEditing) {
-      await updateDetento({ detentoId, ...payload });
-    } else {
-      await createDetento(payload);
+    try {
+      // Pre-validação: prontuário único
+      const prontuario = String(payload.prontuario || '').trim();
+      if (prontuario) {
+        const existing = await detentoService.paginate({ page: 0, limit: 1, search: prontuario });
+        const found = existing.items?.find((d: any) => String(d.prontuario).trim() === prontuario);
+        if (found && (!isEditing || found.id !== detentoId)) {
+          methods.setError('prontuario' as any, {
+            type: 'manual',
+            message: 'Prontuário não está disponível.',
+          });
+          return;
+        }
+      }
+
+      if (isEditing) {
+        await updateDetento({ detentoId, ...payload });
+      } else {
+        await createDetento(payload);
+      }
+      methods.reset(INITIAL_VALUES);
+      onSuccess();
+    } catch (err: any) {
+      const status = err?.response?.status;
+      let message: any = err?.response?.data?.message ?? err?.message;
+      if (Array.isArray(message)) message = message.join(' ');
+      if (!message || typeof message !== 'string') {
+        message = err?.response?.data?.detail || 'Erro inesperado.';
+      }
+      if (status === 409) {
+        const msg = String(message || '');
+        if (msg.toLowerCase().includes('prontuário') || msg.toLowerCase().includes('prontuario')) {
+          methods.setError('prontuario' as any, { type: 'manual', message: msg });
+          return;
+        }
+        if (msg.toLowerCase().includes('cpf')) {
+          methods.setError('cpf' as any, { type: 'manual', message: msg });
+          return;
+        }
+        // fallback específico para 409
+        methods.setError('prontuario' as any, {
+          type: 'manual',
+          message: 'Prontuário não está disponível.',
+        });
+        return;
+      }
+      // Fallback: surface generic error next to prontuário if that field is likely cause
+      methods.setError('prontuario' as any, { type: 'manual', message: String(message) });
     }
-    methods.reset(INITIAL_VALUES);
-    onSuccess();
   });
 
   useEffect(() => {

@@ -147,6 +147,23 @@ export const DetentoFichaCadastralDialogForm = ({
       setLoading(true);
       setError(null);
       try {
+        // Pre-validação: prontuário único (bloqueia antes da criação)
+        const prontuario = String((data as any).prontuario || '').trim();
+        if (prontuario) {
+          const existing = await detentoService.paginate({ page: 0, limit: 1, search: prontuario });
+          const found = existing.items?.find(
+            (d: any) => String(d.prontuario).trim() === prontuario
+          );
+          if (found && found.id !== detentoId) {
+            methods.setError('prontuario' as any, {
+              type: 'manual',
+              message: 'Prontuário não está disponível.',
+            });
+            setLoading(false);
+            return;
+          }
+        }
+
         if (isEditing && fichaCadastralId) {
           await detentoService.updateFichaCadastral(fichaCadastralId, {
             ...data,
@@ -162,8 +179,26 @@ export const DetentoFichaCadastralDialogForm = ({
         onClose();
         // Keep user on ficha cadastral tab after submit
         setSearchParams({ tab: 'ficha_cadastral' });
-      } catch (err) {
-        setError('Erro ao salvar ficha cadastral.');
+      } catch (err: any) {
+        const status = err?.response?.status;
+        let message: any = err?.response?.data?.message ?? err?.message;
+        if (Array.isArray(message)) message = message.join(' ');
+        if (!message || typeof message !== 'string') {
+          message = err?.response?.data?.detail || 'Erro inesperado.';
+        }
+        if (status === 409) {
+          const msg = String(message || '');
+          if (
+            msg.toLowerCase().includes('prontuário') ||
+            msg.toLowerCase().includes('prontuario')
+          ) {
+            methods.setError('prontuario' as any, { type: 'manual', message: msg });
+          } else {
+            setError('Prontuário não está disponível.');
+          }
+        } else {
+          setError(String(message));
+        }
         console.error('Erro ao salvar ficha cadastral:', err);
       } finally {
         setLoading(false);
@@ -175,10 +210,10 @@ export const DetentoFichaCadastralDialogForm = ({
     }
   );
 
-  const handleRemovePdf = () => {
-    methods.setValue('pdf_path', '');
-    console.log('pdf_path', methods.getValues('pdf_path'));
-  };
+  // const handleRemovePdf = () => {
+  //   methods.setValue('pdf_path', '');
+  //   console.log('pdf_path', methods.getValues('pdf_path'));
+  // };
 
   useEffect(() => {
     if (isEditing) {

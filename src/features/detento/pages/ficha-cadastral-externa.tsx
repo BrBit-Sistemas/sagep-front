@@ -246,6 +246,25 @@ export default function FichaCadastralExternaPage() {
 
         // Se não houver detento, precisamos criar
         if (!detentoId) {
+          // Pre-validação: prontuário único antes de criar detento
+          const prontuario = String(data.prontuario || '').trim();
+          if (prontuario) {
+            const existing = await detentoService.paginate({
+              page: 0,
+              limit: 1,
+              search: prontuario,
+            });
+            const found = existing.items?.find(
+              (d: any) => String(d.prontuario).trim() === prontuario
+            );
+            if (found) {
+              methods.setError('prontuario' as any, {
+                type: 'manual',
+                message: 'Prontuário não está disponível.',
+              });
+              throw new Error('Prontuário não está disponível.');
+            }
+          }
           phase = 'detento';
           setCreatingDetento(true);
           // Mínimo necessário para criar o detento
