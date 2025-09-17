@@ -3,6 +3,18 @@ import type { AuditableEntity } from 'src/types';
 export type ModalidadeExecucao = 'INTRAMUROS' | 'EXTRAMUROS';
 export type StatusConvenio = 'RASCUNHO' | 'ATIVO' | 'SUSPENSO' | 'ENCERRADO';
 
+export type EmpresaConvenioLocal = {
+  local_id: string;
+  logradouro: string;
+  numero?: string | null;
+  complemento?: string | null;
+  bairro?: string | null;
+  cidade: string;
+  estado: string;
+  cep?: string | null;
+  referencia?: string | null;
+};
+
 export type EmpresaConvenio = {
   convenio_id: string;
   empresa_id: string;
@@ -15,6 +27,7 @@ export type EmpresaConvenio = {
   data_fim?: string | null; // YYYY-MM-DD
   status: StatusConvenio;
   observacoes?: string;
+  locais_execucao?: EmpresaConvenioLocal[];
 } & AuditableEntity;
 
 export type EmpresaConvenioListParams = {
