@@ -119,7 +119,7 @@ export const navData: NavSectionProps['data'] = [
         title: 'Convênios',
         path: paths.empresaConvenios.root,
         icon: ICONS.file,
-        allowedRoles: ['read:empresa_convenios'],
+        allowedRoles: ['read:empresas_convenio'],
       },
     ],
   },

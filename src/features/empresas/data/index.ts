@@ -26,7 +26,7 @@ export const empresaService: CrudService<
   UpdateEmpresaSchema,
   PaginatedParams
 > = {
-  paginate: async ({ page, limit, search }) => {
+  paginate: async ({ page, limit, search, sort, order }) => {
     const api = getEmpresas();
     const response: PaginateEmpresaDto = await api.findAll({ page, limit, search });
 

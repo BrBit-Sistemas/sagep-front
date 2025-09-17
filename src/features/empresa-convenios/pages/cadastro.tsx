@@ -1,4 +1,4 @@
-import type { GridPaginationModel } from '@mui/x-data-grid/models';
+import type { GridSortModel, GridFilterModel, GridPaginationModel } from '@mui/x-data-grid/models';
 
 import { Card, Button } from '@mui/material';
 
@@ -31,14 +31,20 @@ export default function EmpresaConvenioCadastroPage() {
     setSearchParams({ page: newModel.page, limit: newModel.pageSize });
   };
 
+  const handleSortModelChange = (newModel: GridSortModel) => {
+    setSearchParams({ sort: newModel[0]?.field || '', order: newModel[0]?.sort || 'asc' });
+  };
+
+  const handleFilterModelChange = (model: GridFilterModel) => {
+    const quick = Array.isArray(model.quickFilterValues) ? model.quickFilterValues.join(' ') : '';
+    setSearchParams({ search: quick, page: 1 });
+  };
+
   return (
     <DashboardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
       <CustomBreadcrumbs
         heading="Convênios de Empresas"
-        links={[
-          { name: 'Laboral' },
-          { name: 'Convênios', href: paths.empresaConvenios.root },
-        ]}
+        links={[{ name: 'Laboral' }, { name: 'Convênios', href: paths.empresaConvenios.root }]}
         action={
           <Button
             color="primary"
@@ -68,7 +74,15 @@ export default function EmpresaConvenioCadastroPage() {
           loading={isLoading}
           page={searchParams.page}
           limit={searchParams.limit}
+          sort={searchParams.sort}
+          order={searchParams.order}
+          filterModel={{
+            items: [],
+            quickFilterValues: searchParams.search ? [searchParams.search] : [],
+          }}
+          onFilterModelChange={handleFilterModelChange}
           onPaginationModelChange={handlePaginationModelChange}
+          onSortModelChange={handleSortModelChange}
           getRowId={(row) => row.convenio_id}
         />
 
@@ -87,4 +101,3 @@ export default function EmpresaConvenioCadastroPage() {
     </DashboardContent>
   );
 }
-

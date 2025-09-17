@@ -173,9 +173,7 @@ const fromApi = (dto: ReadEmpresaConvenioDto): EmpresaConvenio => ({
   })),
 });
 
-const serializeDto = (
-  data: CreateEmpresaConvenioSchema | UpdateEmpresaConvenioSchema,
-) => ({
+const serializeDto = (data: CreateEmpresaConvenioSchema | UpdateEmpresaConvenioSchema) => ({
   ...data,
   locais_execucao: data.locais_execucao?.map((local) => ({
     ...local,
