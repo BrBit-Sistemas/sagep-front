@@ -18,7 +18,7 @@ export const createDetentoSchema = z.object({
     .refine((value) => isValidCpf(value), 'CPF inválido'),
   data_nascimento: z.string().min(1, 'Data de nascimento é obrigatória'),
   regime: z.nativeEnum(Regime).default(Regime.FECHADO),
-  escolaridade: z.nativeEnum(Escolaridade).default(Escolaridade.FUNDAMENTAL),
+  escolaridade: z.nativeEnum(Escolaridade).default(Escolaridade.FUNDAMENTAL_I_INCOMPLETO),
   unidade_id: z.string().min(1, 'Unidade é obrigatória'),
 });
 
