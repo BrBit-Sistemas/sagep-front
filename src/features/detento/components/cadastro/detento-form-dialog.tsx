@@ -40,7 +40,7 @@ const INITIAL_VALUES: CreateDetentoSchema = {
   cpf: '',
   data_nascimento: '',
   regime: Regime.FECHADO,
-  escolaridade: Escolaridade.FUNDAMENTAL,
+  escolaridade: Escolaridade.FUNDAMENTAL_I_INCOMPLETO,
   unidade_id: '',
 };
 

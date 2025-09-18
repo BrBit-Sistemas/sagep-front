@@ -9,7 +9,7 @@ export const detentoToFormValues = (detento: Detento): CreateDetentoSchema => ({
   cpf: detento?.cpf ?? '',
   data_nascimento: detento?.data_nascimento ?? '',
   regime: detento?.regime ?? Regime.FECHADO,
-  escolaridade: detento?.escolaridade ?? Escolaridade.FUNDAMENTAL,
+  escolaridade: detento?.escolaridade ?? Escolaridade.FUNDAMENTAL_I_INCOMPLETO,
   unidade_id: detento?.unidade_id ?? '',
 });
 

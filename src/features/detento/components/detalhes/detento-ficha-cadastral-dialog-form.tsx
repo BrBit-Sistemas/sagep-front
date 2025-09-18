@@ -12,13 +12,14 @@ import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Divider from '@mui/material/Divider';
+import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import CircularProgress from '@mui/material/CircularProgress';
 
-import { formatDateToDDMMYYYY } from 'src/utils/format-date';
+import { formatDateToDDMMYYYY, formatDateToYYYYMMDD } from 'src/utils/format-date';
 
 import { useProfissoesOptions } from 'src/features/empresa-convenios/hooks/use-profissoes-options';
 import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/use-unidade-prisional-list';
@@ -27,6 +28,7 @@ import { Form, Field } from 'src/components/hook-form';
 
 import { detentoService } from '../../data';
 import { detentoKeys } from '../../hooks/keys';
+import { Escolaridade, Regime } from '../../../detento/types';
 import { createDetentoFichaCadastralSchema } from '../../schemas';
 import { useDetentoDetalhesSearchParams } from '../../hooks/use-dentento-detalhes-search-params';
 
@@ -78,7 +80,7 @@ const INITIAL_VALUES: CreateDetentoFichaCadastralSchema = {
   // Declarações e responsáveis
   responsavel_preenchimento: '',
   assinatura: '',
-  data_assinatura: '',
+  data_assinatura: formatDateToYYYYMMDD(new Date()),
   // PDF gerado
   pdf_path: '',
 };
@@ -276,20 +278,35 @@ export const DetentoFichaCadastralDialogForm = ({
                   <Field.Text name="rg" label="RG" />
                 </Grid>
                 <Grid size={{ md: 4, sm: 12 }}>
-                  <Field.Text name="rg_expedicao" label="Data de expedição do RG" />
+                    <Field.DatePicker name="rg_expedicao" label="Data de expedição do RG" disableFuture />
                 </Grid>
                 <Grid size={{ md: 4, sm: 12 }}>
                   <Field.Text name="rg_orgao_uf" label="Órgão expedidor/UF" />
                 </Grid>
-                <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Text name="data_nascimento" label="Data de nascimento" />
+                <Grid size={{ md: 5, sm: 12 }}>
+                    <Field.DatePicker name="data_nascimento" label="Data de nascimento" disableFuture />
                 </Grid>
-                <Grid size={{ md: 6, sm: 12 }}>
+                <Grid size={{ md: 5, sm: 12 }}>
                   <Field.Text name="naturalidade" label="Naturalidade (Cidade)" />
                 </Grid>
-                <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Text name="naturalidade_uf" label="UF de naturalidade" />
-                </Grid>
+                <Grid size={{ md: 2, sm: 12 }}>
+                    <Field.Text 
+                      name="naturalidade_uf" 
+                      label="UF de naturalidade" 
+                      slotProps={{ 
+                        inputLabel: { shrink: true },
+                        input: { 
+                          style: { textTransform: 'uppercase' }
+                        }
+                      }}
+                      inputProps={{ maxLength: 2 }}
+                      onChange={(e: any) => {
+                        const value = e.target.value.toUpperCase().slice(0, 2);
+                        e.target.value = value;
+                        methods.setValue('naturalidade_uf', value);
+                      }}
+                    />
+                  </Grid>
                 <Grid size={{ md: 6, sm: 12 }}>
                   <Field.Text name="filiacao_mae" label="Nome da mãe" />
                 </Grid>
@@ -308,10 +325,22 @@ export const DetentoFichaCadastralDialogForm = ({
               </Typography>
               <Grid container spacing={2}>
                 <Grid size={{ md: 4, sm: 12 }}>
-                  <Field.Text name="regime" label="Regime" />
+                  <Field.Select name="regime_id" label="Regime" fullWidth>
+                    {Object.values(Regime).map((regime) => (
+                      <MenuItem key={regime} value={regime}>
+                        {regime}
+                      </MenuItem>
+                    ))}
+                  </Field.Select>
                 </Grid>
                 <Grid size={{ md: 4, sm: 12 }}>
-                  <Field.Text name="unidade_prisional" label="Unidade prisional" />
+                    <Field.Select name="unidade_id" label="Unidade prisional" fullWidth>
+                      {unidades.map((u) => (
+                        <MenuItem key={u.id} value={u.id}>
+                          {u.nome}
+                        </MenuItem>
+                      ))}
+                    </Field.Select>
                 </Grid>
                 <Grid size={{ md: 4, sm: 12 }}>
                   <Field.Text name="prontuario" label="Prontuário" />
@@ -330,10 +359,10 @@ export const DetentoFichaCadastralDialogForm = ({
                 3. Endereço e Contato
               </Typography>
               <Grid container spacing={2}>
-                <Grid size={{ md: 8, sm: 12 }}>
+                <Grid size={{ md: 12, sm: 12 }}>
                   <Field.Text name="endereco" label="Endereço completo" />
                 </Grid>
-                <Grid size={{ md: 4, sm: 12 }}>
+                <Grid size={{ md: 6, sm: 12 }}>
                   <Field.Text name="regiao_administrativa" label="Região Administrativa (RA)" />
                 </Grid>
                 <Grid size={{ md: 6, sm: 12 }}>
@@ -351,7 +380,13 @@ export const DetentoFichaCadastralDialogForm = ({
               </Typography>
               <Grid container spacing={2}>
                 <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Text name="escolaridade" label="Escolaridade" />
+                  <Field.Select name="escolaridade_id" label="Escolaridade" fullWidth>
+                    {Object.values(Escolaridade).map((escolaridade) => (
+                      <MenuItem key={escolaridade} value={escolaridade}>
+                        {escolaridade}
+                      </MenuItem>
+                    ))}
+                  </Field.Select>
                 </Grid>
                 <Grid size={{ md: 6, sm: 12 }}>
                   <Field.Switch name="tem_problema_saude" label="Tem problema de saúde?" />
@@ -432,13 +467,21 @@ export const DetentoFichaCadastralDialogForm = ({
               </Typography>
               <Grid container spacing={2}>
                 <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Text name="responsavel_preenchimento" label="Quem preencheu" />
+                  <Field.Text name="responsavel_preenchimento" label="Nome de quem preencheu" />
                 </Grid>
                 <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Text name="assinatura" label="Assinatura do interno/responsável" />
-                </Grid>
-                <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Text name="data_assinatura" label="Data da assinatura" />
+                  <Field.DatePicker 
+                    name="data_assinatura" 
+                    label="Data da abertura ficha" 
+                    readOnly 
+                    slotProps={{
+                      textField: {
+                        InputProps: {
+                          readOnly: true,
+                        },
+                      },
+                    }}
+                  />
                 </Grid>
               </Grid>
             </Box>

@@ -28,6 +28,7 @@ import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/
 import { Form, Field } from 'src/components/hook-form';
 
 import { detentoService } from '../data';
+import { Regime, Escolaridade } from '../types';
 import { createDetentoFichaCadastralSchema } from '../schemas';
 import { useProfissoesOptions } from '../../empresa-convenios/hooks/use-profissoes-options';
 
@@ -109,7 +110,7 @@ export default function FichaCadastralExternaPage() {
       profissao_02: '',
       responsavel_preenchimento: '',
       assinatura: '',
-      data_assinatura: '',
+      data_assinatura: formatDateToYYYYMMDD(new Date()),
 
       pdf_path: '',
     },
@@ -388,7 +389,7 @@ export default function FichaCadastralExternaPage() {
                   {successMessage}
                 </Alert>
               )}
-              <Typography>Informe o CPF do detento para iniciar o cadastro.</Typography>
+              <Typography fontSize={20}>Informe o CPF do reeducando para iniciar o cadastro.</Typography>
               {activeWarning && <Alert severity="warning">{activeWarning}</Alert>}
               {error && <Alert severity="error">{error}</Alert>}
               <Grid container spacing={2}>
@@ -411,8 +412,9 @@ export default function FichaCadastralExternaPage() {
                     }}
                   />
                 </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
+                <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', alignItems: 'stretch' }}>
                   <Button
+                    sx={{ height: '55px', minHeight: '55px', width: '30%' }}
                     onClick={handleBuscarCpf}
                     variant="contained"
                     disabled={loading || !cpf}
@@ -435,7 +437,7 @@ export default function FichaCadastralExternaPage() {
             )}
             {creatingDetento && (
               <Alert severity="info" sx={{ mb: 2 }}>
-                Criando detento...
+                Criando reeducando...
               </Alert>
             )}
             {creatingFicha && (
@@ -466,21 +468,21 @@ export default function FichaCadastralExternaPage() {
                     <Field.Text name="rg" label="RG" />
                   </Grid>
                   <Grid size={{ md: 4, sm: 12 }}>
-                    <Field.Text name="rg_expedicao" label="Data de expedição do RG" />
+                    <Field.DatePicker name="rg_expedicao" label="Data de expedição do RG" disableFuture />
                   </Grid>
                   <Grid size={{ md: 4, sm: 12 }}>
                     <Field.Text name="rg_orgao_uf" label="Órgão expedidor/UF" />
                   </Grid>
-                  <Grid size={{ md: 6, sm: 12 }}>
+                  <Grid size={{ md: 4, sm: 12 }}>
                     <Field.DatePicker
                       name="data_nascimento"
                       label="Data de nascimento"
-                      views={['year', 'month', 'day']}
-                      format="YYYY-MM-DD"
+                      views={['day', 'month', 'year']}
+                      format="DD/MM/YYYY"
                       disableFuture
                       slotProps={{
                         textField: {
-                          placeholder: 'YYYY-MM-DD',
+                          placeholder: 'DD/MM/YYYY',
                           inputProps: { inputMode: 'numeric', pattern: '\\d{4}-\\d{2}-\\d{2}' },
                         },
                       }}
@@ -489,8 +491,23 @@ export default function FichaCadastralExternaPage() {
                   <Grid size={{ md: 6, sm: 12 }}>
                     <Field.Text name="naturalidade" label="Naturalidade (Cidade)" />
                   </Grid>
-                  <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Text name="naturalidade_uf" label="UF de naturalidade" />
+                  <Grid size={{ md: 2, sm: 12 }}>
+                    <Field.Text 
+                      name="naturalidade_uf" 
+                      label="UF de naturalidade" 
+                      slotProps={{ 
+                        inputLabel: { shrink: true },
+                        input: { 
+                          style: { textTransform: 'uppercase' }
+                        }
+                      }}
+                      inputProps={{ maxLength: 2 }}
+                      onChange={(e: any) => {
+                        const value = e.target.value.toUpperCase().slice(0, 2);
+                        e.target.value = value;
+                        methods.setValue('naturalidade_uf', value);
+                      }}
+                    />
                   </Grid>
                   <Grid size={{ md: 6, sm: 12 }}>
                     <Field.Text name="filiacao_mae" label="Nome da mãe" />
@@ -503,7 +520,13 @@ export default function FichaCadastralExternaPage() {
                 <Typography variant="h6">2. Situação Prisional</Typography>
                 <Grid container spacing={2}>
                   <Grid size={{ md: 4, sm: 12 }}>
-                    <Field.Text name="regime" label="Regime" />
+                    <Field.Select name="regime_id" label="Regime" fullWidth>
+                      {Object.values(Regime).map((regime) => (
+                        <MenuItem key={regime} value={regime}>
+                          {regime}
+                        </MenuItem>
+                      ))}
+                    </Field.Select>
                   </Grid>
                   <Grid size={{ md: 4, sm: 12 }}>
                     <Field.Select name="unidade_id" label="Unidade prisional" fullWidth>
@@ -524,10 +547,10 @@ export default function FichaCadastralExternaPage() {
 
                 <Typography variant="h6">3. Endereço e Contato</Typography>
                 <Grid container spacing={2}>
-                  <Grid size={{ md: 8, sm: 12 }}>
+                  <Grid size={{ md: 12, sm: 12 }}>
                     <Field.Text name="endereco" label="Endereço completo" />
                   </Grid>
-                  <Grid size={{ md: 4, sm: 12 }}>
+                  <Grid size={{ md: 6, sm: 12 }}>
                     <Field.Text name="regiao_administrativa" label="Região Administrativa (RA)" />
                   </Grid>
                   <Grid size={{ md: 6, sm: 12 }}>
@@ -538,7 +561,13 @@ export default function FichaCadastralExternaPage() {
                 <Typography variant="h6">4. Escolaridade e Saúde</Typography>
                 <Grid container spacing={2}>
                   <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Text name="escolaridade" label="Escolaridade" />
+                    <Field.Select name="escolaridade_id" label="Escolaridade" fullWidth>
+                      {Object.values(Escolaridade).map((escolaridade) => (
+                        <MenuItem key={escolaridade} value={escolaridade}>
+                          {escolaridade}
+                        </MenuItem>
+                      ))}
+                    </Field.Select>
                   </Grid>
                   <Grid size={{ md: 6, sm: 12 }}>
                     <Field.Switch name="tem_problema_saude" label="Tem problema de saúde?" />
@@ -609,13 +638,21 @@ export default function FichaCadastralExternaPage() {
                 <Typography variant="h6">6. Declarações e Responsáveis</Typography>
                 <Grid container spacing={2}>
                   <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Text name="responsavel_preenchimento" label="Quem preencheu" />
+                    <Field.Text name="responsavel_preenchimento" label="Nome de quem preencheu" />
                   </Grid>
                   <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Text name="assinatura" label="Assinatura do interno/responsável" />
-                  </Grid>
-                  <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Text name="data_assinatura" label="Data da assinatura" />
+                    <Field.DatePicker 
+                      name="data_assinatura" 
+                      label="Data da abertura ficha" 
+                      readOnly 
+                      slotProps={{
+                        textField: {
+                          InputProps: {
+                            readOnly: true,
+                          },
+                        },
+                      }}
+                    />
                   </Grid>
                 </Grid>
 
@@ -641,8 +678,8 @@ export default function FichaCadastralExternaPage() {
           <DialogTitle>Confirmar CPF</DialogTitle>
           <DialogContent>
             <Typography variant="body2">
-              Não encontramos um detento com o CPF informado ({cpf}). Deseja prosseguir e cadastrar
-              o detento com as informações preenchidas no formulário?
+              Não encontramos um reeducando com o CPF informado ({cpf}). Deseja prosseguir e cadastrar
+              o reeducando com as informações preenchidas no formulário?
             </Typography>
           </DialogContent>
           <DialogActions>
