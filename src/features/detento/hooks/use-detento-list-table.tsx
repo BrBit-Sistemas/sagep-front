@@ -1,4 +1,4 @@
-import type { GridColDef } from '@mui/x-data-grid/models';
+import type { GridColDef } from '@mui/x-data-grid';
 import type { Detento } from '../types';
 
 import { useMemo, useCallback } from 'react';
@@ -11,6 +11,7 @@ import Typography from '@mui/material/Typography';
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 
+import { fDateTime } from 'src/utils/format-time';
 import { formatCpf } from 'src/utils/format-string';
 
 import { Iconify } from 'src/components/iconify';
@@ -72,6 +73,30 @@ export const useDetentoListTable = () => {
         headerName: 'CPF',
         flex: 1,
         valueFormatter: (value: string) => formatCpf(value),
+      },
+      {
+        field: 'createdAt',
+        headerName: 'Criação do Reeducando',
+        flex: 1,
+        minWidth: 160,
+        renderCell: ({ row }) => (
+          <Typography component="span" variant="body2" noWrap>
+            {row.createdAt ? fDateTime(row.createdAt) : '-'}
+          </Typography>
+        ),
+      },
+      {
+        field: 'ficha_cadastral_created_at',
+        headerName: 'Criação da Ficha',
+        flex: 1,
+        minWidth: 160,
+        renderCell: ({ row }) => (
+          <Typography component="span" variant="body2" noWrap>
+            {row.ficha_cadastral_created_at
+              ? fDateTime(row.ficha_cadastral_created_at)
+              : '-'}
+          </Typography>
+        ),
       },
       {
         type: 'actions',

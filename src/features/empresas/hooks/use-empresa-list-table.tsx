@@ -36,6 +36,7 @@ export const useEmpresaListTable = () => {
         field: 'empresa_id',
         headerName: 'ID',
         flex: 1,
+        hideable: true
       },
       {
         field: 'razao_social',

@@ -38,6 +38,7 @@ export type Detento = {
   regime: Regime;
   escolaridade: Escolaridade;
   unidade_id: string;
+  ficha_cadastral_created_at?: string | null;
 } & AuditableEntity;
 
 export type DetentoListParams = {

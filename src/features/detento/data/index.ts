@@ -25,6 +25,7 @@ function toDetento(dto: ReadDetentoDto): Detento {
     updatedAt: dto.updatedAt,
     created_by: dto.created_by,
     updated_by: dto.updated_by,
+    ficha_cadastral_created_at: dto.ficha_cadastral_created_at ?? null,
   };
 }
 

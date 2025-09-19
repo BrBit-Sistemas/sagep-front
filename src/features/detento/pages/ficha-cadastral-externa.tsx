@@ -43,6 +43,9 @@ const externalSchema = createDetentoFichaCadastralSchema
     // Permitir null vindo do Autocomplete e normalizar para string vazia
     profissao_01: z.preprocess((v) => (v === null ? '' : v), z.string().optional()),
     profissao_02: z.preprocess((v) => (v === null ? '' : v), z.string().optional()),
+    // Sobrescrever regime e escolaridade para aceitar valores dos enums
+    regime: z.nativeEnum(Regime, { message: 'Regime é obrigatório' }),
+    escolaridade: z.nativeEnum(Escolaridade, { message: 'Escolaridade é obrigatória' }),
   })
   .refine((data) => /^\d{4}-\d{2}-\d{2}$/.test(data.data_nascimento || ''), {
     path: ['data_nascimento'],
@@ -91,14 +94,14 @@ export default function FichaCadastralExternaPage() {
       naturalidade_uf: '',
       filiacao_mae: '',
       filiacao_pai: '',
-      regime: '',
+      regime: undefined,
       unidade_prisional: '',
       prontuario: '',
       sei: '',
       endereco: '',
       regiao_administrativa: '',
       telefone: '',
-      escolaridade: '',
+      escolaridade: undefined,
       tem_problema_saude: false,
       problema_saude: '',
       regiao_bloqueada: '',
@@ -520,7 +523,7 @@ export default function FichaCadastralExternaPage() {
                 <Typography variant="h6">2. Situação Prisional</Typography>
                 <Grid container spacing={2}>
                   <Grid size={{ md: 4, sm: 12 }}>
-                    <Field.Select name="regime_id" label="Regime" fullWidth>
+                    <Field.Select name="regime" label="Regime" fullWidth>
                       {Object.values(Regime).map((regime) => (
                         <MenuItem key={regime} value={regime}>
                           {regime}
@@ -561,7 +564,7 @@ export default function FichaCadastralExternaPage() {
                 <Typography variant="h6">4. Escolaridade e Saúde</Typography>
                 <Grid container spacing={2}>
                   <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Select name="escolaridade_id" label="Escolaridade" fullWidth>
+                    <Field.Select name="escolaridade" label="Escolaridade" fullWidth>
                       {Object.values(Escolaridade).map((escolaridade) => (
                         <MenuItem key={escolaridade} value={escolaridade}>
                           {escolaridade}

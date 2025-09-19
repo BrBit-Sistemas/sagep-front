@@ -1,6 +1,8 @@
 import type { Dayjs, OpUnitType } from 'dayjs';
 
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import duration from 'dayjs/plugin/duration';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
@@ -28,6 +30,8 @@ import relativeTime from 'dayjs/plugin/relativeTime';
  *
  */
 
+dayjs.extend(utc);
+dayjs.extend(timezone);
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
 dayjs.locale('pt-br');
@@ -53,6 +57,27 @@ export const formatPatterns = {
 const isValidDate = (date: DatePickerFormat) =>
   date !== null && date !== undefined && dayjs(date).isValid();
 
+const userTimezone = dayjs.tz?.guess?.();
+const hasTimezoneInfo = (value: string) => /([zZ]|[+-]\d{2}:?\d{2})$/.test(value);
+
+const toDisplayDate = (date: DatePickerFormat) => {
+  if (typeof date === 'string') {
+    return hasTimezoneInfo(date) && userTimezone
+      ? dayjs(date).tz(userTimezone)
+      : dayjs(date);
+  }
+
+  if (dayjs.isDayjs(date)) {
+    return userTimezone ? date.tz(userTimezone) : date;
+  }
+
+  if (date instanceof Date && userTimezone) {
+    return dayjs(date).tz(userTimezone);
+  }
+
+  return dayjs(date as Date | number | undefined);
+};
+
 // ----------------------------------------------------------------------
 
 export function today(template?: string): string {
@@ -69,7 +94,7 @@ export function fDateTime(date: DatePickerFormat, template?: string): string {
     return 'Invalid date';
   }
 
-  return dayjs(date).format(template ?? formatPatterns.dateTime);
+  return toDisplayDate(date).format(template ?? formatPatterns.dateTime);
 }
 
 // ----------------------------------------------------------------------
@@ -82,7 +107,7 @@ export function fDate(date: DatePickerFormat, template?: string): string {
     return 'Invalid date';
   }
 
-  return dayjs(date).format(template ?? formatPatterns.date);
+  return toDisplayDate(date).format(template ?? formatPatterns.date);
 }
 
 // ----------------------------------------------------------------------
@@ -95,7 +120,7 @@ export function fTime(date: DatePickerFormat, template?: string): string {
     return 'Invalid date';
   }
 
-  return dayjs(date).format(template ?? formatPatterns.time);
+  return toDisplayDate(date).format(template ?? formatPatterns.time);
 }
 
 // ----------------------------------------------------------------------
@@ -108,7 +133,7 @@ export function fTimestamp(date: DatePickerFormat): number | 'Invalid date' {
     return 'Invalid date';
   }
 
-  return dayjs(date).valueOf();
+  return toDisplayDate(date).valueOf();
 }
 
 // ----------------------------------------------------------------------
@@ -121,7 +146,7 @@ export function fToNow(date: DatePickerFormat): string {
     return 'Invalid date';
   }
 
-  return dayjs(date).toNow(true);
+  return toDisplayDate(date).toNow(true);
 }
 
 // ----------------------------------------------------------------------
