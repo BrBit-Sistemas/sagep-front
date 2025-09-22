@@ -30,7 +30,6 @@ export const useEmpresaConvenioListTable = () => {
 
   const columns = useMemo(
     (): GridColDef<EmpresaConvenio>[] => [
-      { field: 'convenio_id', headerName: 'ID', flex: 1 },
       {
         field: 'empresa_id',
         headerName: 'Empresa',
@@ -40,7 +39,7 @@ export const useEmpresaConvenioListTable = () => {
       {
         field: 'tipo_codigo',
         headerName: 'Tipo',
-        flex: 1,
+        flex: 2,
         valueFormatter: (value) => tiposIndex.get(value as string) ?? (value as string),
       },
       {
@@ -70,23 +69,6 @@ export const useEmpresaConvenioListTable = () => {
         valueFormatter: (value) => (value ? new Date(value).toLocaleDateString('pt-BR') : '-'),
       },
       { field: 'status', headerName: 'Status', flex: 1 },
-      {
-        field: 'locais_execucao',
-        headerName: 'Locais de Execução',
-        flex: 1.5,
-        valueGetter: (params: any) =>
-          (params?.row as EmpresaConvenio)?.locais_execucao?.length ?? 0,
-        valueFormatter: (_value, params: any) => {
-          const locais = (params?.row as EmpresaConvenio)?.locais_execucao ?? [];
-          if (!locais.length) return '—';
-          if (locais.length === 1) {
-            const local = locais[0];
-            const desc = local.logradouro || local.cidade;
-            return `${desc} (${local.cidade}/${local.estado})`;
-          }
-          return `${locais.length} locais`;
-        },
-      },
       {
         type: 'actions',
         field: 'actions',

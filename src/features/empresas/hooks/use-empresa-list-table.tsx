@@ -33,12 +33,6 @@ export const useEmpresaListTable = () => {
   const columns = useMemo(
     (): GridColDef<Empresa>[] => [
       {
-        field: 'empresa_id',
-        headerName: 'ID',
-        flex: 1,
-        hideable: true
-      },
-      {
         field: 'razao_social',
         headerName: 'Razão Social',
         flex: 2,
