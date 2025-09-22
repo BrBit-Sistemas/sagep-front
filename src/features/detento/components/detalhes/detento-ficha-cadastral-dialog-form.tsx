@@ -1,10 +1,10 @@
 import type { Detento } from '../../types';
 import type { CreateDetentoFichaCadastralSchema } from '../../schemas';
 
-import { useForm } from 'react-hook-form';
-import { useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
+import { useForm, useFormContext } from 'react-hook-form';
+import { useRef, useMemo, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
@@ -21,6 +21,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 import { formatDateToDDMMYYYY, formatDateToYYYYMMDD } from 'src/utils/format-date';
 
+import { getProfissoes } from 'src/api/profissoes/profissoes';
 import { useProfissoesAutocomplete } from 'src/features/empresa-convenios/hooks/use-profissoes-options';
 import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/use-unidade-prisional-list';
 
@@ -85,6 +86,89 @@ const INITIAL_VALUES: CreateDetentoFichaCadastralSchema = {
   pdf_path: '',
 };
 
+// Componente interno para campo de profissão com cache de rótulos
+type ProfissaoFieldProps = {
+  name: string;
+  label: string;
+  excludeValue?: string;
+};
+
+const ProfissaoField = ({ name, label, excludeValue }: ProfissaoFieldProps) => {
+  const [profissaoInput, setProfissaoInput] = useState('');
+  const [initialProfissoes, setInitialProfissoes] = useState<any[]>([]);
+  const labelCache = useRef<Map<string, string>>(new Map());
+  const { watch } = useFormContext();
+  
+  const { options: profissoes, loading: loadingProf, hasMinimum: hasMin } =
+    useProfissoesAutocomplete(profissaoInput, 3);
+
+  // Buscar profissão atual do formulário
+  const currentProfissaoId = watch(name);
+
+  // Carregar profissões iniciais quando o componente é montado (para modo de edição)
+  useEffect(() => {
+    if (currentProfissaoId && !labelCache.current.has(String(currentProfissaoId))) {
+      const api = getProfissoes();
+      // Buscar todas as profissões para encontrar a atual
+      api.findAll({ page: 0, limit: 100 })
+        .then((response) => {
+          if (response.items) {
+            setInitialProfissoes(response.items);
+            // Adicionar todas as profissões ao cache
+            response.items.forEach((p: any) => {
+              labelCache.current.set(String(p.id), p.nome);
+            });
+          }
+        })
+        .catch(() => {
+          // Se falhar, manter o ID como fallback
+        });
+    }
+  }, [currentProfissaoId]);
+
+  // Atualizar cache com novas opções da busca
+  useEffect(() => {
+    profissoes.forEach((p: any) => {
+      labelCache.current.set(String(p.id), p.nome);
+    });
+  }, [profissoes]);
+
+  // Combinar profissões iniciais com as da busca
+  const allOptions = useMemo(() => {
+    const combined = [...initialProfissoes, ...profissoes];
+    // Remover duplicatas baseado no ID
+    const unique = combined.filter((p, idx, self) => 
+      idx === self.findIndex((t) => String(t.id) === String(p.id))
+    );
+    return unique.map((p: any) => p.id);
+  }, [initialProfissoes, profissoes]);
+
+  const getOptionLabel = (id: unknown) => {
+    const idStr = String(id || '');
+    return labelCache.current.get(idStr) || idStr;
+  };
+
+  return (
+    <Field.Autocomplete
+      name={name}
+      label={label}
+      nullToEmptyString
+      options={allOptions.filter((id) => !excludeValue || String(id) !== String(excludeValue))}
+      getOptionLabel={getOptionLabel}
+      isOptionEqualToValue={(opt, val) => String(opt) === String(val)}
+      filterSelectedOptions
+      loading={loadingProf}
+      onInputChange={(_e: any, value: string) => setProfissaoInput(value)}
+      noOptionsText="Procure uma profissão"
+      slotProps={{
+        textField: {
+          helperText: !hasMin && (profissaoInput?.length || 0) > 0 ? 'Digite ao menos 3 caracteres' : undefined,
+        },
+      }}
+    />
+  );
+};
+
 export const DetentoFichaCadastralDialogForm = ({
   detento,
   detentoId,
@@ -134,20 +218,7 @@ export const DetentoFichaCadastralDialogForm = ({
     defaultValues: initialValues,
   });
 
-  const [profissao1Input, setProfissao1Input] = useState('');
-  const [profissao2Input, setProfissao2Input] = useState('');
-  const { options: profissoes1, loading: loadingProf1, hasMinimum: hasMin1 } =
-    useProfissoesAutocomplete(profissao1Input, 3);
-  const { options: profissoes2, loading: loadingProf2, hasMinimum: hasMin2 } =
-    useProfissoesAutocomplete(profissao2Input, 3);
 
-  useEffect(() => {
-    const p1 = methods.watch('profissao_01');
-    const p2 = methods.watch('profissao_02');
-    if (p1 && p2 && String(p1) === String(p2)) {
-      methods.setValue('profissao_02', '');
-    }
-  }, [methods.watch('profissao_01'), methods.watch('profissao_02')]);
 
   const handleSubmit = methods.handleSubmit(
     async (data) => {
@@ -435,51 +506,17 @@ export const DetentoFichaCadastralDialogForm = ({
                   />
                 </Grid>
                 <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Autocomplete
+                  <ProfissaoField
                     name="profissao_01"
                     label="Profissão 01"
-                    nullToEmptyString
-                    options={profissoes1
-                      .filter((p: any) => String(p.id) !== String(methods.watch('profissao_02') || ''))
-                      .map((p: any) => p.id)}
-                    getOptionLabel={(id: unknown) => {
-                      const opt = profissoes1.find((p: any) => String(p.id) === String(id));
-                      return opt?.nome || String(id || '');
-                    }}
-                    isOptionEqualToValue={(opt, val) => String(opt) === String(val)}
-                    filterSelectedOptions
-                    loading={loadingProf1}
-                    onInputChange={(_e: any, value: string) => setProfissao1Input(value)}
-                    noOptionsText="Procure uma profissão"
-                    slotProps={{
-                      textField: {
-                        helperText: !hasMin1 && (profissao1Input?.length || 0) > 0 ? 'Digite ao menos 3 caracteres' : undefined,
-                      },
-                    }}
+                    excludeValue={methods.watch('profissao_02')}
                   />
                 </Grid>
                 <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Autocomplete
+                  <ProfissaoField
                     name="profissao_02"
                     label="Profissão 02 (opcional)"
-                    nullToEmptyString
-                    options={profissoes2
-                      .filter((p: any) => String(p.id) !== String(methods.watch('profissao_01') || ''))
-                      .map((p: any) => p.id)}
-                    getOptionLabel={(id: unknown) => {
-                      const opt = profissoes2.find((p: any) => String(p.id) === String(id));
-                      return opt?.nome || String(id || '');
-                    }}
-                    isOptionEqualToValue={(opt, val) => String(opt) === String(val)}
-                    filterSelectedOptions
-                    loading={loadingProf2}
-                    onInputChange={(_e: any, value: string) => setProfissao2Input(value)}
-                    noOptionsText="Procure uma profissão"
-                    slotProps={{
-                      textField: {
-                        helperText: !hasMin2 && (profissao2Input?.length || 0) > 0 ? 'Digite ao menos 3 caracteres' : undefined,
-                      },
-                    }}
+                    excludeValue={methods.watch('profissao_01')}
                   />
                 </Grid>
               </Grid>
