@@ -59,7 +59,7 @@ export function createTheme({
   const updatedComponents = settingsState ? applySettingsToComponents(settingsState) : {};
 
   // Create and return the final theme
-  const theme = createMuiTheme(baseTheme, updatedComponents, localeComponents, {
+  const theme = createMuiTheme(updatedCore, updatedComponents, localeComponents, {
     components: {
       MuiButton: {
         defaultProps: { color: 'primary' },

@@ -1,25 +1,27 @@
-import { useMemo, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useRef, useMemo, useState, useEffect } from 'react';
+import { useForm, useFieldArray, useFormContext } from 'react-hook-form';
 
 import MenuItem from '@mui/material/MenuItem';
 import {
   Grid,
   Dialog,
   Button,
+  Divider,
+  Typography,
   DialogTitle,
   DialogActions,
   DialogContent,
-  Divider,
-  Typography,
 } from '@mui/material';
 
 import { formatDateToYYYYMMDD } from 'src/utils/format-date';
 
+import { getProfissoes } from 'src/api/profissoes/profissoes';
+
 import { Form, Field } from 'src/components/hook-form';
 
 import { useEmpresasOptions } from '../../hooks/use-empresas-options';
-import { useProfissoesOptions } from '../../hooks/use-profissoes-options';
+import { useProfissoesAutocomplete } from '../../hooks/use-profissoes-options';
 import { useCreateEmpresaConvenio } from '../../hooks/use-create-empresa-convenio';
 import { useUpdateEmpresaConvenio } from '../../hooks/use-update-empresa-convenio';
 import { createEmpresaConvenioSchema, type CreateEmpresaConvenioSchema } from '../../schemas';
@@ -47,6 +49,104 @@ const INITIAL_VALUES: CreateEmpresaConvenioSchema = {
   observacoes: '',
 };
 
+// Componente interno para cada linha de profissão com estado independente
+type ProfissaoFieldRowProps = {
+  index: number;
+  onRemove: () => void;
+};
+
+const ProfissaoFieldRow = ({ index, onRemove }: ProfissaoFieldRowProps) => {
+  const [profissaoInput, setProfissaoInput] = useState('');
+  const [initialProfissoes, setInitialProfissoes] = useState<any[]>([]);
+  const labelCache = useRef<Map<string, string>>(new Map());
+  const { watch } = useFormContext();
+  
+  const { options: profissoes, loading: loadingProf, hasMinimum: hasMin } =
+    useProfissoesAutocomplete(profissaoInput, 3);
+
+  // Buscar profissão atual do formulário
+  const currentProfissaoId = watch(`quantitativos_profissoes.${index}.profissao_id`);
+
+  // Carregar profissões iniciais quando o componente é montado (para modo de edição)
+  useEffect(() => {
+    if (currentProfissaoId && !labelCache.current.has(String(currentProfissaoId))) {
+      const api = getProfissoes();
+      // Buscar todas as profissões para encontrar a atual
+      api.findAll({ page: 0, limit: 100 })
+        .then((response) => {
+          if (response.items) {
+            setInitialProfissoes(response.items);
+            // Adicionar todas as profissões ao cache
+            response.items.forEach((p: any) => {
+              labelCache.current.set(String(p.id), p.nome);
+            });
+          }
+        })
+        .catch(() => {
+          // Se falhar, manter o ID como fallback
+        });
+    }
+  }, [currentProfissaoId]);
+
+  // Atualizar cache com novas opções da busca
+  useEffect(() => {
+    profissoes.forEach((p: any) => {
+      labelCache.current.set(String(p.id), p.nome);
+    });
+  }, [profissoes]);
+
+  // Combinar profissões iniciais com as da busca
+  const allOptions = useMemo(() => {
+    const combined = [...initialProfissoes, ...profissoes];
+    // Remover duplicatas baseado no ID
+    const unique = combined.filter((p, idx, self) => 
+      idx === self.findIndex((t) => String(t.id) === String(p.id))
+    );
+    return unique.map((p: any) => p.id);
+  }, [initialProfissoes, profissoes]);
+
+  const getOptionLabel = (id: unknown) => {
+    const idStr = String(id || '');
+    return labelCache.current.get(idStr) || idStr;
+  };
+
+  return (
+    <Grid container spacing={1} alignItems="center">
+      <Grid size={{ md: 6, sm: 12 }}>
+        <Field.Autocomplete
+          name={`quantitativos_profissoes.${index}.profissao_id`}
+          label="Profissão"
+          nullToEmptyString
+          options={allOptions}
+          getOptionLabel={getOptionLabel}
+          isOptionEqualToValue={(opt, val) => String(opt) === String(val)}
+          loading={loadingProf}
+          onInputChange={(_e: any, value: string) => setProfissaoInput(value)}
+          noOptionsText="Procure uma profissão"
+          slotProps={{
+            textField: {
+              helperText: !hasMin && (profissaoInput?.length || 0) > 0 ? 'Digite ao menos 3 caracteres' : undefined,
+            },
+          }}
+        />
+      </Grid>
+      <Grid size={{ md: 4, sm: 8 }}>
+        <Field.Text
+          type="number"
+          name={`quantitativos_profissoes.${index}.quantidade`}
+          label="Qtd. Máxima"
+          placeholder="Ex.: 10"
+        />
+      </Grid>
+      <Grid size={{ md: 2, sm: 4 }}>
+        <Button color="error" variant="outlined" onClick={onRemove}>
+          Remover
+        </Button>
+      </Grid>
+    </Grid>
+  );
+};
+
 export const EmpresaConvenioFormDialog = ({
   defaultValues,
   convenioId,
@@ -61,7 +161,6 @@ export const EmpresaConvenioFormDialog = ({
   const isLoading = isEditing ? isUpdating : isCreating;
 
   const { options: empresaOptions } = useEmpresasOptions('');
-  const { ids: profissaoIds, labelMap: profissaoLabels } = useProfissoesOptions('');
   const tipoOptions = useMemo(
     () => convenioTipos.map((t) => ({ label: `${t.descricao} (${t.codigo})`, value: t.codigo })),
     []
@@ -195,32 +294,11 @@ export const EmpresaConvenioFormDialog = ({
             <Grid size={{ md: 12, sm: 12 }}>
               <Grid container spacing={1}>
                 {fields.map((field, idx) => (
-                  <Grid key={field.id} container spacing={1} alignItems="center">
-                    <Grid size={{ md: 6, sm: 12 }}>
-                      <Field.Autocomplete
-                        name={`quantitativos_profissoes.${idx}.profissao_id`}
-                        label="Profissão"
-                        options={profissaoIds}
-                        getOptionLabel={(id: unknown) =>
-                          profissaoLabels.get(String(id)) || String(id)
-                        }
-                        isOptionEqualToValue={(opt, val) => String(opt) === String(val)}
-                      />
-                    </Grid>
-                    <Grid size={{ md: 4, sm: 8 }}>
-                      <Field.Text
-                        type="number"
-                        name={`quantitativos_profissoes.${idx}.quantidade`}
-                        label="Qtd. Máxima"
-                        placeholder="Ex.: 10"
-                      />
-                    </Grid>
-                    <Grid size={{ md: 2, sm: 4 }}>
-                      <Button color="error" variant="outlined" onClick={() => remove(idx)}>
-                        Remover
-                      </Button>
-                    </Grid>
-                  </Grid>
+                  <ProfissaoFieldRow
+                    key={field.id}
+                    index={idx}
+                    onRemove={() => remove(idx)}
+                  />
                 ))}
                 <Grid size={{ md: 12, sm: 12 }} sx={{ mt: 3, mb: 3 }}>
                   <Button

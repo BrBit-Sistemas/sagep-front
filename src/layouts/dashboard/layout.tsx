@@ -20,8 +20,6 @@ import {
   type NavSectionProps,
 } from 'src/components/nav-section';
 
-import { useAuthContext } from 'src/auth/hooks';
-
 import { NavMobile } from './nav-mobile';
 import { VerticalDivider } from './content';
 import { NavVertical } from './nav-vertical';
@@ -58,7 +56,7 @@ export function DashboardLayout({
 }: DashboardLayoutProps) {
   const theme = useTheme();
 
-  const { user } = useAuthContext();
+  // const { user } = useAuthContext();
 
   const settings = useSettingsContext();
 

@@ -21,14 +21,14 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 import { formatDateToDDMMYYYY, formatDateToYYYYMMDD } from 'src/utils/format-date';
 
-import { useProfissoesOptions } from 'src/features/empresa-convenios/hooks/use-profissoes-options';
+import { useProfissoesAutocomplete } from 'src/features/empresa-convenios/hooks/use-profissoes-options';
 import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/use-unidade-prisional-list';
 
 import { Form, Field } from 'src/components/hook-form';
 
 import { detentoService } from '../../data';
 import { detentoKeys } from '../../hooks/keys';
-import { Escolaridade, Regime } from '../../../detento/types';
+import { Regime, Escolaridade } from '../../../detento/types';
 import { createDetentoFichaCadastralSchema } from '../../schemas';
 import { useDetentoDetalhesSearchParams } from '../../hooks/use-dentento-detalhes-search-params';
 
@@ -134,7 +134,12 @@ export const DetentoFichaCadastralDialogForm = ({
     defaultValues: initialValues,
   });
 
-  const { ids: profissaoIds, labelMap: profissaoLabels } = useProfissoesOptions('');
+  const [profissao1Input, setProfissao1Input] = useState('');
+  const [profissao2Input, setProfissao2Input] = useState('');
+  const { options: profissoes1, loading: loadingProf1, hasMinimum: hasMin1 } =
+    useProfissoesAutocomplete(profissao1Input, 3);
+  const { options: profissoes2, loading: loadingProf2, hasMinimum: hasMin2 } =
+    useProfissoesAutocomplete(profissao2Input, 3);
 
   useEffect(() => {
     const p1 = methods.watch('profissao_01');
@@ -434,12 +439,23 @@ export const DetentoFichaCadastralDialogForm = ({
                     name="profissao_01"
                     label="Profissão 01"
                     nullToEmptyString
-                    options={profissaoIds.filter(
-                      (id: unknown) => String(id) !== String(methods.watch('profissao_02') || '')
-                    )}
-                    getOptionLabel={(id: unknown) => profissaoLabels.get(String(id)) || String(id)}
+                    options={profissoes1
+                      .filter((p: any) => String(p.id) !== String(methods.watch('profissao_02') || ''))
+                      .map((p: any) => p.id)}
+                    getOptionLabel={(id: unknown) => {
+                      const opt = profissoes1.find((p: any) => String(p.id) === String(id));
+                      return opt?.nome || String(id || '');
+                    }}
                     isOptionEqualToValue={(opt, val) => String(opt) === String(val)}
                     filterSelectedOptions
+                    loading={loadingProf1}
+                    onInputChange={(_e: any, value: string) => setProfissao1Input(value)}
+                    noOptionsText="Procure uma profissão"
+                    slotProps={{
+                      textField: {
+                        helperText: !hasMin1 && (profissao1Input?.length || 0) > 0 ? 'Digite ao menos 3 caracteres' : undefined,
+                      },
+                    }}
                   />
                 </Grid>
                 <Grid size={{ md: 6, sm: 12 }}>
@@ -447,12 +463,23 @@ export const DetentoFichaCadastralDialogForm = ({
                     name="profissao_02"
                     label="Profissão 02 (opcional)"
                     nullToEmptyString
-                    options={profissaoIds.filter(
-                      (id: unknown) => String(id) !== String(methods.watch('profissao_01') || '')
-                    )}
-                    getOptionLabel={(id: unknown) => profissaoLabels.get(String(id)) || String(id)}
+                    options={profissoes2
+                      .filter((p: any) => String(p.id) !== String(methods.watch('profissao_01') || ''))
+                      .map((p: any) => p.id)}
+                    getOptionLabel={(id: unknown) => {
+                      const opt = profissoes2.find((p: any) => String(p.id) === String(id));
+                      return opt?.nome || String(id || '');
+                    }}
                     isOptionEqualToValue={(opt, val) => String(opt) === String(val)}
                     filterSelectedOptions
+                    loading={loadingProf2}
+                    onInputChange={(_e: any, value: string) => setProfissao2Input(value)}
+                    noOptionsText="Procure uma profissão"
+                    slotProps={{
+                      textField: {
+                        helperText: !hasMin2 && (profissao2Input?.length || 0) > 0 ? 'Digite ao menos 3 caracteres' : undefined,
+                      },
+                    }}
                   />
                 </Grid>
               </Grid>

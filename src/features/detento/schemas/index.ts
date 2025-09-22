@@ -3,8 +3,6 @@ import { z } from 'zod';
 import { isValidRg } from 'src/utils/validate-rg';
 import { isValidCpf } from 'src/utils/validate-cpf';
 
-import { schemaHelper } from 'src/components/hook-form';
-
 import { Regime, Escolaridade } from '../types';
 
 export const createDetentoSchema = z.object({

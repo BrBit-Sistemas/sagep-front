@@ -1,4 +1,4 @@
-import type { GridFilterModel, GridPaginationModel, GridSortModel } from '@mui/x-data-grid/models';
+import type { GridSortModel, GridFilterModel, GridPaginationModel } from '@mui/x-data-grid/models';
 
 import { Card, Button } from '@mui/material';
 

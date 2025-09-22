@@ -1,4 +1,3 @@
-import { usePopover } from 'minimal-shared/hooks';
 import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
@@ -20,7 +19,6 @@ type Props = {
 export function DetentoTableToolbar({ searchParams, onFilterChange }: Props) {
   const [localNome, setLocalNome] = useState(searchParams.nome);
   const [localCpf, setLocalCpf] = useState(searchParams.cpf);
-  const menuActions = usePopover();
 
   // Debounce effect for nome
   useEffect(() => {

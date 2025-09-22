@@ -1,4 +1,4 @@
-import type { CrudService, AuditableEntity, PaginatedParams } from 'src/types';
+import type { CrudService, AuditableEntity } from 'src/types';
 import type {
   CreateDetentoSchema,
   UpdateDetentoSchema,

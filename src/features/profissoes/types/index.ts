@@ -1,4 +1,3 @@
-import type { AuditableEntity } from 'src/types';
 
 export interface Profissao {
   id: string;

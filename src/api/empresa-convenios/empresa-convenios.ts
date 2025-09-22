@@ -1,4 +1,4 @@
-import { customInstance, type BodyType } from '../../lib/axios';
+import { type BodyType, customInstance } from '../../lib/axios';
 
 export type EmpresaConvenioLocalDto = {
   local_id?: string;
