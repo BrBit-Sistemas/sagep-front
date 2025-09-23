@@ -43,20 +43,25 @@ const SummaryCard = ({
   icon,
   color = 'primary',
   isLoading = false,
+  shareLabel,
+  shareValue,
 }: {
   title: string;
   value: number;
   icon: IconifyName;
   color?: PaletteColorKey;
   isLoading?: boolean;
+  shareLabel?: string;
+  shareValue?: number;
 }) => {
   const theme = useTheme();
   const paletteColor = theme.palette[color as PaletteColorKey];
+  const percentage = Math.min(Math.max(shareValue ?? 0, 0), 100);
 
   return (
     <Card sx={{ height: '100%', boxShadow: 8, borderRadius: 2 }}>
-      <CardContent>
-        <Stack spacing={3}>
+      <CardContent sx={{ height: '100%' }}>
+        <Stack spacing={3} sx={{ height: '100%' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
             <Stack spacing={0.5}>
               <Typography variant="subtitle2" color="text.secondary">
@@ -81,6 +86,37 @@ const SummaryCard = ({
             </Box>
           </Stack>
           <Divider sx={{ borderStyle: 'dashed' }} />
+
+          {isLoading ? (
+            <Stack spacing={1} sx={{ flexGrow: 1, justifyContent: 'center' }}>
+              <Skeleton variant="text" width="60%" />
+              <Skeleton variant="rectangular" height={6} sx={{ borderRadius: 6 }} />
+              <Skeleton variant="text" width="40%" />
+            </Stack>
+          ) : (
+            <Stack spacing={1} sx={{ flexGrow: 1, justifyContent: 'center' }}>
+              {shareLabel ? (
+                <Typography variant="caption" color="text.secondary">
+                  {shareLabel}
+                </Typography>
+              ) : null}
+              <LinearProgress
+                variant="determinate"
+                value={percentage}
+                sx={{
+                  height: 6,
+                  borderRadius: 6,
+                  bgcolor: alpha(paletteColor.main, 0.12),
+                  '& .MuiLinearProgress-bar': { bgcolor: paletteColor.main },
+                }}
+              />
+              <Typography variant="caption" color="text.secondary">
+                {shareValue !== undefined
+                  ? `${percentage.toFixed(1).replace('.', ',')}% do total consolidado`
+                  : 'Acompanhamento contínuo'}
+              </Typography>
+            </Stack>
+          )}
         </Stack>
       </CardContent>
     </Card>
@@ -191,6 +227,9 @@ export default function Page() {
 
   const totalReeducandos = data?.totalReeducandosAtivos ?? 0;
   const totalEmpresas = data?.totalEmpresasAtivas ?? 0;
+  const totalConvenios = conveniosStatusData.reduce((acc, item) => acc + item.value, 0);
+  const totalConsolidado = totalReeducandos + totalEmpresas + totalConvenios;
+  const computeShare = (value: number) => (totalConsolidado ? (value / totalConsolidado) * 100 : 0);
   const errorMessage = error instanceof Error ? error.message : 'Tente novamente em instantes.';
 
   return (
@@ -221,6 +260,8 @@ export default function Page() {
                 icon="solar:users-group-rounded-bold"
                 color="success"
                 isLoading={isLoading}
+                shareLabel="Participação entre indicadores"
+                shareValue={computeShare(totalReeducandos)}
               />
             </Grid>
 
@@ -231,6 +272,8 @@ export default function Page() {
                 icon="solar:case-minimalistic-bold"
                 color="info"
                 isLoading={isLoading}
+                shareLabel="Participação entre indicadores"
+                shareValue={computeShare(totalEmpresas)}
               />
             </Grid>
 
