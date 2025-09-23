@@ -25,6 +25,7 @@ import { getProfissoes } from 'src/api/profissoes/profissoes';
 import { useProfissoesAutocomplete } from 'src/features/empresa-convenios/hooks/use-profissoes-options';
 import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/use-unidade-prisional-list';
 
+import { toast } from 'src/components/snackbar';
 import { Form, Field } from 'src/components/hook-form';
 
 import { detentoService } from '../../data';
@@ -247,10 +248,10 @@ export const DetentoFichaCadastralDialogForm = ({
             ...data,
             detento_id: detentoId,
           });
-          alert('Ficha cadastral atualizada com sucesso!');
+          toast.success('Ficha cadastral atualizada com sucesso!')
         } else {
           await detentoService.createFichaCadastral({ ...data, detento_id: detentoId });
-          alert('Ficha cadastral criada com sucesso!');
+          toast.success('Ficha cadastral criada com sucesso!')
         }
         await queryClient.invalidateQueries({ queryKey: detentoKeys.fichasCadastrais(detentoId) });
         methods.reset();
