@@ -92,16 +92,20 @@ type ProfissaoFieldProps = {
   name: string;
   label: string;
   excludeValue?: string;
+  onLabelUpdate?: (id: string, nome: string) => void;
 };
 
-const ProfissaoField = ({ name, label, excludeValue }: ProfissaoFieldProps) => {
+const ProfissaoField = ({ name, label, excludeValue, onLabelUpdate }: ProfissaoFieldProps) => {
   const [profissaoInput, setProfissaoInput] = useState('');
   const [initialProfissoes, setInitialProfissoes] = useState<any[]>([]);
   const labelCache = useRef<Map<string, string>>(new Map());
   const { watch } = useFormContext();
-  
-  const { options: profissoes, loading: loadingProf, hasMinimum: hasMin } =
-    useProfissoesAutocomplete(profissaoInput, 3);
+
+  const {
+    options: profissoes,
+    loading: loadingProf,
+    hasMinimum: hasMin,
+  } = useProfissoesAutocomplete(profissaoInput, 3);
 
   // Buscar profissão atual do formulário
   const currentProfissaoId = watch(name);
@@ -111,13 +115,15 @@ const ProfissaoField = ({ name, label, excludeValue }: ProfissaoFieldProps) => {
     if (currentProfissaoId && !labelCache.current.has(String(currentProfissaoId))) {
       const api = getProfissoes();
       // Buscar todas as profissões para encontrar a atual
-      api.findAll({ page: 0, limit: 100 })
+      api
+        .findAll({ page: 0, limit: 100 })
         .then((response) => {
           if (response.items) {
             setInitialProfissoes(response.items);
             // Adicionar todas as profissões ao cache
             response.items.forEach((p: any) => {
               labelCache.current.set(String(p.id), p.nome);
+              onLabelUpdate?.(String(p.id), p.nome);
             });
           }
         })
@@ -131,15 +137,16 @@ const ProfissaoField = ({ name, label, excludeValue }: ProfissaoFieldProps) => {
   useEffect(() => {
     profissoes.forEach((p: any) => {
       labelCache.current.set(String(p.id), p.nome);
+      onLabelUpdate?.(String(p.id), p.nome);
     });
-  }, [profissoes]);
+  }, [profissoes, onLabelUpdate]);
 
   // Combinar profissões iniciais com as da busca
   const allOptions = useMemo(() => {
     const combined = [...initialProfissoes, ...profissoes];
     // Remover duplicatas baseado no ID
-    const unique = combined.filter((p, idx, self) => 
-      idx === self.findIndex((t) => String(t.id) === String(p.id))
+    const unique = combined.filter(
+      (p, idx, self) => idx === self.findIndex((t) => String(t.id) === String(p.id))
     );
     return unique.map((p: any) => p.id);
   }, [initialProfissoes, profissoes]);
@@ -163,7 +170,10 @@ const ProfissaoField = ({ name, label, excludeValue }: ProfissaoFieldProps) => {
       noOptionsText="Procure uma profissão"
       slotProps={{
         textField: {
-          helperText: !hasMin && (profissaoInput?.length || 0) > 0 ? 'Digite ao menos 3 caracteres' : undefined,
+          helperText:
+            !hasMin && (profissaoInput?.length || 0) > 0
+              ? 'Digite ao menos 3 caracteres'
+              : undefined,
         },
       }}
     />
@@ -219,13 +229,51 @@ export const DetentoFichaCadastralDialogForm = ({
     defaultValues: initialValues,
   });
 
-
+  // Cache compartilhado de ID -> Nome para profissões (alimentado pelos campos)
+  const globalProfissaoLabelCache = useRef<Map<string, string>>(new Map());
+  const handleLabelUpdate = (id: string, nome: string) => {
+    if (!globalProfissaoLabelCache.current.has(id)) {
+      globalProfissaoLabelCache.current.set(id, nome);
+    }
+  };
 
   const handleSubmit = methods.handleSubmit(
     async (data) => {
       setLoading(true);
       setError(null);
       try {
+        // Converter profissao_01 e profissao_02 de ID para nome antes de enviar
+        const apiProfissoes = getProfissoes();
+        const rawProfissao01 = (data as any).profissao_01 || '';
+        const rawProfissao02 = (data as any).profissao_02 || '';
+
+        const [resolvedProfissao01, resolvedProfissao02] = await Promise.all([
+          rawProfissao01
+            ? (() => {
+                const cached = globalProfissaoLabelCache.current.get(String(rawProfissao01));
+                if (cached) return Promise.resolve(cached);
+                return apiProfissoes
+                  .findOne(String(rawProfissao01))
+                  .then((res) => res?.nome || String(rawProfissao01))
+                  .catch(() => String(rawProfissao01));
+              })()
+            : Promise.resolve(''),
+          rawProfissao02
+            ? (() => {
+                const cached = globalProfissaoLabelCache.current.get(String(rawProfissao02));
+                if (cached) return Promise.resolve(cached);
+                return apiProfissoes
+                  .findOne(String(rawProfissao02))
+                  .then((res) => res?.nome || String(rawProfissao02))
+                  .catch(() => String(rawProfissao02));
+              })()
+            : Promise.resolve(''),
+        ]);
+
+        // Substituir no payload
+        (data as any).profissao_01 = resolvedProfissao01;
+        (data as any).profissao_02 = resolvedProfissao02;
+
         // Pre-validação: prontuário único (bloqueia antes da criação)
         const prontuario = String((data as any).prontuario || '').trim();
         if (prontuario) {
@@ -248,10 +296,10 @@ export const DetentoFichaCadastralDialogForm = ({
             ...data,
             detento_id: detentoId,
           });
-          toast.success('Ficha cadastral atualizada com sucesso!')
+          toast.success('Ficha cadastral atualizada com sucesso!');
         } else {
           await detentoService.createFichaCadastral({ ...data, detento_id: detentoId });
-          toast.success('Ficha cadastral criada com sucesso!')
+          toast.success('Ficha cadastral criada com sucesso!');
         }
         await queryClient.invalidateQueries({ queryKey: detentoKeys.fichasCadastrais(detentoId) });
         methods.reset();
@@ -355,35 +403,43 @@ export const DetentoFichaCadastralDialogForm = ({
                   <Field.Text name="rg" label="RG" />
                 </Grid>
                 <Grid size={{ md: 4, sm: 12 }}>
-                    <Field.DatePicker name="rg_expedicao" label="Data de expedição do RG" disableFuture />
+                  <Field.DatePicker
+                    name="rg_expedicao"
+                    label="Data de expedição do RG"
+                    disableFuture
+                  />
                 </Grid>
                 <Grid size={{ md: 4, sm: 12 }}>
                   <Field.Text name="rg_orgao_uf" label="Órgão expedidor/UF" />
                 </Grid>
                 <Grid size={{ md: 5, sm: 12 }}>
-                    <Field.DatePicker name="data_nascimento" label="Data de nascimento" disableFuture />
+                  <Field.DatePicker
+                    name="data_nascimento"
+                    label="Data de nascimento"
+                    disableFuture
+                  />
                 </Grid>
                 <Grid size={{ md: 5, sm: 12 }}>
                   <Field.Text name="naturalidade" label="Naturalidade (Cidade)" />
                 </Grid>
                 <Grid size={{ md: 2, sm: 12 }}>
-                    <Field.Text 
-                      name="naturalidade_uf" 
-                      label="UF de naturalidade" 
-                      slotProps={{ 
-                        inputLabel: { shrink: true },
-                        input: { 
-                          style: { textTransform: 'uppercase' }
-                        }
-                      }}
-                      inputProps={{ maxLength: 2 }}
-                      onChange={(e: any) => {
-                        const value = e.target.value.toUpperCase().slice(0, 2);
-                        e.target.value = value;
-                        methods.setValue('naturalidade_uf', value);
-                      }}
-                    />
-                  </Grid>
+                  <Field.Text
+                    name="naturalidade_uf"
+                    label="UF de naturalidade"
+                    slotProps={{
+                      inputLabel: { shrink: true },
+                      input: {
+                        style: { textTransform: 'uppercase' },
+                      },
+                    }}
+                    inputProps={{ maxLength: 2 }}
+                    onChange={(e: any) => {
+                      const value = e.target.value.toUpperCase().slice(0, 2);
+                      e.target.value = value;
+                      methods.setValue('naturalidade_uf', value);
+                    }}
+                  />
+                </Grid>
                 <Grid size={{ md: 6, sm: 12 }}>
                   <Field.Text name="filiacao_mae" label="Nome da mãe" />
                 </Grid>
@@ -411,13 +467,13 @@ export const DetentoFichaCadastralDialogForm = ({
                   </Field.Select>
                 </Grid>
                 <Grid size={{ md: 4, sm: 12 }}>
-                    <Field.Select name="unidade_id" label="Unidade prisional" fullWidth>
-                      {unidades.map((u) => (
-                        <MenuItem key={u.id} value={u.id}>
-                          {u.nome}
-                        </MenuItem>
-                      ))}
-                    </Field.Select>
+                  <Field.Select name="unidade_id" label="Unidade prisional" fullWidth>
+                    {unidades.map((u) => (
+                      <MenuItem key={u.id} value={u.id}>
+                        {u.nome}
+                      </MenuItem>
+                    ))}
+                  </Field.Select>
                 </Grid>
                 <Grid size={{ md: 4, sm: 12 }}>
                   <Field.Text name="prontuario" label="Prontuário" />
@@ -511,6 +567,7 @@ export const DetentoFichaCadastralDialogForm = ({
                     name="profissao_01"
                     label="Profissão 01"
                     excludeValue={methods.watch('profissao_02')}
+                    onLabelUpdate={handleLabelUpdate}
                   />
                 </Grid>
                 <Grid size={{ md: 6, sm: 12 }}>
@@ -518,6 +575,7 @@ export const DetentoFichaCadastralDialogForm = ({
                     name="profissao_02"
                     label="Profissão 02 (opcional)"
                     excludeValue={methods.watch('profissao_01')}
+                    onLabelUpdate={handleLabelUpdate}
                   />
                 </Grid>
               </Grid>
@@ -535,10 +593,10 @@ export const DetentoFichaCadastralDialogForm = ({
                   <Field.Text name="responsavel_preenchimento" label="Nome de quem preencheu" />
                 </Grid>
                 <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.DatePicker 
-                    name="data_assinatura" 
-                    label="Data da abertura ficha" 
-                    readOnly 
+                  <Field.DatePicker
+                    name="data_assinatura"
+                    label="Data da abertura ficha"
+                    readOnly
                     slotProps={{
                       textField: {
                         InputProps: {

@@ -59,16 +59,20 @@ type ProfissaoFieldProps = {
   name: string;
   label: string;
   excludeValue?: string;
+  onLabelUpdate?: (id: string, nome: string) => void;
 };
 
-const ProfissaoField = ({ name, label, excludeValue }: ProfissaoFieldProps) => {
+const ProfissaoField = ({ name, label, excludeValue, onLabelUpdate }: ProfissaoFieldProps) => {
   const [profissaoInput, setProfissaoInput] = useState('');
   const [initialProfissoes, setInitialProfissoes] = useState<any[]>([]);
   const labelCache = useRef<Map<string, string>>(new Map());
   const { watch } = useFormContext();
-  
-  const { options: profissoes, loading: loadingProf, hasMinimum: hasMin } =
-    useProfissoesAutocomplete(profissaoInput, 3);
+
+  const {
+    options: profissoes,
+    loading: loadingProf,
+    hasMinimum: hasMin,
+  } = useProfissoesAutocomplete(profissaoInput, 3);
 
   // Buscar profissão atual do formulário
   const currentProfissaoId = watch(name);
@@ -78,13 +82,15 @@ const ProfissaoField = ({ name, label, excludeValue }: ProfissaoFieldProps) => {
     if (currentProfissaoId && !labelCache.current.has(String(currentProfissaoId))) {
       const api = getProfissoes();
       // Buscar todas as profissões para encontrar a atual
-      api.findAll({ page: 0, limit: 100 })
+      api
+        .findAll({ page: 0, limit: 100 })
         .then((response) => {
           if (response.items) {
             setInitialProfissoes(response.items);
             // Adicionar todas as profissões ao cache
             response.items.forEach((p: any) => {
               labelCache.current.set(String(p.id), p.nome);
+              onLabelUpdate?.(String(p.id), p.nome);
             });
           }
         })
@@ -98,15 +104,16 @@ const ProfissaoField = ({ name, label, excludeValue }: ProfissaoFieldProps) => {
   useEffect(() => {
     profissoes.forEach((p: any) => {
       labelCache.current.set(String(p.id), p.nome);
+      onLabelUpdate?.(String(p.id), p.nome);
     });
-  }, [profissoes]);
+  }, [profissoes, onLabelUpdate]);
 
   // Combinar profissões iniciais com as da busca
   const allOptions = useMemo(() => {
     const combined = [...initialProfissoes, ...profissoes];
     // Remover duplicatas baseado no ID
-    const unique = combined.filter((p, idx, self) => 
-      idx === self.findIndex((t) => String(t.id) === String(p.id))
+    const unique = combined.filter(
+      (p, idx, self) => idx === self.findIndex((t) => String(t.id) === String(p.id))
     );
     return unique.map((p: any) => p.id);
   }, [initialProfissoes, profissoes]);
@@ -130,7 +137,10 @@ const ProfissaoField = ({ name, label, excludeValue }: ProfissaoFieldProps) => {
       noOptionsText="Procure uma profissão"
       slotProps={{
         textField: {
-          helperText: !hasMin && (profissaoInput?.length || 0) > 0 ? 'Digite ao menos 3 caracteres' : undefined,
+          helperText:
+            !hasMin && (profissaoInput?.length || 0) > 0
+              ? 'Digite ao menos 3 caracteres'
+              : undefined,
         },
       }}
     />
@@ -208,6 +218,13 @@ export default function FichaCadastralExternaPage() {
     limit: 1000,
   });
 
+  // Cache compartilhado de ID -> Nome para profissões (alimentado pelos campos)
+  const globalProfissaoLabelCache = useRef<Map<string, string>>(new Map());
+  const handleLabelUpdate = (id: string, nome: string) => {
+    if (!globalProfissaoLabelCache.current.has(id)) {
+      globalProfissaoLabelCache.current.set(id, nome);
+    }
+  };
 
   const getUnidadeName = (unidadeId: string) => {
     const unidade = unidades.find((u) => u.id === unidadeId);
@@ -372,20 +389,48 @@ export default function FichaCadastralExternaPage() {
         }
 
         // Evita duplicar RG para o mesmo detento
-        if (detentoId) {
-          const fichasDoDetento = await detentoService.getFichasCadastrais(detentoId);
-          const rgJaExiste = fichasDoDetento.some(
-            (f) => String(f.rg).trim() === String(data.rg).trim()
-          );
-          if (rgJaExiste) {
-            throw new Error('Já existe uma ficha com o mesmo RG para este detento.');
-          }
-        }
+        // if (detentoId) {
+        //   const fichasDoDetento = await detentoService.getFichasCadastrais(detentoId);
+        //   const rgJaExiste = fichasDoDetento.some(
+        //     (f) => String(f.rg).trim() === String(data.rg).trim()
+        //   );
+        //   if (rgJaExiste) {
+        //     throw new Error('Já existe uma ficha com o mesmo RG para este detento.');
+        //   }
+        // }
 
         phase = 'ficha';
         setCreatingFicha(true);
         const unidadeNome = getUnidadeName(data.unidade_id);
         const restData: any = { ...data };
+        // Converter profissao_01 e profissao_02 de ID para nome usando cache (+ fallback API)
+        const apiProfissoes = getProfissoes();
+        const rawProfissao01 = restData.profissao_01 || '';
+        const rawProfissao02 = restData.profissao_02 || '';
+        const [resolvedProfissao01, resolvedProfissao02] = await Promise.all([
+          rawProfissao01
+            ? (() => {
+                const cached = globalProfissaoLabelCache.current.get(String(rawProfissao01));
+                if (cached) return Promise.resolve(cached);
+                return apiProfissoes
+                  .findOne(String(rawProfissao01))
+                  .then((res) => res?.nome || String(rawProfissao01))
+                  .catch(() => String(rawProfissao01));
+              })()
+            : Promise.resolve(''),
+          rawProfissao02
+            ? (() => {
+                const cached = globalProfissaoLabelCache.current.get(String(rawProfissao02));
+                if (cached) return Promise.resolve(cached);
+                return apiProfissoes
+                  .findOne(String(rawProfissao02))
+                  .then((res) => res?.nome || String(rawProfissao02))
+                  .catch(() => String(rawProfissao02));
+              })()
+            : Promise.resolve(''),
+        ]);
+        restData.profissao_01 = resolvedProfissao01;
+        restData.profissao_02 = resolvedProfissao02;
         delete (restData as any).unidade_id;
         delete (restData as any).detento_id;
         await detentoService.createFichaCadastral({
@@ -453,7 +498,6 @@ export default function FichaCadastralExternaPage() {
     }
   );
 
-
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Stack spacing={3}>
@@ -467,7 +511,9 @@ export default function FichaCadastralExternaPage() {
                   {successMessage}
                 </Alert>
               )}
-              <Typography fontSize={20}>Informe o CPF do reeducando para iniciar o cadastro.</Typography>
+              <Typography fontSize={20}>
+                Informe o CPF do reeducando para iniciar o cadastro.
+              </Typography>
               {activeWarning && <Alert severity="warning">{activeWarning}</Alert>}
               {error && <Alert severity="error">{error}</Alert>}
               <Grid container spacing={2}>
@@ -546,7 +592,11 @@ export default function FichaCadastralExternaPage() {
                     <Field.Text name="rg" label="RG" />
                   </Grid>
                   <Grid size={{ md: 4, sm: 12 }}>
-                    <Field.DatePicker name="rg_expedicao" label="Data de expedição do RG" disableFuture />
+                    <Field.DatePicker
+                      name="rg_expedicao"
+                      label="Data de expedição do RG"
+                      disableFuture
+                    />
                   </Grid>
                   <Grid size={{ md: 4, sm: 12 }}>
                     <Field.Text name="rg_orgao_uf" label="Órgão expedidor/UF" />
@@ -570,14 +620,14 @@ export default function FichaCadastralExternaPage() {
                     <Field.Text name="naturalidade" label="Naturalidade (Cidade)" />
                   </Grid>
                   <Grid size={{ md: 2, sm: 12 }}>
-                    <Field.Text 
-                      name="naturalidade_uf" 
-                      label="UF de naturalidade" 
-                      slotProps={{ 
+                    <Field.Text
+                      name="naturalidade_uf"
+                      label="UF de naturalidade"
+                      slotProps={{
                         inputLabel: { shrink: true },
-                        input: { 
-                          style: { textTransform: 'uppercase' }
-                        }
+                        input: {
+                          style: { textTransform: 'uppercase' },
+                        },
                       }}
                       inputProps={{ maxLength: 2 }}
                       onChange={(e: any) => {
@@ -686,6 +736,7 @@ export default function FichaCadastralExternaPage() {
                       name="profissao_01"
                       label="Profissão 01"
                       excludeValue={methods.watch('profissao_02')}
+                      onLabelUpdate={handleLabelUpdate}
                     />
                   </Grid>
                   <Grid size={{ md: 6, sm: 12 }}>
@@ -693,6 +744,7 @@ export default function FichaCadastralExternaPage() {
                       name="profissao_02"
                       label="Profissão 02 (opcional)"
                       excludeValue={methods.watch('profissao_01')}
+                      onLabelUpdate={handleLabelUpdate}
                     />
                   </Grid>
                 </Grid>
@@ -703,10 +755,10 @@ export default function FichaCadastralExternaPage() {
                     <Field.Text name="responsavel_preenchimento" label="Nome de quem preencheu" />
                   </Grid>
                   <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.DatePicker 
-                      name="data_assinatura" 
-                      label="Data da abertura ficha" 
-                      readOnly 
+                    <Field.DatePicker
+                      name="data_assinatura"
+                      label="Data da abertura ficha"
+                      readOnly
                       slotProps={{
                         textField: {
                           InputProps: {
@@ -740,8 +792,8 @@ export default function FichaCadastralExternaPage() {
           <DialogTitle>Confirmar CPF</DialogTitle>
           <DialogContent>
             <Typography variant="body2">
-              Não encontramos um reeducando com o CPF informado ({cpf}). Deseja prosseguir e cadastrar
-              o reeducando com as informações preenchidas no formulário?
+              Não encontramos um reeducando com o CPF informado ({cpf}). Deseja prosseguir e
+              cadastrar o reeducando com as informações preenchidas no formulário?
             </Typography>
           </DialogContent>
           <DialogActions>
