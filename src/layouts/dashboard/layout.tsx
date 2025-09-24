@@ -236,7 +236,7 @@ export function DashboardLayout({
                     px: 1.5,
                     borderRadius: 1,
                     // backgroundImage: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="%23ffffff" fill-opacity="0.15"%3E%3Cpath d="M30 30c0-8.3-6.7-15-15-15s-15 6.7-15 15 6.7 15 15 15 15-6.7 15-15zm15 0c0-8.3-6.7-15-15-15s-15 6.7-15 15 6.7 15 15 15 15-6.7 15-15z"/%3E%3C/g%3E%3C/svg%3E")',
-                    backgroundImage: 'url("../public/imgs/5807322.jpg")',
+                    backgroundImage: 'url("/imgs/5807322.jpg")',
                     backgroundSize: '269px 169px',
                     backgroundRepeat: 'no-repeat',
                     opacity: 0.7,
