@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Divider from '@mui/material/Divider';
@@ -143,7 +144,7 @@ const ConveniosStatusCard = ({ data, isLoading }: { data: StatusMetric[]; isLoad
                 </Typography>
               )}
             </Stack>
-            <Box
+            <Box 
               sx={{
                 p: 1.5,
                 borderRadius: '50%',
@@ -237,28 +238,11 @@ export default function Page() {
 
       <DashboardContent sx={{ py: { xs: 6, md: 8 } }}>
         <Stack spacing={5}>
-          <Stack spacing={1.5}>
+          <Stack spacing={1}>
             <Typography variant="h4">Visão geral</Typography>
             <Typography variant="body2" color="text.secondary">
-              O Sistema de Apoio à Gestão Prisional (SAGEP) integra tecnologia e políticas públicas
-              para acompanhar, de forma transparente, o trabalho desenvolvido nas unidades
-              prisionais do Distrito Federal.
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              A FUNAP/DF coordena, por meio do SAGEP, o cadastro de reeducandos, a articulação com
-              empresas parceiras e a oferta de capacitação, ampliando oportunidades de trabalho
-              e renda como elementos centrais da reinserção social.
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Esses indicadores revelam como convênios, empresas e equipes do sistema prisional
-              se mobilizam diariamente para garantir acompanhamento humanizado e recolocar cada
-              pessoa no exercício pleno da cidadania.
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              <strong>A ficha cadastral é a porta de entrada desse processo:</strong> ela reúne o histórico do reeducando, suas habilidades e interesses profissionais, permitindo que o sistema organize uma fila transparente de espera e priorize oportunidades aderentes ao seu perfil laboral.
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Quando uma vaga compatível surge, a equipe da FUNAP aciona o reeducando, formaliza treinamentos necessários e acompanha a experiência de trabalho, reforçando o compromisso do Distrito Federal com uma política prisional humanizada e sustentável.
+              Bem-vindo ao painel principal do SAGEP. Os indicadores abaixo refletem os dados
+              consolidados em tempo real.
             </Typography>
           </Stack>
 
@@ -267,6 +251,36 @@ export default function Page() {
               Não foi possível carregar as métricas do dashboard. {errorMessage}
             </Alert>
           )}
+
+          <Grid container spacing={3}>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <SummaryCard
+                title="Reeducandos ativos"
+                value={totalReeducandos}
+                icon="solar:users-group-rounded-bold"
+                color="success"
+                isLoading={isLoading}
+                shareLabel="Participação entre indicadores"
+                shareValue={computeShare(totalReeducandos)}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 4 }}>
+              <SummaryCard
+                title="Empresas ativas"
+                value={totalEmpresas}
+                icon="solar:case-minimalistic-bold"
+                color="info"
+                isLoading={isLoading}
+                shareLabel="Participação entre indicadores"
+                shareValue={computeShare(totalEmpresas)}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 4 }}>
+              <ConveniosStatusCard data={conveniosStatusData} isLoading={isLoading} />
+            </Grid>
+          </Grid>
         </Stack>
       </DashboardContent>
     </>
