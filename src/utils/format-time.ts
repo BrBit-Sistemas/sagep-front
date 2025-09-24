@@ -57,22 +57,19 @@ export const formatPatterns = {
 const isValidDate = (date: DatePickerFormat) =>
   date !== null && date !== undefined && dayjs(date).isValid();
 
-const userTimezone = dayjs.tz?.guess?.();
 const hasTimezoneInfo = (value: string) => /([zZ]|[+-]\d{2}:?\d{2})$/.test(value);
 
 const toDisplayDate = (date: DatePickerFormat) => {
   if (typeof date === 'string') {
-    return hasTimezoneInfo(date) && userTimezone
-      ? dayjs(date).tz(userTimezone)
-      : dayjs(date);
+    return hasTimezoneInfo(date) ? dayjs.utc(date) : dayjs(date);
   }
 
   if (dayjs.isDayjs(date)) {
-    return userTimezone ? date.tz(userTimezone) : date;
+    return date;
   }
 
-  if (date instanceof Date && userTimezone) {
-    return dayjs(date).tz(userTimezone);
+  if (date instanceof Date) {
+    return dayjs(date);
   }
 
   return dayjs(date as Date | number | undefined);
