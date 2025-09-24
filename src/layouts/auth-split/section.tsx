@@ -30,7 +30,7 @@ export function AuthSplitSection({
   methods,
   layoutQuery = 'md',
   title = 'Manage the job',
-  imgUrl = `${CONFIG.assetsDir}/assets/illustrations/illustration-dashboard.webp`,
+  imgUrl = `${CONFIG.assetsDir}/assets/illustrations/7078202_.png`,
   subtitle = 'More effectively with optimized workflows.',
   ...other
 }: AuthSplitSectionProps) {
