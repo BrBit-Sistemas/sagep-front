@@ -121,6 +121,22 @@ export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadast
         position: 'relative',
         [`& .${react_pdf_cover_class}`]: { display: 'flex', justifyContent: 'center' },
         [`& .${react_pdf_cover_img_class}`]: { objectFit: 'cover', maxHeight: 200 },
+        // Borda especial para ficha ativa
+        ...(localStatus === 'ativa' && {
+          border: '3px solid',
+          borderColor: 'success.main',
+          borderRadius: 2,
+          boxShadow: (theme) => `0 0 12px ${theme.palette.success.main}33`,
+          transform: 'scale(1.02)',
+          transition: 'all 0.3s ease-in-out',
+        }),
+        // Hover effect mantém a borda ativa
+        '&:hover': {
+          ...(localStatus === 'ativa' && {
+            boxShadow: (theme) => `0 0 16px ${theme.palette.success.main}55`,
+            transform: 'scale(1.03)',
+          }),
+        },
       }}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
@@ -212,6 +228,29 @@ export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadast
               )}
             </>
           )}
+          {/* Badge para ficha ativa */}
+          {localStatus === 'ativa' && (
+            <Box
+              sx={{
+                position: 'absolute',
+                bottom: -8,
+                left: -8,
+                bgcolor: 'success.main',
+                color: 'white',
+                borderRadius: '50%',
+                width: 32,
+                height: 32,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 3,
+                boxShadow: 2,
+                border: '2px solid white',
+              }}
+            >
+              <Iconify icon="solar:check-circle-bold" width={18} height={18} />
+            </Box>
+          )}
         </Box>
         <CardContent>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -219,6 +258,15 @@ export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadast
               size="small"
               color={localStatus === 'ativa' ? 'success' : 'default'}
               label={localStatus === 'ativa' ? 'Ativa' : 'Inativa'}
+              sx={{
+                // Chip com estilo especial para ficha ativa
+                ...(localStatus === 'ativa' && {
+                  fontWeight: 'bold',
+                  '& .MuiChip-label': {
+                    color: 'success.contrastText',
+                  },
+                }),
+              }}
             />
             {fDateTime(fichaCadastral.createdAt)}
           </Box>

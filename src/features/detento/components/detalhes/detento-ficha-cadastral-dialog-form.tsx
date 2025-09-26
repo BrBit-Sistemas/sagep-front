@@ -1,6 +1,7 @@
 import type { Detento } from '../../types';
 import type { CreateDetentoFichaCadastralSchema } from '../../schemas';
 
+import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { useForm, useFormContext } from 'react-hook-form';
@@ -34,6 +35,124 @@ import { Regime, Escolaridade } from '../../../detento/types';
 import { createDetentoFichaCadastralSchema } from '../../schemas';
 import { useDetentoDetalhesSearchParams } from '../../hooks/use-dentento-detalhes-search-params';
 
+// Schema estendido para o formulário interno que inclui campos separados de RG
+const dialogFormSchema = createDetentoFichaCadastralSchema
+  .extend({
+    rg_orgao: z.string().optional(),
+    rg_uf: z.string().optional(),
+  })
+  .omit({
+    rg_orgao_uf: true, // Remove a validação obrigatória do campo combinado
+  })
+  .extend({
+    rg_orgao_uf: z.string().optional(), // Torna o campo combinado opcional
+  })
+  .refine(
+    (data) => {
+      // Validação customizada: pelo menos um dos campos de RG deve estar preenchido
+      const hasOrgao = Boolean(data.rg_orgao && data.rg_orgao.trim());
+      const hasUf = Boolean(data.rg_uf && data.rg_uf.trim());
+      const hasRgOrgaoUf = Boolean(data.rg_orgao_uf && data.rg_orgao_uf.trim());
+
+      return hasRgOrgaoUf || hasOrgao || hasUf;
+    },
+    {
+      message: 'Pelo menos o órgão expedidor ou UF deve ser preenchido',
+      path: ['rg_orgao'], // Mostra erro no primeiro campo para melhor UX
+    }
+  );
+
+// Órgãos expedidores de RG
+const ORGAOS_EXPEDIDORES = [
+  { value: 'SSP', label: 'SSP - Secretaria de Segurança Pública' },
+  { value: 'DIC', label: 'DIC - Diretoria de Identificação Civil' },
+  { value: 'PC', label: 'PC - Polícia Civil' },
+  { value: 'IFP', label: 'IFP - Instituto Félix Pacheco' },
+  { value: 'IGP', label: 'IGP - Instituto Geral de Perícias' },
+  { value: 'ITEP', label: 'ITEP - Instituto Técnico-Científico de Perícia' },
+  { value: 'SEJUSP', label: 'SEJUSP - Secretaria de Justiça e Segurança Pública' },
+  { value: 'SEJSP', label: 'SEJSP - Secretaria de Justiça e Segurança Pública' },
+  { value: 'SESP', label: 'SESP - Secretaria de Segurança Pública' },
+  { value: 'SESPAP', label: 'SESPAP - Secretaria de Segurança e Administração Penitenciária' },
+  { value: 'SESDEC', label: 'SESDEC - Secretaria de Estado de Defesa e Cidadania' },
+  { value: 'DETRAN', label: 'DETRAN - Departamento de Trânsito' },
+  { value: 'DGPC', label: 'DGPC - Diretoria Geral da Polícia Civil' },
+  { value: 'DPMAF', label: 'DPMAF - Divisão de Polícia Marítima, Aérea e de Fronteiras' },
+  { value: 'PF', label: 'PF - Polícia Federal' },
+  { value: 'DPF', label: 'DPF - Departamento de Polícia Federal' },
+  { value: 'PM', label: 'PM - Polícia Militar' },
+  { value: 'PTC', label: 'PTC - Polícia Técnico-Científica' },
+  { value: 'POLITEC', label: 'POLITEC - Polícia Técnico-Científica' },
+];
+
+// Estados brasileiros (UF)
+const ESTADOS_BRASILEIROS = [
+  { value: 'AC', label: 'AC - Acre' },
+  { value: 'AL', label: 'AL - Alagoas' },
+  { value: 'AP', label: 'AP - Amapá' },
+  { value: 'AM', label: 'AM - Amazonas' },
+  { value: 'BA', label: 'BA - Bahia' },
+  { value: 'CE', label: 'CE - Ceará' },
+  { value: 'DF', label: 'DF - Distrito Federal' },
+  { value: 'ES', label: 'ES - Espírito Santo' },
+  { value: 'GO', label: 'GO - Goiás' },
+  { value: 'MA', label: 'MA - Maranhão' },
+  { value: 'MT', label: 'MT - Mato Grosso' },
+  { value: 'MS', label: 'MS - Mato Grosso do Sul' },
+  { value: 'MG', label: 'MG - Minas Gerais' },
+  { value: 'PA', label: 'PA - Pará' },
+  { value: 'PB', label: 'PB - Paraíba' },
+  { value: 'PR', label: 'PR - Paraná' },
+  { value: 'PE', label: 'PE - Pernambuco' },
+  { value: 'PI', label: 'PI - Piauí' },
+  { value: 'RJ', label: 'RJ - Rio de Janeiro' },
+  { value: 'RN', label: 'RN - Rio Grande do Norte' },
+  { value: 'RS', label: 'RS - Rio Grande do Sul' },
+  { value: 'RO', label: 'RO - Rondônia' },
+  { value: 'RR', label: 'RR - Roraima' },
+  { value: 'SC', label: 'SC - Santa Catarina' },
+  { value: 'SP', label: 'SP - São Paulo' },
+  { value: 'SE', label: 'SE - Sergipe' },
+  { value: 'TO', label: 'TO - Tocantins' },
+];
+
+// Regiões Administrativas do Distrito Federal
+const REGIOES_ADMINISTRATIVAS_DF = [
+  { value: 'RA I - Brasília', label: 'RA I - Brasília (Plano Piloto)' },
+  { value: 'RA II - Gama', label: 'RA II - Gama' },
+  { value: 'RA III - Taguatinga', label: 'RA III - Taguatinga' },
+  { value: 'RA IV - Brazlândia', label: 'RA IV - Brazlândia' },
+  { value: 'RA V - Sobradinho', label: 'RA V - Sobradinho' },
+  { value: 'RA VI - Planaltina', label: 'RA VI - Planaltina' },
+  { value: 'RA VII - Paranoá', label: 'RA VII - Paranoá' },
+  { value: 'RA VIII - Núcleo Bandeirante', label: 'RA VIII - Núcleo Bandeirante' },
+  { value: 'RA IX - Ceilândia', label: 'RA IX - Ceilândia' },
+  { value: 'RA X - Guará', label: 'RA X - Guará' },
+  { value: 'RA XI - Cruzeiro', label: 'RA XI - Cruzeiro' },
+  { value: 'RA XII - Samambaia', label: 'RA XII - Samambaia' },
+  { value: 'RA XIII - Santa Maria', label: 'RA XIII - Santa Maria' },
+  { value: 'RA XIV - São Sebastião', label: 'RA XIV - São Sebastião' },
+  { value: 'RA XV - Recanto das Emas', label: 'RA XV - Recanto das Emas' },
+  { value: 'RA XVI - Lago Sul', label: 'RA XVI - Lago Sul' },
+  { value: 'RA XVII - Riacho Fundo', label: 'RA XVII - Riacho Fundo' },
+  { value: 'RA XVIII - Lago Norte', label: 'RA XVIII - Lago Norte' },
+  { value: 'RA XIX - Candangolândia', label: 'RA XIX - Candangolândia' },
+  { value: 'RA XX - Águas Claras', label: 'RA XX - Águas Claras' },
+  { value: 'RA XXI - Riacho Fundo II', label: 'RA XXI - Riacho Fundo II' },
+  { value: 'RA XXII - Sudoeste/Octogonal', label: 'RA XXII - Sudoeste/Octogonal' },
+  { value: 'RA XXIII - Varjão', label: 'RA XXIII - Varjão' },
+  { value: 'RA XXIV - Park Way', label: 'RA XXIV - Park Way' },
+  { value: 'RA XXV - SCIA', label: 'RA XXV - SCIA (Estrutural)' },
+  { value: 'RA XXVI - Sobradinho II', label: 'RA XXVI - Sobradinho II' },
+  { value: 'RA XXVII - Jardim Botânico', label: 'RA XXVII - Jardim Botânico' },
+  { value: 'RA XXVIII - Itapoã', label: 'RA XXVIII - Itapoã' },
+  { value: 'RA XXIX - SIA', label: 'RA XXIX - SIA' },
+  { value: 'RA XXX - Vicente Pires', label: 'RA XXX - Vicente Pires' },
+  { value: 'RA XXXI - Fercal', label: 'RA XXXI - Fercal' },
+  { value: 'RA XXXII - Sol Nascente/Pôr do Sol', label: 'RA XXXII - Sol Nascente/Pôr do Sol' },
+  { value: 'RA XXXIII - Arniqueira', label: 'RA XXXIII - Arniqueira' },
+];
+
 type DetentoFichaCadastralDialogFormProps = {
   detento: Detento;
   detentoId: string;
@@ -43,7 +162,7 @@ type DetentoFichaCadastralDialogFormProps = {
   onClose: () => void;
 };
 
-const INITIAL_VALUES: CreateDetentoFichaCadastralSchema = {
+const INITIAL_VALUES: CreateDetentoFichaCadastralSchema & { rg_orgao?: string; rg_uf?: string } = {
   detento_id: '',
   // Identificação pessoal
   nome: '',
@@ -51,6 +170,8 @@ const INITIAL_VALUES: CreateDetentoFichaCadastralSchema = {
   rg: '',
   rg_expedicao: '',
   rg_orgao_uf: '',
+  rg_orgao: '',
+  rg_uf: '',
   data_nascimento: '',
   naturalidade: '',
   naturalidade_uf: '',
@@ -222,10 +343,11 @@ export const DetentoFichaCadastralDialogForm = ({
         regime: detento.regime,
         escolaridade: detento.escolaridade,
         unidade_prisional: getUnidadeName(detento.unidade_id),
+        filiacao_mae: detento.mae,
       };
 
   const methods = useForm({
-    resolver: zodResolver(createDetentoFichaCadastralSchema),
+    resolver: zodResolver(dialogFormSchema) as any,
     defaultValues: initialValues,
   });
 
@@ -242,6 +364,31 @@ export const DetentoFichaCadastralDialogForm = ({
       setLoading(true);
       setError(null);
       try {
+        // Combinar órgão expedidor e UF do RG em um campo só
+        const rgOrgao = (data as any).rg_orgao?.trim() || '';
+        const rgUf = (data as any).rg_uf?.trim() || '';
+
+        // Validação adicional para garantir que pelo menos um campo foi preenchido
+        if (!rgOrgao && !rgUf) {
+          methods.setError('rg_orgao' as any, {
+            type: 'manual',
+            message: 'Pelo menos o órgão expedidor ou UF deve ser preenchido',
+          });
+          return;
+        }
+
+        if (rgOrgao && rgUf) {
+          (data as any).rg_orgao_uf = `${rgOrgao}/${rgUf}`;
+        } else if (rgOrgao) {
+          (data as any).rg_orgao_uf = rgOrgao;
+        } else if (rgUf) {
+          (data as any).rg_orgao_uf = rgUf;
+        }
+
+        // Remover campos separados para evitar conflito no backend
+        delete (data as any).rg_orgao;
+        delete (data as any).rg_uf;
+
         // Converter profissao_01 e profissao_02 de ID para nome antes de enviar
         const apiProfissoes = getProfissoes();
         const rawProfissao01 = (data as any).profissao_01 || '';
@@ -344,7 +491,39 @@ export const DetentoFichaCadastralDialogForm = ({
 
   useEffect(() => {
     if (isEditing) {
-      methods.reset(defaultValues);
+      // Separar o campo combinado rg_orgao_uf nos campos individuais para edição
+      const rgOrgaoUf = defaultValues?.rg_orgao_uf || '';
+      let rgOrgao = '';
+      let rgUf = '';
+
+      if (rgOrgaoUf.includes('/')) {
+        [rgOrgao, rgUf] = rgOrgaoUf.split('/');
+      } else if (rgOrgaoUf) {
+        // Se não tem separador, pode ser só órgão ou só UF
+        // Vamos tentar detectar se é UF (2 letras) ou órgão
+        if (rgOrgaoUf.length === 2 && /^[A-Z]{2}$/.test(rgOrgaoUf)) {
+          rgUf = rgOrgaoUf;
+        } else {
+          rgOrgao = rgOrgaoUf;
+        }
+      }
+
+      // Garantir que os campos do detento sejam sempre atualizados, mesmo em modo de edição
+      methods.reset({
+        ...defaultValues,
+        rg_orgao: rgOrgao,
+        rg_uf: rgUf,
+        nome: detento.nome,
+        cpf: detento.cpf,
+        prontuario: detento.prontuario,
+        data_nascimento: detento.data_nascimento
+          ? formatDateToDDMMYYYY(detento.data_nascimento)
+          : '',
+        regime: detento.regime,
+        escolaridade: detento.escolaridade,
+        unidade_prisional: getUnidadeName(detento.unidade_id),
+        filiacao_mae: detento.mae,
+      } as any);
     } else if (open) {
       // Preenche os campos com os dados do detento ao abrir para criar
       methods.reset({
@@ -359,6 +538,7 @@ export const DetentoFichaCadastralDialogForm = ({
         regime: detento.regime,
         escolaridade: detento.escolaridade,
         unidade_prisional: getUnidadeName(detento.unidade_id),
+        filiacao_mae: detento.mae,
       });
     }
   }, [isEditing, defaultValues, open, detento, methods, unidades]);
@@ -394,10 +574,20 @@ export const DetentoFichaCadastralDialogForm = ({
               </Typography>
               <Grid container spacing={2}>
                 <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Text name="nome" label="Nome completo" />
+                  <Field.Text
+                    name="nome"
+                    label="Nome completo"
+                    disabled
+                    helperText="Campo preenchido automaticamente com os dados do cadastro do detento"
+                  />
                 </Grid>
                 <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Cpf name="cpf" label="CPF" />
+                  <Field.Cpf
+                    name="cpf"
+                    label="CPF"
+                    disabled
+                    helperText="Campo preenchido automaticamente com os dados do cadastro do detento"
+                  />
                 </Grid>
                 <Grid size={{ md: 4, sm: 12 }}>
                   <Field.Text name="rg" label="RG" />
@@ -409,39 +599,71 @@ export const DetentoFichaCadastralDialogForm = ({
                     disableFuture
                   />
                 </Grid>
-                <Grid size={{ md: 4, sm: 12 }}>
-                  <Field.Text name="rg_orgao_uf" label="Órgão expedidor/UF" />
+                <Grid size={{ md: 2, sm: 6 }}>
+                  <Field.Select name="rg_orgao" label="Órgão expedidor" fullWidth>
+                    <MenuItem value="">
+                      <em>Órgão</em>
+                    </MenuItem>
+                    {ORGAOS_EXPEDIDORES.map((orgao) => (
+                      <MenuItem key={orgao.value} value={orgao.value}>
+                        {orgao.label}
+                      </MenuItem>
+                    ))}
+                  </Field.Select>
+                </Grid>
+                <Grid size={{ md: 2, sm: 6 }}>
+                  <Field.Select name="rg_uf" label="UF do RG" fullWidth helperText="Estado emissor">
+                    <MenuItem value="">
+                      <em>UF</em>
+                    </MenuItem>
+                    {ESTADOS_BRASILEIROS.map((estado) => (
+                      <MenuItem key={estado.value} value={estado.value}>
+                        {estado.value}
+                      </MenuItem>
+                    ))}
+                  </Field.Select>
                 </Grid>
                 <Grid size={{ md: 5, sm: 12 }}>
                   <Field.DatePicker
                     name="data_nascimento"
                     label="Data de nascimento"
                     disableFuture
+                    disabled
+                    slotProps={{
+                      textField: {
+                        helperText:
+                          'Campo preenchido automaticamente com os dados do cadastro do detento',
+                      },
+                    }}
                   />
                 </Grid>
                 <Grid size={{ md: 5, sm: 12 }}>
                   <Field.Text name="naturalidade" label="Naturalidade (Cidade)" />
                 </Grid>
                 <Grid size={{ md: 2, sm: 12 }}>
-                  <Field.Text
+                  <Field.Select
                     name="naturalidade_uf"
-                    label="UF de naturalidade"
-                    slotProps={{
-                      inputLabel: { shrink: true },
-                      input: {
-                        style: { textTransform: 'uppercase' },
-                      },
-                    }}
-                    inputProps={{ maxLength: 2 }}
-                    onChange={(e: any) => {
-                      const value = e.target.value.toUpperCase().slice(0, 2);
-                      e.target.value = value;
-                      methods.setValue('naturalidade_uf', value);
-                    }}
-                  />
+                    label="UF"
+                    fullWidth
+                    helperText="Estado de nascimento"
+                  >
+                    <MenuItem value="">
+                      <em>UF</em>
+                    </MenuItem>
+                    {ESTADOS_BRASILEIROS.map((estado) => (
+                      <MenuItem key={estado.value} value={estado.value}>
+                        {estado.label}
+                      </MenuItem>
+                    ))}
+                  </Field.Select>
                 </Grid>
                 <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Text name="filiacao_mae" label="Nome da mãe" />
+                  <Field.Text
+                    name="filiacao_mae"
+                    label="Nome da mãe"
+                    disabled
+                    helperText="Campo preenchido automaticamente com os dados do cadastro do detento"
+                  />
                 </Grid>
                 <Grid size={{ md: 6, sm: 12 }}>
                   <Field.Text name="filiacao_pai" label="Nome do pai (ou N/D)" />
@@ -458,7 +680,13 @@ export const DetentoFichaCadastralDialogForm = ({
               </Typography>
               <Grid container spacing={2}>
                 <Grid size={{ md: 4, sm: 12 }}>
-                  <Field.Select name="regime_id" label="Regime" fullWidth>
+                  <Field.Select
+                    name="regime"
+                    label="Regime"
+                    fullWidth
+                    disabled
+                    helperText="Campo preenchido automaticamente com os dados do cadastro do detento"
+                  >
                     {Object.values(Regime).map((regime) => (
                       <MenuItem key={regime} value={regime}>
                         {regime}
@@ -467,19 +695,59 @@ export const DetentoFichaCadastralDialogForm = ({
                   </Field.Select>
                 </Grid>
                 <Grid size={{ md: 4, sm: 12 }}>
-                  <Field.Select name="unidade_id" label="Unidade prisional" fullWidth>
+                  <Field.Select
+                    name="unidade_prisional"
+                    label="Unidade prisional"
+                    fullWidth
+                    disabled
+                    helperText="Campo preenchido automaticamente com os dados do cadastro do detento"
+                  >
                     {unidades.map((u) => (
-                      <MenuItem key={u.id} value={u.id}>
+                      <MenuItem key={u.id} value={u.nome}>
                         {u.nome}
                       </MenuItem>
                     ))}
                   </Field.Select>
                 </Grid>
                 <Grid size={{ md: 4, sm: 12 }}>
-                  <Field.Text name="prontuario" label="Prontuário" />
+                  <Field.Text
+                    name="prontuario"
+                    label="Prontuário"
+                    disabled
+                    helperText="Campo preenchido automaticamente com os dados do cadastro do detento"
+                  />
                 </Grid>
                 <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Text name="sei" label="Número SEI (processo)" />
+                  <Field.Text
+                    name="sei"
+                    label="Número SEI (processo)"
+                    placeholder="Ex: 12345.123456/2024-12"
+                    helperText="Digite o número SEI do processo digital"
+                    onInput={(e: any) => {
+                      const input = e.target;
+                      const value = input.value.replace(/\D/g, ''); // Remove não-dígitos
+                      let formatted = '';
+
+                      if (value.length <= 5) {
+                        // #####
+                        formatted = value;
+                      } else if (value.length <= 11) {
+                        // #####.######
+                        formatted = `${value.slice(0, 5)}.${value.slice(5)}`;
+                      } else if (value.length <= 15) {
+                        // #####.######/####
+                        formatted = `${value.slice(0, 5)}.${value.slice(5, 11)}/${value.slice(11)}`;
+                      } else {
+                        // #####.######/####-##
+                        formatted = `${value.slice(0, 5)}.${value.slice(5, 11)}/${value.slice(11, 15)}-${value.slice(15, 17)}`;
+                      }
+
+                      input.value = formatted;
+
+                      // Salvar apenas os dígitos no formulário
+                      methods.setValue('sei', value);
+                    }}
+                  />
                 </Grid>
               </Grid>
             </Box>
@@ -493,13 +761,69 @@ export const DetentoFichaCadastralDialogForm = ({
               </Typography>
               <Grid container spacing={2}>
                 <Grid size={{ md: 12, sm: 12 }}>
-                  <Field.Text name="endereco" label="Endereço completo" />
+                  <Field.Text
+                    name="endereco"
+                    label="Endereço completo"
+                    placeholder="Ex: Rua das Flores, 123, Apt 45, Bairro Centro"
+                    helperText="Digite o endereço completo em uma linha (rua, número, complemento, bairro)"
+                  />
                 </Grid>
                 <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Text name="regiao_administrativa" label="Região Administrativa (RA)" />
+                  <Field.Select
+                    name="regiao_administrativa"
+                    label="Região Administrativa (RA)"
+                    fullWidth
+                    helperText="Selecione a Região Administrativa do DF onde o detento reside"
+                    onChange={(e: any) => {
+                      // Se uma região foi selecionada aqui e ela estava selecionada no campo bloqueado, limpar o campo bloqueado
+                      const selectedValue = e.target.value;
+                      const regiaoBloqueada = methods.watch('regiao_bloqueada');
+                      if (selectedValue && regiaoBloqueada === selectedValue) {
+                        methods.setValue('regiao_bloqueada', '');
+                      }
+                      methods.setValue('regiao_administrativa', selectedValue);
+                    }}
+                  >
+                    <MenuItem value="">
+                      <em>Selecione uma RA</em>
+                    </MenuItem>
+                    {REGIOES_ADMINISTRATIVAS_DF.filter((ra) => {
+                      const regiaoBloqueada = methods.watch('regiao_bloqueada');
+                      return !regiaoBloqueada || ra.value !== regiaoBloqueada;
+                    }).map((ra) => (
+                      <MenuItem key={ra.value} value={ra.value}>
+                        {ra.label}
+                      </MenuItem>
+                    ))}
+                  </Field.Select>
                 </Grid>
                 <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Text name="telefone" label="Telefone(s)" />
+                  <Field.Text
+                    name="telefone"
+                    label="Telefone(s)"
+                    placeholder="Ex: (61) 99999-9999"
+                    onInput={(e: any) => {
+                      const input = e.target;
+                      const value = input.value.replace(/\D/g, ''); // Remove não-dígitos
+                      let formatted = '';
+
+                      if (value.length <= 2) {
+                        formatted = value;
+                      } else if (value.length <= 6) {
+                        formatted = `(${value.slice(0, 2)}) ${value.slice(2)}`;
+                      } else if (value.length <= 10) {
+                        formatted = `(${value.slice(0, 2)}) ${value.slice(2, 6)}-${value.slice(6)}`;
+                      } else {
+                        // Celular com 9 dígitos
+                        formatted = `(${value.slice(0, 2)}) ${value.slice(2, 7)}-${value.slice(7, 11)}`;
+                      }
+
+                      input.value = formatted;
+
+                      // Salvar apenas os dígitos no formulário
+                      methods.setValue('telefone', value);
+                    }}
+                  />
                 </Grid>
               </Grid>
             </Box>
@@ -513,7 +837,13 @@ export const DetentoFichaCadastralDialogForm = ({
               </Typography>
               <Grid container spacing={2}>
                 <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Select name="escolaridade_id" label="Escolaridade" fullWidth>
+                  <Field.Select
+                    name="escolaridade"
+                    label="Escolaridade"
+                    fullWidth
+                    disabled
+                    helperText="Campo preenchido automaticamente com os dados do cadastro do detento"
+                  >
                     {Object.values(Escolaridade).map((escolaridade) => (
                       <MenuItem key={escolaridade} value={escolaridade}>
                         {escolaridade}
@@ -528,10 +858,33 @@ export const DetentoFichaCadastralDialogForm = ({
                   <Field.Text name="problema_saude" label="Qual(is) problema(s) de saúde?" />
                 </Grid>
                 <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Text
+                  <Field.Select
                     name="regiao_bloqueada"
                     label="Região Administrativa onde não pode trabalhar"
-                  />
+                    fullWidth
+                    helperText="Selecione a RA onde o detento não pode trabalhar (diferente da região onde pode trabalhar)"
+                    onChange={(e: any) => {
+                      // Se uma região foi selecionada aqui e ela estava selecionada no campo permitido, limpar o campo permitido
+                      const selectedValue = e.target.value;
+                      const regiaoPermitida = methods.watch('regiao_administrativa');
+                      if (selectedValue && regiaoPermitida === selectedValue) {
+                        methods.setValue('regiao_administrativa', '');
+                      }
+                      methods.setValue('regiao_bloqueada', selectedValue);
+                    }}
+                  >
+                    <MenuItem value="">
+                      <em>Selecione uma RA</em>
+                    </MenuItem>
+                    {REGIOES_ADMINISTRATIVAS_DF.filter((ra) => {
+                      const regiaoPermitida = methods.watch('regiao_administrativa');
+                      return !regiaoPermitida || ra.value !== regiaoPermitida;
+                    }).map((ra) => (
+                      <MenuItem key={ra.value} value={ra.value}>
+                        {ra.label}
+                      </MenuItem>
+                    ))}
+                  </Field.Select>
                 </Grid>
               </Grid>
             </Box>
@@ -560,6 +913,21 @@ export const DetentoFichaCadastralDialogForm = ({
                   <Field.Text
                     name="ano_trabalho_anterior"
                     label="Ano do trabalho anterior pela FUNAP"
+                    placeholder="Ex: 2024"
+                    helperText="Digite o ano no formato AAAA"
+                    inputProps={{ maxLength: 4 }}
+                    onInput={(e: any) => {
+                      const input = e.target;
+                      let value = input.value.replace(/\D/g, ''); // Remove não-dígitos
+
+                      // Limitar a 4 dígitos
+                      if (value.length > 4) {
+                        value = value.slice(0, 4);
+                      }
+
+                      input.value = value;
+                      methods.setValue('ano_trabalho_anterior', value);
+                    }}
                   />
                 </Grid>
                 <Grid size={{ md: 6, sm: 12 }}>
