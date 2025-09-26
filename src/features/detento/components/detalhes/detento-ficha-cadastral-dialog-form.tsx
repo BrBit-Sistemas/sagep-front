@@ -32,6 +32,7 @@ import { Form, Field } from 'src/components/hook-form';
 import { detentoService } from '../../data';
 import { detentoKeys } from '../../hooks/keys';
 import { Regime, Escolaridade } from '../../../detento/types';
+import { FichaDocumentosField } from '../ficha-documentos-field';
 import { createDetentoFichaCadastralSchema } from '../../schemas';
 import { useDetentoDetalhesSearchParams } from '../../hooks/use-dentento-detalhes-search-params';
 
@@ -206,6 +207,7 @@ const INITIAL_VALUES: CreateDetentoFichaCadastralSchema & { rg_orgao?: string; r
   data_assinatura: formatDateToYYYYMMDD(new Date()),
   // PDF gerado
   pdf_path: '',
+  documentos: [],
 };
 
 // Componente interno para campo de profissão com cache de rótulos
@@ -325,8 +327,6 @@ export const DetentoFichaCadastralDialogForm = ({
     const unidade = unidades.find((u) => u.id === unidadeId);
     return unidade?.nome || unidadeId;
   };
-
-  console.log('detento', detento);
 
   // Preenche valores iniciais com dados do detento se não for edição
   const initialValues = isEditing
@@ -949,8 +949,6 @@ export const DetentoFichaCadastralDialogForm = ({
               </Grid>
             </Box>
 
-            <Divider />
-
             {/* 6. Declarações e Responsáveis */}
             <Box sx={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }}>
               <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
@@ -975,6 +973,17 @@ export const DetentoFichaCadastralDialogForm = ({
                   />
                 </Grid>
               </Grid>
+            </Box>
+
+            <Divider />
+
+            <Box sx={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }}>
+              <FichaDocumentosField
+                fichaId={fichaCadastralId}
+                detentoId={detentoId}
+                title="7. Documentos anexados"
+                helperText="Anexe imagens de documentos relevantes e nomeie cada arquivo para facilitar o controle."
+              />
             </Box>
 
             {/* PDF gerado (upload manual, se necessário) */}

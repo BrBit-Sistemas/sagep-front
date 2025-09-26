@@ -546,6 +546,20 @@ export type ProfissaoControllerFindAllParams = {
   search?: string;
 };
 
+export interface FichaCadastralDocumentoDto {
+  id?: string;
+  fichacadastral_id?: string;
+  ficha_cadastral_id?: string;
+  nome: string;
+  s3_key: string;
+  mime_type: string;
+  file_size: number;
+  url?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  deletedAt?: string | null;
+}
+
 export interface CreateFichaCadastralDto {
   detento_id: string;
   nome: string;
@@ -585,6 +599,7 @@ export interface CreateFichaCadastralDto {
   rodape_num_2?: string;
   rodape_sei?: string;
   pdf_path: string;
+  documentos?: FichaCadastralDocumentoDto[];
 }
 
 export interface UpdateFichaCadastralDto extends Partial<CreateFichaCadastralDto> {}
@@ -595,4 +610,5 @@ export interface ReadFichaCadastralDto extends CreateFichaCadastralDto {
   updatedAt: string;
   created_by: string;
   updated_by: string;
+  documentos?: FichaCadastralDocumentoDto[];
 }

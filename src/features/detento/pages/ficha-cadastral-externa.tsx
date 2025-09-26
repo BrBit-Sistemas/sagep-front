@@ -31,6 +31,7 @@ import { Form, Field } from 'src/components/hook-form';
 import { detentoService } from '../data';
 import { Regime, Escolaridade } from '../types';
 import { createDetentoFichaCadastralSchema } from '../schemas';
+import { FichaDocumentosField } from '../components/ficha-documentos-field';
 import { useProfissoesAutocomplete } from '../../empresa-convenios/hooks/use-profissoes-options';
 
 // Órgãos expedidores de RG
@@ -327,6 +328,7 @@ export default function FichaCadastralExternaPage() {
       data_assinatura: formatDateToYYYYMMDD(new Date()),
 
       pdf_path: '',
+      documentos: [],
     },
   });
 
@@ -1079,6 +1081,12 @@ export default function FichaCadastralExternaPage() {
                     />
                   </Grid>
                 </Grid>
+
+                <FichaDocumentosField
+                  detentoId={methods.watch('detento_id')}
+                  title="7. Documentos anexados"
+                  helperText="Envie imagens legíveis e nomeie cada documento para facilitar a conferência pela equipe."
+                />
 
                 <Stack direction="row" spacing={2}>
                   <Button onClick={() => setStep('cpf')} variant="outlined">

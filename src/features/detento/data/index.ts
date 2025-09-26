@@ -10,6 +10,16 @@ import { getDetentos, type ReadDetentoDto } from 'src/api/detentos/detentos';
 // API client
 const api = getDetentos();
 
+const mapDocumentosPayload = (documentos?: any[]) =>
+  (documentos || []).map((doc) => ({
+    ...(doc.id ? { id: doc.id } : {}),
+    nome: doc.nome,
+    s3_key: doc.s3_key,
+    mime_type: doc.mime_type,
+    file_size: doc.file_size,
+    ...(doc.url ? { url: doc.url } : {}),
+  }));
+
 function toDetento(dto: ReadDetentoDto): Detento {
   return {
     id: dto.id,
@@ -72,17 +82,37 @@ export const detentoService: DetentoService = {
       updatedAt: f.updatedAt,
       created_by: f.created_by,
       updated_by: f.updated_by,
+      documentos: (f.documentos || []).map((doc: any) => ({
+        id: doc.id,
+        ficha_cadastral_id: doc.ficha_cadastral_id || doc.fichacadastral_id || f.id,
+        nome: doc.nome,
+        s3_key: doc.s3_key,
+        mime_type: doc.mime_type,
+        file_size: doc.file_size,
+        url: doc.url,
+        createdAt: doc.createdAt,
+        updatedAt: doc.updatedAt,
+        deletedAt: doc.deletedAt,
+      })),
     }));
   },
   createFichaCadastral: async (data) => {
     // Chama a API real para criar a ficha cadastral
     const fichasApi = getFichasCadastrais();
-    const ficha = await fichasApi.create(data as CreateFichaCadastralDto);
+    const ficha = await fichasApi.create(
+      {
+        ...data,
+        documentos: mapDocumentosPayload((data as any)?.documentos),
+      } as CreateFichaCadastralDto,
+    );
     return ficha;
   },
   updateFichaCadastral: async (fichacadastral_id, data) => {
     const fichasApi = getFichasCadastrais();
-    return fichasApi.update(fichacadastral_id, data);
+    return fichasApi.update(fichacadastral_id, {
+      ...data,
+      documentos: mapDocumentosPayload((data as any)?.documentos),
+    });
   },
   paginate: async ({ page, limit, search, cpf, nome, sort, order }: any) => {
     const res = await api.findAll({ page, limit, search, cpf, nome, sort, order });

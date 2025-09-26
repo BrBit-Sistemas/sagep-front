@@ -14,6 +14,13 @@ export interface ReadFichaCadastralDto {
   // ... todos os campos retornados pelo backend
 }
 
+export interface FichaCadastralDocumentoUploadResponse {
+  key: string;
+  url: string;
+  mime_type: string;
+  file_size: number;
+}
+
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 export const getFichasCadastrais = () => {
@@ -95,7 +102,42 @@ export const getFichasCadastrais = () => {
       options
     );
 
-  return { create, update, findOne, paginate, remove };
+  const uploadDocumento = (
+    file: File,
+    detentoId?: string,
+    options?: SecondParameter<typeof customInstance>
+  ) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (detentoId) {
+      formData.append('detento_id', detentoId);
+    }
+
+    return customInstance<FichaCadastralDocumentoUploadResponse>(
+      {
+        url: `/fichas-cadastrais/documentos/upload`,
+        method: 'POST',
+        data: formData,
+        headers: { 'Content-Type': 'multipart/form-data' },
+      },
+      options
+    );
+  };
+
+  const getDocumentoUrl = (
+    fichaId: string,
+    documentoId: string,
+    options?: SecondParameter<typeof customInstance>
+  ) =>
+    customInstance<{ url: string }>(
+      {
+        url: `/fichas-cadastrais/${fichaId}/documentos/${documentoId}/url`,
+        method: 'GET',
+      },
+      options
+    );
+
+  return { create, update, findOne, paginate, remove, uploadDocumento, getDocumentoUrl };
 };
 
 export type CreateResult = NonNullable<

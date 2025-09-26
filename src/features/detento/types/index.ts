@@ -92,7 +92,21 @@ export type DetentoFichaCadastral = {
   // PDF gerado
   pdf_path: string;
   status?: 'ativa' | 'inativa';
+  documentos?: DetentoFichaDocumento[];
 } & AuditableEntity;
+
+export type DetentoFichaDocumento = {
+  id: string;
+  ficha_cadastral_id: string;
+  nome: string;
+  s3_key: string;
+  mime_type: string;
+  file_size: number;
+  url?: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string | null;
+};
 
 export type DetentoService = {
   getFichasCadastrais: (detentoId: string) => Promise<DetentoFichaCadastral[]>;

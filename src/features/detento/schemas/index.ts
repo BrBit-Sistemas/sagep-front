@@ -68,6 +68,21 @@ export const createDetentoFichaCadastralSchema = z.object({
   data_assinatura: z.string().optional(),
   // PDF gerado
   pdf_path: z.string().optional(),
+  // Documentos anexados
+  documentos: z
+    .array(
+      z.object({
+        id: z.string().optional(),
+        nome: z.string().min(1, 'Informe o nome do documento'),
+        s3_key: z.string().min(1),
+        mime_type: z.string().min(1),
+        file_size: z.number().min(1),
+        url: z.string().optional(),
+        previewUrl: z.string().optional(),
+      })
+    )
+    .optional()
+    .default([]),
 });
 
 export type CreateDetentoSchema = z.infer<typeof createDetentoSchema>;

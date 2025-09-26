@@ -47,4 +47,13 @@ export const fichaCadastralToFormValues = (
   assinatura: fichaCadastral.assinatura ?? '',
   data_assinatura: fichaCadastral.data_assinatura ?? '',
   pdf_path: fichaCadastral.pdf_path ?? '',
+  documentos:
+    fichaCadastral.documentos?.map((doc) => ({
+      id: doc.id,
+      nome: doc.nome,
+      s3_key: doc.s3_key,
+      mime_type: doc.mime_type,
+      file_size: doc.file_size,
+      url: doc.url,
+    })) ?? [],
 });
