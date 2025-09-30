@@ -10,6 +10,8 @@ import { Iconify } from 'src/components/iconify';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import CustomDataGrid from 'src/components/custom-data-grid/custom-data-grid';
 
+import { PermissionGuard } from 'src/auth/guard';
+
 import { userToFormValues } from '../helper';
 import { useUserList } from '../hooks/use-user-list';
 import { useUserListTable } from '../hooks/use-user-list-table';
@@ -47,14 +49,16 @@ export default function UserCadastroPage() {
         heading="Cadastro de Usuários"
         links={[{ name: 'Usuários' }, { name: 'Cadastro de Usuários', href: paths.users.root }]}
         action={
-          <Button
-            color="primary"
-            variant="contained"
-            startIcon={<Iconify icon="mingcute:add-line" />}
-            onClick={openCreateDialog}
-          >
-            Adicionar
-          </Button>
+          <PermissionGuard hasContent={false} required={{ action: 'create', subject: 'usuarios' }}>
+            <Button
+              color="primary"
+              variant="contained"
+              startIcon={<Iconify icon="mingcute:add-line" />}
+              onClick={openCreateDialog}
+            >
+              Adicionar
+            </Button>
+          </PermissionGuard>
         }
         sx={{ mb: { xs: 3, md: 5 } }}
       />

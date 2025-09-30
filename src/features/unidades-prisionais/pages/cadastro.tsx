@@ -10,6 +10,8 @@ import { Iconify } from 'src/components/iconify';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import CustomDataGrid from 'src/components/custom-data-grid/custom-data-grid';
 
+import { PermissionGuard } from 'src/auth/guard';
+
 import { unidadePrisionalToFormValues } from '../helper';
 import { useUnidadePrisionalList } from '../hooks/use-unidade-prisional-list';
 import { useUnidadePrisionalListTable } from '../hooks/use-unidade-prisional-list-table';
@@ -50,14 +52,19 @@ export default function UnidadePrisionalCadastroPage() {
           { name: 'Cadastro de Unidades Prisionais', href: paths.unidadesPrisionais.root },
         ]}
         action={
-          <Button
-            color="primary"
-            variant="contained"
-            startIcon={<Iconify icon="mingcute:add-line" />}
-            onClick={openCreateDialog}
+          <PermissionGuard
+            hasContent={false}
+            required={{ action: 'create', subject: 'unidades_prisionais' }}
           >
-            Adicionar
-          </Button>
+            <Button
+              color="primary"
+              variant="contained"
+              startIcon={<Iconify icon="mingcute:add-line" />}
+              onClick={openCreateDialog}
+            >
+              Adicionar
+            </Button>
+          </PermissionGuard>
         }
         sx={{ mb: { xs: 3, md: 5 } }}
       />

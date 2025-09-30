@@ -11,6 +11,8 @@ import { Iconify } from 'src/components/iconify';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import CustomDataGrid from 'src/components/custom-data-grid/custom-data-grid';
 
+import { PermissionGuard } from 'src/auth/guard';
+
 import { useSecretariaCadastroStore } from '../stores';
 import { useListSecretarias } from '../hooks/use-list-secretaria';
 import { useSecretariaListTable } from '../hooks/use-secretaria-list-table';
@@ -50,14 +52,19 @@ export default function SecretariaCadastroPage() {
           { name: 'Cadastro de Secretarias', href: paths.secretarias.root },
         ]}
         action={
-          <Button
-            color="primary"
-            variant="contained"
-            startIcon={<Iconify icon="mingcute:add-line" />}
-            onClick={openCreateDialog}
+          <PermissionGuard
+            hasContent={false}
+            required={{ action: 'create', subject: 'secretarias' }}
           >
-            Adicionar
-          </Button>
+            <Button
+              color="primary"
+              variant="contained"
+              startIcon={<Iconify icon="mingcute:add-line" />}
+              onClick={openCreateDialog}
+            >
+              Adicionar
+            </Button>
+          </PermissionGuard>
         }
         sx={{ mb: { xs: 3, md: 5 } }}
       />

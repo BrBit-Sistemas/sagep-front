@@ -76,7 +76,10 @@ export const dashboardRoutes: RouteObject[] = [
         path: 'reeducandos',
         element: (
           <PermissionGuard
-            required={{ action: 'read', subject: 'detentos' }}
+            required={[
+              { action: 'read', subject: 'detentos' },
+              { action: 'read', subject: 'ficha_cadastral_interno' },
+            ]}
             hasContent={false}
           >
             <SuspenseOutlet />
@@ -98,7 +101,7 @@ export const dashboardRoutes: RouteObject[] = [
         element: (
           <PermissionGuard
             required={[
-              { action: 'read', subject: 'ficha_cadastral_interno' },
+              // { action: 'read', subject: 'ficha_cadastral_interno' },
               { action: 'read', subject: 'ficha_cadastral_externo' },
             ]}
             hasContent={false}
@@ -112,7 +115,7 @@ export const dashboardRoutes: RouteObject[] = [
         element: (
           <PermissionGuard
             required={[
-              { action: 'read', subject: 'ficha_cadastral_interno' },
+              // { action: 'read', subject: 'ficha_cadastral_interno' },
               { action: 'read', subject: 'ficha_cadastral_externo' },
             ]}
             hasContent={false}

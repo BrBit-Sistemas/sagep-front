@@ -10,6 +10,8 @@ import { Iconify } from 'src/components/iconify';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import CustomDataGrid from 'src/components/custom-data-grid/custom-data-grid';
 
+import { PermissionGuard } from 'src/auth/guard';
+
 import { detentoToFormValues } from '../helper';
 import { useDetentoList } from '../hooks/use-detento-list';
 import { useDetentoListTable } from '../hooks/use-detento-list-table';
@@ -50,14 +52,19 @@ export default function DetentoCadastroPage() {
           { name: 'Cadastro de Reeducandos', href: paths.detentos.root },
         ]}
         action={
-          <Button
-            color="primary"
-            variant="contained"
-            startIcon={<Iconify icon="mingcute:add-line" />}
-            onClick={openCreateDialog}
+          <PermissionGuard
+            hasContent={false}
+            required={[{ action: 'create', subject: 'detentos' }]}
           >
-            Adicionar
-          </Button>
+            <Button
+              color="primary"
+              variant="contained"
+              startIcon={<Iconify icon="mingcute:add-line" />}
+              onClick={openCreateDialog}
+            >
+              Adicionar
+            </Button>
+          </PermissionGuard>
         }
         sx={{ mb: { xs: 3, md: 5 } }}
       />
