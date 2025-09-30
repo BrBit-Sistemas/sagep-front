@@ -10,6 +10,8 @@ import { Iconify } from 'src/components/iconify';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import CustomDataGrid from 'src/components/custom-data-grid/custom-data-grid';
 
+import { PermissionGuard } from 'src/auth/guard';
+
 import { empresaToFormValues } from '../helper';
 import { useEmpresaList } from '../hooks/use-empresa-list';
 import { useEmpresaListTable } from '../hooks/use-empresa-list-table';
@@ -47,14 +49,16 @@ export default function EmpresaCadastroPage() {
         heading="Cadastro de Empresas"
         links={[{ name: 'Empresas' }, { name: 'Cadastro de Empresas', href: paths.empresas.root }]}
         action={
-          <Button
-            color="primary"
-            variant="contained"
-            startIcon={<Iconify icon="mingcute:add-line" />}
-            onClick={openCreateDialog}
-          >
-            Adicionar
-          </Button>
+          <PermissionGuard hasContent={false} required={{ action: 'create', subject: 'empresas' }}>
+            <Button
+              color="primary"
+              variant="contained"
+              startIcon={<Iconify icon="mingcute:add-line" />}
+              onClick={openCreateDialog}
+            >
+              Adicionar
+            </Button>
+          </PermissionGuard>
         }
         sx={{ mb: { xs: 3, md: 5 } }}
       />

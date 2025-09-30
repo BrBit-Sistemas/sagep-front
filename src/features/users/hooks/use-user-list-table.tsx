@@ -1,4 +1,5 @@
 import type { GridColDef } from '@mui/x-data-grid/models';
+import type { GridActionsCellItemProps } from '@mui/x-data-grid';
 import type { User } from 'src/features/users/types';
 
 import { useMemo, useCallback } from 'react';
@@ -15,9 +16,12 @@ import { useUserCadastroStore } from 'src/features/users/stores/user-cadastro-st
 import { Iconify } from 'src/components/iconify';
 import { CustomGridActionsCellItem } from 'src/components/custom-data-grid';
 
+import { usePermissionCheck } from 'src/auth/guard/permission-guard';
+
 export const useUserListTable = () => {
   const theme = useTheme();
   const { openDeleteDialog, openEditDialog } = useUserCadastroStore();
+  const { isLoading, hasPermission } = usePermissionCheck();
 
   const onDelete = useCallback(
     (user: User) => {
@@ -69,24 +73,45 @@ export const useUserListTable = () => {
         sortable: false,
         filterable: false,
         disableColumnMenu: true,
-        getActions: (params) => [
-          <CustomGridActionsCellItem
-            showInMenu
-            label="Editar"
-            icon={<Iconify icon="solar:pen-bold" />}
-            onClick={() => onEdit(params.row)}
-          />,
-          <CustomGridActionsCellItem
-            showInMenu
-            label="Excluir"
-            icon={<Iconify icon="solar:trash-bin-trash-bold" />}
-            onClick={() => onDelete(params.row)}
-            style={{ color: theme.vars.palette.error.main }}
-          />,
-        ],
+        getActions: (params) => {
+          if (isLoading) return [] as React.ReactElement<GridActionsCellItemProps>[];
+          const actions: React.ReactElement<GridActionsCellItemProps>[] = [];
+
+          const canUpdate = hasPermission({ action: 'update', subject: 'usuarios' });
+          const canDelete = hasPermission({ action: 'delete', subject: 'usuarios' });
+
+          if (canUpdate) {
+            actions.push(
+              (
+                <CustomGridActionsCellItem
+                  showInMenu
+                  label="Editar"
+                  icon={<Iconify icon="solar:pen-bold" />}
+                  onClick={() => onEdit(params.row)}
+                />
+              ) as unknown as React.ReactElement<GridActionsCellItemProps>
+            );
+          }
+
+          if (canDelete) {
+            actions.push(
+              (
+                <CustomGridActionsCellItem
+                  showInMenu
+                  label="Excluir"
+                  icon={<Iconify icon="solar:trash-bin-trash-bold" />}
+                  onClick={() => onDelete(params.row)}
+                  style={{ color: theme.vars.palette.error.main }}
+                />
+              ) as unknown as React.ReactElement<GridActionsCellItemProps>
+            );
+          }
+
+          return actions;
+        },
       },
     ],
-    [onDelete, onEdit, theme]
+    [isLoading, hasPermission, onDelete, onEdit, theme]
   );
 
   return { columns };

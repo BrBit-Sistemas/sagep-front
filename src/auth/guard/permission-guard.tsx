@@ -31,8 +31,6 @@ export function PermissionGuard({
 
   const isAdmin = Boolean((me as any)?.isAdmin);
 
-  console.log(me);
-
   const hasPermission = (req: { action: string; subject: string }) =>
     Boolean(
       (me as any)?.roles?.some((role: any) =>
@@ -81,3 +79,30 @@ export function PermissionGuard({
 }
 
 export default PermissionGuard;
+
+// Reusable hook for checking permissions in components (e.g., to hide/show columns/actions)
+export function usePermissionCheck() {
+  const { data: me, isLoading } = useQuery({ queryKey: ['me'], queryFn: () => authApi.me() });
+
+  const isAdmin = Boolean((me as any)?.isAdmin);
+
+  const hasPermission = (req: { action: string; subject: string }) =>
+    Boolean(
+      (me as any)?.roles?.some((role: any) =>
+        role?.permissions?.some(
+          (perm: any) => perm?.action === req.action && perm?.subject === req.subject
+        )
+      )
+    );
+
+  const hasAny = (
+    required?: { action: string; subject: string } | { action: string; subject: string }[]
+  ) => {
+    if (!required) return true;
+    return Array.isArray(required)
+      ? required.some((r) => hasPermission(r))
+      : hasPermission(required);
+  };
+
+  return { isLoading, isAdmin, hasPermission, hasAny } as const;
+}

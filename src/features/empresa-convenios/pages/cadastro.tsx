@@ -10,6 +10,8 @@ import { Iconify } from 'src/components/iconify';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import CustomDataGrid from 'src/components/custom-data-grid/custom-data-grid';
 
+import { PermissionGuard } from 'src/auth/guard';
+
 import { empresaConvenioToFormValues } from '../helper';
 import { useEmpresaConvenioList } from '../hooks/use-empresa-convenio-list';
 import { useEmpresaConvenioListTable } from '../hooks/use-empresa-convenio-list-table';
@@ -46,14 +48,19 @@ export default function EmpresaConvenioCadastroPage() {
         heading="Convênios de Empresas"
         links={[{ name: 'Laboral' }, { name: 'Convênios', href: paths.empresaConvenios.root }]}
         action={
-          <Button
-            color="primary"
-            variant="contained"
-            startIcon={<Iconify icon="mingcute:add-line" />}
-            onClick={openCreateDialog}
+          <PermissionGuard
+            hasContent={false}
+            required={{ action: 'create', subject: 'empresa_convenios' }}
           >
-            Adicionar
-          </Button>
+            <Button
+              color="primary"
+              variant="contained"
+              startIcon={<Iconify icon="mingcute:add-line" />}
+              onClick={openCreateDialog}
+            >
+              Adicionar
+            </Button>
+          </PermissionGuard>
         }
         sx={{ mb: { xs: 3, md: 5 } }}
       />

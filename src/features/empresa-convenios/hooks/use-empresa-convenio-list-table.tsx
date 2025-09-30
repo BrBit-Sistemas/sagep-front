@@ -1,4 +1,5 @@
 import type { GridColDef } from '@mui/x-data-grid/models';
+import type { GridActionsCellItemProps } from '@mui/x-data-grid';
 import type { EmpresaConvenio } from '../types';
 
 import { useMemo, useCallback } from 'react';
@@ -8,6 +9,8 @@ import { useTheme } from '@mui/material/styles';
 import { Iconify } from 'src/components/iconify';
 import { CustomGridActionsCellItem } from 'src/components/custom-data-grid';
 
+import { usePermissionCheck } from 'src/auth/guard/permission-guard';
+
 import { convenioTipos } from '../data';
 import { useEmpresasOptions } from '../hooks/use-empresas-options';
 import { useEmpresaConvenioCadastroStore } from '../stores/empresa-convenio-cadastro-store';
@@ -15,11 +18,9 @@ import { useEmpresaConvenioCadastroStore } from '../stores/empresa-convenio-cada
 export const useEmpresaConvenioListTable = () => {
   const theme = useTheme();
   const { openDeleteDialog, openEditDialog } = useEmpresaConvenioCadastroStore();
+  const { isLoading, hasPermission } = usePermissionCheck();
   const { indexMap: empresasIndex } = useEmpresasOptions('');
-  const tiposIndex = useMemo(
-    () => new Map(convenioTipos.map((t) => [t.codigo, t.descricao])),
-    []
-  );
+  const tiposIndex = useMemo(() => new Map(convenioTipos.map((t) => [t.codigo, t.descricao])), []);
 
   const onDelete = useCallback(
     (item: EmpresaConvenio) => openDeleteDialog(item),
@@ -53,7 +54,10 @@ export const useEmpresaConvenioListTable = () => {
         flex: 1,
         valueGetter: (params: any) => {
           const items = params?.row?.quantitativos_profissoes || [];
-          return items.reduce((sum: number, it: { quantidade?: number }) => sum + (it?.quantidade || 0), 0);
+          return items.reduce(
+            (sum: number, it: { quantidade?: number }) => sum + (it?.quantidade || 0),
+            0
+          );
         },
       },
       {
@@ -79,24 +83,53 @@ export const useEmpresaConvenioListTable = () => {
         sortable: false,
         filterable: false,
         disableColumnMenu: true,
-        getActions: (params) => [
-          <CustomGridActionsCellItem
-            showInMenu
-            label="Editar"
-            icon={<Iconify icon="solar:pen-bold" />}
-            onClick={() => onEdit(params.row)}
-          />,
-          <CustomGridActionsCellItem
-            showInMenu
-            label="Excluir"
-            icon={<Iconify icon="solar:trash-bin-trash-bold" />}
-            onClick={() => onDelete(params.row)}
-            style={{ color: theme.vars.palette.error.main }}
-          />,
-        ],
+        getActions: (params) => {
+          if (isLoading) return [] as React.ReactElement<GridActionsCellItemProps>[];
+          const actions: React.ReactElement<GridActionsCellItemProps>[] = [];
+
+          const canUpdate = hasPermission({ action: 'update', subject: 'empresa_convenios' });
+          const canDelete = hasPermission({ action: 'delete', subject: 'empresa_convenios' });
+
+          if (canUpdate) {
+            actions.push(
+              (
+                <CustomGridActionsCellItem
+                  showInMenu
+                  label="Editar"
+                  icon={<Iconify icon="solar:pen-bold" />}
+                  onClick={() => onEdit(params.row)}
+                />
+              ) as unknown as React.ReactElement<GridActionsCellItemProps>
+            );
+          }
+
+          if (canDelete) {
+            actions.push(
+              (
+                <CustomGridActionsCellItem
+                  showInMenu
+                  label="Excluir"
+                  icon={<Iconify icon="solar:trash-bin-trash-bold" />}
+                  onClick={() => onDelete(params.row)}
+                  style={{ color: theme.vars.palette.error.main }}
+                />
+              ) as unknown as React.ReactElement<GridActionsCellItemProps>
+            );
+          }
+
+          return actions;
+        },
       },
     ],
-    [empresasIndex, tiposIndex, onDelete, onEdit, theme.vars.palette.error.main]
+    [
+      empresasIndex,
+      tiposIndex,
+      isLoading,
+      hasPermission,
+      onDelete,
+      onEdit,
+      theme.vars.palette.error.main,
+    ]
   );
 
   return { columns };

@@ -11,6 +11,8 @@ import { Iconify } from 'src/components/iconify';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import CustomDataGrid from 'src/components/custom-data-grid/custom-data-grid';
 
+import { PermissionGuard } from 'src/auth/guard';
+
 import { useProfissaoCadastroStore } from '../stores';
 import { useListProfissoes } from '../hooks/use-list-profissoes';
 import { useProfissaoListTable } from '../hooks/use-profissao-list-table';
@@ -49,14 +51,19 @@ export default function ProfissaoCadastroPage() {
           { name: 'Cadastro de Profissões', href: paths.profissoes.root },
         ]}
         action={
-          <Button
-            color="primary"
-            variant="contained"
-            startIcon={<Iconify icon="mingcute:add-line" />}
-            onClick={openCreateDialog}
+          <PermissionGuard
+            hasContent={false}
+            required={{ action: 'create', subject: 'profissoes' }}
           >
-            Adicionar
-          </Button>
+            <Button
+              color="primary"
+              variant="contained"
+              startIcon={<Iconify icon="mingcute:add-line" />}
+              onClick={openCreateDialog}
+            >
+              Adicionar
+            </Button>
+          </PermissionGuard>
         }
         sx={{ mb: { xs: 3, md: 5 } }}
       />
