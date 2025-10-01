@@ -1,4 +1,4 @@
-import type { AuthState } from '../../types';
+import type { UserType, AuthState } from '../../types';
 
 import { useSetState } from 'minimal-shared/hooks';
 import { useMemo, useEffect, useCallback } from 'react';
@@ -53,6 +53,18 @@ export function AuthProvider({ children }: Props) {
 
   const status = state.loading ? 'loading' : checkAuthenticated;
 
+  const setUserValue = useCallback(
+    (userUpdate: Partial<UserType> | undefined) => {
+      if (!userUpdate) {
+        setState({ user: undefined });
+        return;
+      }
+      if (!state.user) return;
+      setState({ user: { ...state.user, ...userUpdate } });
+    },
+    [setState, state.user]
+  );
+
   const memoizedValue = useMemo(
     () => ({
       user: state?.user ?? undefined,
@@ -60,8 +72,9 @@ export function AuthProvider({ children }: Props) {
       loading: status === 'loading',
       authenticated: status === 'authenticated',
       unauthenticated: status === 'unauthenticated',
+      setUser: setUserValue,
     }),
-    [checkUserSession, state.user, status]
+    [checkUserSession, setUserValue, state.user, status]
   );
 
   return <AuthContext value={memoizedValue}>{children}</AuthContext>;

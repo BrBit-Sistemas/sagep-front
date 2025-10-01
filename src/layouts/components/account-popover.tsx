@@ -1,6 +1,8 @@
 import type { IconButtonProps } from '@mui/material/IconButton';
+import type { ReadUsuarioDto } from 'src/api/generated.schemas';
 
 import { usePopover } from 'minimal-shared/hooks';
+import { useQueryClient } from '@tanstack/react-query';
 
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
@@ -38,6 +40,12 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
   const { open, anchorEl, onClose, onOpen } = usePopover();
 
   const { user } = useAuthContext();
+  const queryClient = useQueryClient();
+  const me = queryClient.getQueryData<ReadUsuarioDto>(['me']);
+
+  const displayName = me?.nome ?? user?.nome ?? '';
+  const email = me?.email ?? user?.email ?? '';
+  const avatarUrl = me?.avatarUrl ?? user?.avatar_url ?? '';
 
   const renderMenuActions = () => (
     <CustomPopover
@@ -48,11 +56,11 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
     >
       <Box sx={{ p: 2, pb: 1.5 }}>
         <Typography variant="subtitle2" noWrap>
-          {user?.nome}
+          {displayName}
         </Typography>
 
         <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
-          {user?.email}
+          {email}
         </Typography>
       </Box>
 
@@ -117,8 +125,8 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
     <>
       <AccountButton
         onClick={onOpen}
-        photoURL={user?.avatar_url ?? ''}
-        displayName={user?.nome ?? ''}
+        photoURL={avatarUrl}
+        displayName={displayName}
         sx={sx}
         {...other}
       />

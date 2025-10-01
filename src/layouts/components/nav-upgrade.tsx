@@ -1,7 +1,9 @@
 import type { BoxProps } from '@mui/material/Box';
+import type { ReadUsuarioDto } from 'src/api/generated.schemas';
 
 import { m } from 'framer-motion';
 import { varAlpha } from 'minimal-shared/utils';
+import { useQueryClient } from '@tanstack/react-query';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -20,6 +22,12 @@ import { useAuthContext } from 'src/auth/hooks';
 
 export function NavUpgrade({ sx, ...other }: BoxProps) {
   const { user } = useAuthContext();
+  const queryClient = useQueryClient();
+  const me = queryClient.getQueryData<ReadUsuarioDto>(['me']);
+
+  const displayName = me?.nome ?? user?.nome ?? '';
+  const email = me?.email ?? user?.email ?? '';
+  const avatarUrl = me?.avatarUrl ?? user?.avatar_url ?? '';
 
   return (
     <Box
@@ -28,8 +36,8 @@ export function NavUpgrade({ sx, ...other }: BoxProps) {
     >
       <Box sx={{ display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
         <Box sx={{ position: 'relative' }}>
-          <Avatar src={user?.avatar_url} alt={user?.nome} sx={{ width: 48, height: 48 }}>
-            {user?.nome?.charAt(0).toUpperCase()}
+          <Avatar src={avatarUrl} alt={displayName} sx={{ width: 48, height: 48 }}>
+            {displayName?.charAt(0).toUpperCase()}
           </Avatar>
 
           <Label
@@ -54,7 +62,7 @@ export function NavUpgrade({ sx, ...other }: BoxProps) {
             noWrap
             sx={{ mb: 1, color: 'var(--layout-nav-text-primary-color)' }}
           >
-            {user?.nome}
+            {displayName}
           </Typography>
 
           <Typography
@@ -62,7 +70,7 @@ export function NavUpgrade({ sx, ...other }: BoxProps) {
             noWrap
             sx={{ color: 'var(--layout-nav-text-disabled-color)' }}
           >
-            {user?.email}
+            {email}
           </Typography>
         </Box>
 

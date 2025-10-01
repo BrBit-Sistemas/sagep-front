@@ -19,4 +19,5 @@ export type AuthContextValue = {
   authenticated: boolean;
   unauthenticated: boolean;
   checkUserSession?: () => Promise<void>;
+  setUser?: (user: Partial<UserType> | undefined) => void;
 };

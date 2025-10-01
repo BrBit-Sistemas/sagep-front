@@ -1,6 +1,8 @@
 import type { IconButtonProps } from '@mui/material/IconButton';
+import type { ReadUsuarioDto } from 'src/api/generated.schemas';
 
 import { useBoolean } from 'minimal-shared/hooks';
+import { useQueryClient } from '@tanstack/react-query';
 
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
@@ -40,6 +42,12 @@ export function AccountDrawer({ data = [], sx, ...other }: AccountDrawerProps) {
   const pathname = usePathname();
 
   const { user } = useAuthContext();
+  const queryClient = useQueryClient();
+  const me = queryClient.getQueryData<ReadUsuarioDto>(['me']);
+
+  const displayName = me?.nome ?? user?.nome ?? '';
+  const email = me?.email ?? user?.email ?? '';
+  const avatarUrl = me?.avatarUrl ?? user?.avatar_url ?? '';
 
   const { value: open, onFalse: onClose, onTrue: onOpen } = useBoolean();
 
@@ -50,8 +58,8 @@ export function AccountDrawer({ data = [], sx, ...other }: AccountDrawerProps) {
         primaryBorder: { size: 120, sx: { color: 'primary.main' } },
       }}
     >
-      <Avatar src={user?.avatar_url} alt={user?.nome} sx={{ width: 1, height: 1 }}>
-        {user?.nome?.charAt(0).toUpperCase()}
+      <Avatar src={avatarUrl} alt={displayName} sx={{ width: 1, height: 1 }}>
+        {displayName?.charAt(0).toUpperCase()}
       </Avatar>
     </AnimateBorder>
   );
@@ -114,8 +122,8 @@ export function AccountDrawer({ data = [], sx, ...other }: AccountDrawerProps) {
     <>
       <AccountButton
         onClick={onOpen}
-        photoURL={user?.avatar_url ?? ''}
-        displayName={user?.nome ?? ''}
+        photoURL={avatarUrl}
+        displayName={displayName}
         sx={sx}
         {...other}
       />
@@ -153,11 +161,11 @@ export function AccountDrawer({ data = [], sx, ...other }: AccountDrawerProps) {
             {renderAvatar()}
 
             <Typography variant="subtitle1" noWrap sx={{ mt: 2 }}>
-              {user?.nome}
+              {displayName}
             </Typography>
 
             <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }} noWrap>
-              {user?.email}
+              {email}
             </Typography>
           </Box>
 
