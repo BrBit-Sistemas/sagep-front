@@ -1,32 +1,13 @@
 import type { CrudService, AuditableEntity } from 'src/types';
+import type { Regime, Escolaridade } from 'src/types/prisional';
 import type {
   CreateDetentoSchema,
   UpdateDetentoSchema,
   CreateDetentoFichaCadastralSchema,
 } from '../schemas';
 
-export enum Regime {
-  FECHADO = 'FECHADO',
-  SEMIABERTO = 'SEMIABERTO',
-  ABERTO = 'ABERTO',
-  LIVRAMENTO_CONDICIONAL = 'LIVRAMENTO CONDICIONAL',
-}
-
-export enum Escolaridade {
-  NAO_ALFABETIZADO = "NÃO ALFABETIZADO",
-  FUNDAMENTAL_I_INCOMPLETO = "FUNDAMENTAL I INCOMPLETO",
-  FUNDAMENTAL_I_COMPLETO = "FUNDAMENTAL I COMPLETO",
-  FUNDAMENTAL_II_INCOMPLETO = "FUNDAMENTAL II INCOMPLETO",
-  FUNDAMENTAL_II_COMPLETO = "FUNDAMENTAL II COMPLETO",
-  ENSINO_MEDIO_INCOMPLETO = "ENSINO MÉDIO INCOMPLETO",
-  ENSINO_MEDIO_COMPLETO = "ENSINO MÉDIO COMPLETO",
-  SUPERIOR_INCOMPLETO = "SUPERIOR INCOMPLETO",
-  SUPERIOR_COMPLETO = "SUPERIOR COMPLETO",
-  POS_GRADUACAO = "PÓS-GRADUAÇÃO",
-  MESTRADO = "MESTRADO",
-  DOUTORADO = "DOUTORADO",
-  POS_DOUTORADO = "PÓS-DOUTORADO"
-}
+// Re-export dos enums centralizados para compatibilidade
+export { Regime, Escolaridade };
 
 export type Detento = {
   id: string;

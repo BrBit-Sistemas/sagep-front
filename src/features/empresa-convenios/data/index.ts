@@ -8,21 +8,16 @@ import {
   type PaginateEmpresaConvenioDto,
 } from 'src/api/empresa-convenios/empresa-convenios';
 
-// Tipos de convênio (mock)
-export const convenioTipos = [
-  { codigo: 'ADM', descricao: 'Administração' },
-  { codigo: 'LIM', descricao: 'Limpeza' },
-  { codigo: 'CON', descricao: 'Construção Civil' },
-  { codigo: 'TEC', descricao: 'Tecnologia' },
-];
+import { CONVENIO_TIPOS, getRegimeOptions } from 'src/types/prisional';
 
-// Regimes permitidos (mock)
-export const regimesOptions: { value: string; label: string }[] = [
-  { value: '1', label: 'Fechado' },
-  { value: '2', label: 'Semiaberto' },
-  { value: '3', label: 'Aberto' },
-  { value: '4', label: 'Provisório' },
-];
+// Tipos de convênio - usando constantes centralizadas
+export const convenioTipos = CONVENIO_TIPOS;
+
+// Regimes permitidos - usando enum centralizado
+export const regimesOptions = getRegimeOptions().map(option => ({
+  value: option.value,
+  label: option.label,
+}));
 
 // Artigos vedados (Código Penal - Parte Especial)
 // Mantemos apenas artigos da Parte Especial do CP (faixas com tipos penais),

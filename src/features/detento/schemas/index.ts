@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { isValidRg } from 'src/utils/validate-rg';
 import { isValidCpf } from 'src/utils/validate-cpf';
 
-import { Regime, Escolaridade } from '../types';
+import { Regime, Escolaridade } from 'src/types/prisional';
 
 export const createDetentoSchema = z.object({
   nome: z.string().min(1, 'Nome é obrigatório'),
