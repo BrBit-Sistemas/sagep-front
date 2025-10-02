@@ -336,7 +336,7 @@ export const DetentoFichaCadastralDialogForm = ({
         detento_id: detento.id,
         nome: detento.nome,
         cpf: detento.cpf,
-        prontuario: detento.prontuario,
+        prontuario: detento.prontuario ?? '',
         data_nascimento: detento.data_nascimento
           ? formatDateToDDMMYYYY(detento.data_nascimento)
           : '',
@@ -436,6 +436,9 @@ export const DetentoFichaCadastralDialogForm = ({
             setLoading(false);
             return;
           }
+          (data as any).prontuario = prontuario;
+        } else {
+          delete (data as any).prontuario;
         }
 
         if (isEditing && fichaCadastralId) {
@@ -515,7 +518,7 @@ export const DetentoFichaCadastralDialogForm = ({
         rg_uf: rgUf,
         nome: detento.nome,
         cpf: detento.cpf,
-        prontuario: detento.prontuario,
+        prontuario: detento.prontuario ?? '',
         data_nascimento: detento.data_nascimento
           ? formatDateToDDMMYYYY(detento.data_nascimento)
           : '',
@@ -531,7 +534,7 @@ export const DetentoFichaCadastralDialogForm = ({
         detento_id: detento.id,
         nome: detento.nome,
         cpf: detento.cpf,
-        prontuario: detento.prontuario,
+        prontuario: detento.prontuario ?? '',
         data_nascimento: detento.data_nascimento
           ? formatDateToDDMMYYYY(detento.data_nascimento)
           : '',

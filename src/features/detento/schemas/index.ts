@@ -8,7 +8,7 @@ import { Regime, Escolaridade } from '../types';
 export const createDetentoSchema = z.object({
   nome: z.string().min(1, 'Nome é obrigatório'),
   mae: z.string().optional(),
-  prontuario: z.string().min(1, 'Prontuário é obrigatório'),
+  prontuario: z.string().optional(),
   cpf: z
     .string()
     .min(11, 'CPF deve ter 11 dígitos')
@@ -42,7 +42,7 @@ export const createDetentoFichaCadastralSchema = z.object({
   // Situação prisional
   regime: z.string().min(1, 'Regime é obrigatório'),
   unidade_prisional: z.string().min(1, 'Unidade prisional é obrigatória'),
-  prontuario: z.string().min(1, 'Prontuário é obrigatório'),
+  prontuario: z.string().optional(),
   sei: z.string().optional(),
   // Endereço e contato
   endereco: z.string().min(1, 'Endereço é obrigatório'),
@@ -81,8 +81,16 @@ export const createDetentoFichaCadastralSchema = z.object({
         previewUrl: z.string().optional(),
       })
     )
-    .optional()
-    .default([]),
+    .min(1, 'Anexe ao menos um documento em imagem')
+    .superRefine((docs, ctx) => {
+      const hasImage = docs.some((doc) => doc.mime_type?.startsWith('image/'));
+      if (!hasImage) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Envie pelo menos uma imagem.',
+        });
+      }
+    }),
 });
 
 export type CreateDetentoSchema = z.infer<typeof createDetentoSchema>;

@@ -8,7 +8,7 @@ import ListItemText from '@mui/material/ListItemText';
 
 interface DetentoDetalhesCoverProps extends BoxProps {
   name: string;
-  prontuario: string;
+  prontuario?: string | null;
   coverUrl: string;
   avatarUrl: string;
 }
@@ -16,7 +16,7 @@ interface DetentoDetalhesCoverProps extends BoxProps {
 export function DetentoDetalhesCover({
   sx,
   name,
-  prontuario,
+  prontuario = null,
   coverUrl,
   avatarUrl,
   ...other
@@ -66,7 +66,7 @@ export function DetentoDetalhesCover({
 
         <ListItemText
           primary={name}
-          secondary={prontuario}
+          secondary={prontuario || '—'}
           slotProps={{
             primary: { sx: { typography: 'h4' } },
             secondary: {

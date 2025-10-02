@@ -9,7 +9,7 @@ export interface ReadDetentoDto {
   id: string;
   nome: string;
   mae?: string;
-  prontuario: string;
+  prontuario?: string | null;
   cpf: string;
   data_nascimento: string;
   regime: string;
@@ -25,7 +25,7 @@ export interface ReadDetentoDto {
 export interface CreateDetentoDto {
   nome: string;
   mae?: string;
-  prontuario: string;
+  prontuario?: string | null;
   cpf: string;
   data_nascimento: string;
   regime: string;

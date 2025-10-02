@@ -97,6 +97,9 @@ export const DetentoFormDialog = ({
           });
           return;
         }
+        payload.prontuario = prontuario;
+      } else {
+        delete (payload as any).prontuario;
       }
 
       if (isEditing) {

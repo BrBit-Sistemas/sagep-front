@@ -106,10 +106,17 @@ export function FichaDocumentosField({
   title = 'Documentos comprobatórios',
   helperText = 'Arraste e solte arquivos em formato de imagem ou clique para procurar.',
 }: FichaDocumentosFieldProps) {
-  const { control, watch } = useFormContext();
-  const { fields, append, remove, update } = useFieldArray({ control, name });
+  const {
+    control,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useFormContext<any>();
+  const { fields, append, remove } = useFieldArray({ control, name });
 
   const documentos: DocumentoFormValue[] = watch(name) || [];
+  const fieldError = (errors as Record<string, any>)?.[name];
+
   const [pendingUploads, setPendingUploads] = useState<PendingUpload[]>([]);
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
 
@@ -230,12 +237,9 @@ export function FichaDocumentosField({
 
   const handleUpdateNome = useCallback(
     (index: number, value: string) => {
-      const current = documentos[index];
-      if (!current) return;
-      const payload = { ...current, nome: value };
-      update(index, payload);
+      setValue(`${name}.${index}.nome`, value, { shouldDirty: true, shouldTouch: true });
     },
-    [documentos, update]
+    [name, setValue]
   );
 
   const handleOpenPreview = useCallback(
@@ -426,6 +430,12 @@ export function FichaDocumentosField({
         {!pendingUploads.length && !documentos.length && (
           <Typography variant="body2" color="text.disabled" sx={{ mt: 3, textAlign: 'center' }}>
             Nenhum documento adicionado até o momento.
+          </Typography>
+        )}
+
+        {fieldError?.message && (
+          <Typography variant="caption" color="error.main" sx={{ mt: 2, display: 'block' }}>
+            {fieldError.message}
           </Typography>
         )}
       </CardContent>

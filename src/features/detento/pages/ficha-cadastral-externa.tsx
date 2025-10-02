@@ -468,11 +468,12 @@ export default function FichaCadastralExternaPage() {
       setErrorSummary([]);
       try {
         let detentoId = data.detento_id as string;
+        const prontuarioValor = String(data.prontuario || '').trim();
 
         // Se não houver detento, precisamos criar
         if (!detentoId) {
           // Pre-validação: prontuário único antes de criar detento
-          const prontuario = String(data.prontuario || '').trim();
+          const prontuario = prontuarioValor;
           if (prontuario) {
             const existing = await detentoService.paginate({
               page: 0,
@@ -495,7 +496,7 @@ export default function FichaCadastralExternaPage() {
           // Dados completos para criar o detento
           const created = await detentoService.create({
             nome: data.nome,
-            prontuario: data.prontuario,
+            prontuario: prontuarioValor || undefined,
             cpf: data.cpf,
             data_nascimento: formatDateToYYYYMMDD(data.data_nascimento),
             regime: data.regime as any,
@@ -516,7 +517,7 @@ export default function FichaCadastralExternaPage() {
           const detentoUpdateData: any = {
             nome: data.nome,
             cpf: data.cpf,
-            prontuario: data.prontuario,
+            prontuario: prontuarioValor || undefined,
             data_nascimento: formatDateToYYYYMMDD(data.data_nascimento),
             regime: data.regime as any,
             escolaridade: data.escolaridade as any,
@@ -542,6 +543,11 @@ export default function FichaCadastralExternaPage() {
         setCreatingFicha(true);
         const unidadeNome = getUnidadeName(data.unidade_id);
         const restData: any = { ...data };
+        if (prontuarioValor) {
+          restData.prontuario = prontuarioValor;
+        } else {
+          delete restData.prontuario;
+        }
         // Converter profissao_01 e profissao_02 de ID para nome usando cache (+ fallback API)
         const apiProfissoes = getProfissoes();
         const rawProfissao01 = restData.profissao_01 || '';

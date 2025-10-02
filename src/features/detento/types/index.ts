@@ -32,7 +32,7 @@ export type Detento = {
   id: string;
   nome: string;
   mae?: string;
-  prontuario: string;
+  prontuario?: string | null;
   cpf: string;
   data_nascimento: string;
   regime: Regime;
@@ -65,7 +65,7 @@ export type DetentoFichaCadastral = {
   // Situação prisional
   regime: string;
   unidade_prisional: string;
-  prontuario: string;
+  prontuario?: string | null;
   sei: string;
   // Endereço e contato
   endereco: string;
