@@ -4,17 +4,28 @@ import CardActionArea from '@mui/material/CardActionArea';
 
 import { Iconify } from 'src/components/iconify';
 
+import { usePermissionCheck } from 'src/auth/guard/permission-guard';
+
 import { useDetentoDetalhesStore } from '../../stores/detento-detalhes-store';
 import { useDetentoDetalhesSearchParams } from '../../hooks/use-dentento-detalhes-search-params';
 
 export const DetentoFichaCadastralAddCard = () => {
   const { openFichaCadastralCreateDialog } = useDetentoDetalhesStore();
   const [, setSearchParams] = useDetentoDetalhesSearchParams();
+  const { hasPermission } = usePermissionCheck();
+
+  // Permission
+  const canCreate = hasPermission({ action: 'create', subject: 'ficha_cadastral' });
 
   const handleCreate = () => {
+    if (!canCreate) return;
     setSearchParams({ tab: 'ficha_cadastral' });
     openFichaCadastralCreateDialog();
   };
+
+  if (!canCreate) {
+    return null;
+  }
 
   return (
     <Card sx={{ aspectRatio: 1 }}>
