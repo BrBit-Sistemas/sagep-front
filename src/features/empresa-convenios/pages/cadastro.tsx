@@ -50,7 +50,7 @@ export default function EmpresaConvenioCadastroPage() {
         action={
           <PermissionGuard
             hasContent={false}
-            required={{ action: 'create', subject: 'empresa_convenios' }}
+            required={{ action: 'create', subject: 'empresas_convenio' }}
           >
             <Button
               color="primary"

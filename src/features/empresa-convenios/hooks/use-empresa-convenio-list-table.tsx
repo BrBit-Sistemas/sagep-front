@@ -87,8 +87,8 @@ export const useEmpresaConvenioListTable = () => {
           if (isLoading) return [] as React.ReactElement<GridActionsCellItemProps>[];
           const actions: React.ReactElement<GridActionsCellItemProps>[] = [];
 
-          const canUpdate = hasPermission({ action: 'update', subject: 'empresa_convenios' });
-          const canDelete = hasPermission({ action: 'delete', subject: 'empresa_convenios' });
+          const canUpdate = hasPermission({ action: 'update', subject: 'empresas_convenio' });
+          const canDelete = hasPermission({ action: 'delete', subject: 'empresas_convenio' });
 
           if (canUpdate) {
             actions.push(
