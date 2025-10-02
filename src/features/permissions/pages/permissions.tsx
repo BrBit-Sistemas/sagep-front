@@ -41,6 +41,16 @@ const permsApi = getPermissionsApi();
 const usersApi = getUsuários();
 const authApi = getAutenticação();
 
+const ACTION_LABELS: Record<string, string> = {
+  read: 'visualizar',
+  update: 'atualizar',
+  create: 'criar',
+  delete: 'deletar',
+};
+
+const getActionLabel = (action?: string) => ACTION_LABELS[action ?? ''] ?? action ?? '';
+
+
 export default function PermissionsPage() {
   const queryClient = useQueryClient();
   const [selectedUser, setSelectedUser] = useState<ReadUsuarioDto | null>(null);
@@ -111,11 +121,13 @@ export default function PermissionsPage() {
 
   const groupedPermissions = (permissions ?? []).reduce(
     (acc: Record<string, PermissionDto[]>, p: PermissionDto) => {
+      const actionLabel = getActionLabel(p.action);
       if (
         permQuery &&
         !(
           `${p.subject}`.toLowerCase().includes(permQuery.toLowerCase()) ||
-          `${p.action}`.toLowerCase().includes(permQuery.toLowerCase())
+          `${p.action}`.toLowerCase().includes(permQuery.toLowerCase()) ||
+          actionLabel.toLowerCase().includes(permQuery.toLowerCase())
         )
       ) {
         return acc;
@@ -170,7 +182,7 @@ export default function PermissionsPage() {
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 5 }}>
           <Card>
-            <CardHeader title="Usuários" subheader="Selecione um usuário para gerenciar papéis" />
+            <CardHeader title="Usuários" subheader="Adicione ou retire grupos de permissões dos usuários" />
             <CardContent>
               <TextField
                 fullWidth
@@ -222,9 +234,9 @@ export default function PermissionsPage() {
                         <Box sx={{ mt: 1.25 }}>
                           <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
                             <Typography variant="body2" sx={{ flexGrow: 1 }}>
-                              Papéis
+                              Grupos de permissões
                             </Typography>
-                            <Tooltip title="Remover todos os papéis">
+                            <Tooltip title="Remover todos os grupos de permissões do usuário">
                               <span>
                                 <IconButton
                                   size="small"
@@ -277,13 +289,13 @@ export default function PermissionsPage() {
         </Grid>
         <Grid size={{ xs: 12, md: 7 }}>
           <Card>
-            <CardHeader title="Criar Papel" subheader="Defina o nome, descrição e permissões" />
+            <CardHeader title="Grupos de permissões" subheader="Crie um grupo de permissões e adicione a ele as permissões que desejar" />
             <CardContent>
               <Grid container spacing={2}>
                 <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
                     fullWidth
-                    label="Nome"
+                    label="Nome do grupo de permissões"
                     value={roleName}
                     onChange={(e) => setRoleName(e.target.value)}
                   />
@@ -364,7 +376,7 @@ export default function PermissionsPage() {
                                 onChange={() => onTogglePermission(p.id)}
                               />
                               <Typography variant="body2">
-                                {p.action}:{p.subject}
+                                {`${getActionLabel(p.action)}: ${p.subject}`}
                               </Typography>
                             </Stack>
                           </Grid>
@@ -382,7 +394,7 @@ export default function PermissionsPage() {
                 onClick={() => createRoleMutation.mutate()}
                 disabled={!roleName || !roleDesc || selectedPermissionIds.length === 0}
               >
-                Criar Papel
+                Criar grupo de permissões
               </Button>
               <Button
                 variant="text"
