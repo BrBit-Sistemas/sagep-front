@@ -15,7 +15,7 @@ export const DetentoFichaCadastralAddCard = () => {
   const { hasPermission } = usePermissionCheck();
 
   // Permission
-  const canCreate = hasPermission({ action: 'create', subject: 'ficha_cadastral' });
+  const canCreate = hasPermission({ action: 'create', subject: 'ficha_cadastral_interno' });
 
   const handleCreate = () => {
     if (!canCreate) return;
