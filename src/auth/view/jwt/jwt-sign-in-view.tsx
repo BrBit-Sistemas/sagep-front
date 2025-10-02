@@ -194,9 +194,9 @@ export function JwtSignInView() {
         title="Acesse sua conta"
         description={
           <>
-            {`Não possui uma conta? `}
+            {`Sem acesso para preencher uma ficha cadastral? `}
             <Link component={RouterLink} href={paths.auth.jwt.signUp} variant="subtitle2">
-              Cadastre-se
+              Cadastre-se.
             </Link>
           </>
         }

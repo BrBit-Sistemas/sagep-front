@@ -21,13 +21,13 @@ export function SignUpTerms({ sx, ...other }: BoxProps) {
       ]}
       {...other}
     >
-      {'By signing up, I agree to '}
+      {'Ao me inscrever, concordo com '}
       <Link underline="always" color="text.primary">
-        Terms of service
+        Termos de serviço
       </Link>
-      {' and '}
+      {' e '}
       <Link underline="always" color="text.primary">
-        Privacy policy
+        Política de privacidade
       </Link>
       .
     </Box>
