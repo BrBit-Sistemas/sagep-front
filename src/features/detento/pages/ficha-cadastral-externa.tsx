@@ -28,6 +28,8 @@ import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/
 
 import { Form, Field } from 'src/components/hook-form';
 
+import { usePermissionCheck } from 'src/auth/guard/permission-guard';
+
 import { detentoService } from '../data';
 import { Regime, Escolaridade } from '../types';
 import { createDetentoFichaCadastralSchema } from '../schemas';
@@ -263,6 +265,8 @@ const ProfissaoField = ({ name, label, excludeValue, onLabelUpdate }: ProfissaoF
 };
 
 export default function FichaCadastralExternaPage() {
+  const { hasPermission } = usePermissionCheck();
+
   const formatCpfInput = (value: string) => {
     const digits = value.replace(/\D/g, '').slice(0, 11);
     const part1 = digits.slice(0, 3);
@@ -377,7 +381,12 @@ export default function FichaCadastralExternaPage() {
     }
   }, []);
 
+  // Permission
+  const canCreate = hasPermission({ action: 'create', subject: 'ficha_cadastral_externo' });
+
   const handleBuscarCpf = async () => {
+    if (!canCreate) return;
+
     setError(null);
     setActiveWarning(null);
     setCpfError(null);
@@ -462,6 +471,8 @@ export default function FichaCadastralExternaPage() {
 
   const handleSubmit = methods.handleSubmit(
     async (data: any) => {
+      if (!canCreate) return;
+
       let phase: 'detento' | 'ficha' | null = null;
       setError(null);
       setLoading(true);
@@ -667,6 +678,15 @@ export default function FichaCadastralExternaPage() {
       <Stack spacing={3}>
         <Typography variant="h4">Ficha Cadastral (Acesso Externo)</Typography>
 
+        {!canCreate && (
+          <Alert severity="warning">
+            <Typography variant="body2">
+              <strong>Modo de visualização:</strong> Você não tem permissão para criar fichas
+              cadastrais externas, mas pode visualizar como funciona o processo de cadastro.
+            </Typography>
+          </Alert>
+        )}
+
         {step === 'cpf' && (
           <Card sx={{ p: 3 }}>
             <Stack spacing={2}>
@@ -676,7 +696,9 @@ export default function FichaCadastralExternaPage() {
                 </Alert>
               )}
               <Typography fontSize={20}>
-                Informe o CPF do reeducando para iniciar o cadastro.
+                {canCreate
+                  ? 'Informe o CPF do reeducando para iniciar o cadastro.'
+                  : 'Esta é a tela inicial onde o CPF do reeducando seria informado para iniciar o cadastro.'}
               </Typography>
               {activeWarning && <Alert severity="warning">{activeWarning}</Alert>}
               {error && <Alert severity="error">{error}</Alert>}
@@ -686,29 +708,32 @@ export default function FichaCadastralExternaPage() {
                     fullWidth
                     label="CPF"
                     value={cpf}
+                    disabled={!canCreate}
                     error={Boolean(cpfError)}
-                    helperText={cpfError || ''}
+                    helperText={cpfError || (canCreate ? '' : 'Campo desabilitado - sem permissão')}
                     onKeyDown={(e: any) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
-                        handleBuscarCpf();
+                        if (canCreate) handleBuscarCpf();
                       }
                     }}
                     onChange={(e: any) => {
-                      setCpf(formatCpfInput(e.target.value));
-                      if (cpfError) setCpfError(null);
+                      if (canCreate) {
+                        setCpf(formatCpfInput(e.target.value));
+                        if (cpfError) setCpfError(null);
+                      }
                     }}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', alignItems: 'stretch' }}>
                   <Button
                     sx={{ height: '55px', minHeight: '55px', width: '30%' }}
-                    onClick={handleBuscarCpf}
+                    onClick={canCreate ? handleBuscarCpf : () => setStep('form')}
                     variant="contained"
-                    disabled={loading || !cpf}
+                    disabled={canCreate && (loading || !cpf)}
                     startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
                   >
-                    {loading ? 'Buscando...' : 'Buscar'}
+                    {canCreate ? (loading ? 'Buscando...' : 'Buscar') : 'Ver Formulário'}
                   </Button>
                 </Grid>
               </Grid>
@@ -740,6 +765,15 @@ export default function FichaCadastralExternaPage() {
             )}
             <Form methods={methods} onSubmit={handleSubmit}>
               <Stack spacing={3}>
+                {!canCreate && (
+                  <Alert severity="info">
+                    <Typography variant="body2">
+                      <strong>Modo de demonstração:</strong> Este formulário está sendo exibido
+                      apenas para visualização. Você não pode submeter dados pois não possui
+                      permissão para criar fichas cadastrais externas.
+                    </Typography>
+                  </Alert>
+                )}
                 {errorSummary.length > 0 && (
                   <Alert severity="error">
                     <Stack component="ul" sx={{ m: 0, pl: 3 }}>
@@ -1095,10 +1129,14 @@ export default function FichaCadastralExternaPage() {
                   <Button
                     type="submit"
                     variant="contained"
-                    disabled={loading || creatingDetento}
+                    disabled={loading || creatingDetento || !canCreate}
                     startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
                   >
-                    {loading ? 'Salvando...' : 'Salvar ficha cadastral'}
+                    {canCreate
+                      ? loading
+                        ? 'Salvando...'
+                        : 'Salvar ficha cadastral'
+                      : 'Salvar ficha cadastral (sem permissão)'}
                   </Button>
                 </Stack>
               </Stack>

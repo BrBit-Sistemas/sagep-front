@@ -26,6 +26,8 @@ import { Iconify } from 'src/components/iconify';
 import { PdfWorker } from 'src/components/pdf/pdf-worker';
 import { PdfThumbnail } from 'src/components/pdf/pdf-thumbnail';
 
+import { usePermissionCheck } from 'src/auth/guard/permission-guard';
+
 import { detentoService } from '../../data';
 import { detentoKeys } from '../../hooks/keys';
 import { useDetentoDetalhesStore } from '../../stores/detento-detalhes-store';
@@ -39,6 +41,7 @@ type DetentoFichaCadastralCardProps = {
 
 export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadastralCardProps) => {
   const { openFichaCadastralEditDialog } = useDetentoDetalhesStore();
+  const { hasPermission } = usePermissionCheck();
   const [hover, setHover] = useState(false);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<{
@@ -50,6 +53,11 @@ export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadast
     fichaCadastral.status
   );
   const queryClient = useQueryClient();
+
+  // Permissions
+  const canRead = hasPermission({ action: 'read', subject: 'ficha_cadastral_interno' });
+  const canUpdate = hasPermission({ action: 'update', subject: 'ficha_cadastral_interno' });
+  const canDelete = hasPermission({ action: 'delete', subject: 'ficha_cadastral_interno' });
 
   useEffect(() => {
     let mounted = true;
@@ -141,7 +149,7 @@ export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadast
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      <CardActionArea onClick={handleEdit} sx={{ height: '100%' }}>
+      <CardActionArea onClick={canUpdate ? handleEdit : undefined} sx={{ height: '100%' }}>
         <Box sx={{ position: 'relative', height: '100%' }}>
           <PdfWorker>
             {signedUrl && (
@@ -150,81 +158,89 @@ export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadast
           </PdfWorker>
           {(hover || pending) && (
             <>
-              <IconButton
-                onClick={handleView}
-                sx={{
-                  position: 'absolute',
-                  top: 8,
-                  right: 8,
-                  bgcolor: 'rgba(0,0,0,0.35)',
-                  color: 'common.white',
-                  p: 0.5,
-                  zIndex: 2,
-                  '&:hover': { bgcolor: 'primary.main' },
-                  boxShadow: 1,
-                }}
-                size="small"
-              >
-                <Iconify icon="solar:eye-bold" width={22} height={22} />
-              </IconButton>
-              <IconButton
-                onClick={handleDelete}
-                sx={{
-                  position: 'absolute',
-                  top: 8,
-                  left: 8,
-                  bgcolor: 'rgba(255,0,0,0.25)',
-                  color: 'error.main',
-                  p: 0.5,
-                  zIndex: 2,
-                  '&:hover': { bgcolor: 'error.main', color: 'common.white' },
-                  boxShadow: 1,
-                }}
-                size="small"
-              >
-                <Iconify icon="solar:trash-bin-trash-bold" width={22} height={22} />
-              </IconButton>
+              {canRead && (
+                <IconButton
+                  onClick={handleView}
+                  sx={{
+                    position: 'absolute',
+                    top: 8,
+                    right: 8,
+                    bgcolor: 'rgba(0,0,0,0.35)',
+                    color: 'common.white',
+                    p: 0.5,
+                    zIndex: 2,
+                    '&:hover': { bgcolor: 'primary.main' },
+                    boxShadow: 1,
+                  }}
+                  size="small"
+                >
+                  <Iconify icon="solar:eye-bold" width={22} height={22} />
+                </IconButton>
+              )}
+              {canDelete && (
+                <IconButton
+                  onClick={handleDelete}
+                  sx={{
+                    position: 'absolute',
+                    top: 8,
+                    left: 8,
+                    bgcolor: 'rgba(255,0,0,0.25)',
+                    color: 'error.main',
+                    p: 0.5,
+                    zIndex: 2,
+                    '&:hover': { bgcolor: 'error.main', color: 'common.white' },
+                    boxShadow: 1,
+                  }}
+                  size="small"
+                >
+                  <Iconify icon="solar:trash-bin-trash-bold" width={22} height={22} />
+                </IconButton>
+              )}
 
-              {localStatus === 'ativa' ? (
-                <Tooltip title="Desativar ficha">
-                  <IconButton
-                    onClick={handleDeactivate}
-                    sx={{
-                      position: 'absolute',
-                      bottom: 8,
-                      right: 8,
-                      bgcolor: 'rgba(0,0,0,0.35)',
-                      color: 'warning.main',
-                      p: 0.5,
-                      zIndex: 2,
-                      '&:hover': { bgcolor: 'warning.main', color: 'common.white' },
-                      boxShadow: 1,
-                    }}
-                    size="small"
-                  >
-                    <Iconify icon="solar:pen-bold" width={22} height={22} />
-                  </IconButton>
-                </Tooltip>
-              ) : (
-                <Tooltip title="Ativar ficha">
-                  <IconButton
-                    onClick={handleActivate}
-                    sx={{
-                      position: 'absolute',
-                      bottom: 8,
-                      right: 8,
-                      bgcolor: 'rgba(0,0,0,0.35)',
-                      color: 'success.main',
-                      p: 0.5,
-                      zIndex: 2,
-                      '&:hover': { bgcolor: 'success.main', color: 'common.white' },
-                      boxShadow: 1,
-                    }}
-                    size="small"
-                  >
-                    <Iconify icon="solar:pen-bold" width={22} height={22} />
-                  </IconButton>
-                </Tooltip>
+              {canUpdate && (
+                <>
+                  {localStatus === 'ativa' ? (
+                    <Tooltip title="Desativar ficha">
+                      <IconButton
+                        onClick={handleDeactivate}
+                        sx={{
+                          position: 'absolute',
+                          bottom: 8,
+                          right: 8,
+                          bgcolor: 'rgba(0,0,0,0.35)',
+                          color: 'warning.main',
+                          p: 0.5,
+                          zIndex: 2,
+                          '&:hover': { bgcolor: 'warning.main', color: 'common.white' },
+                          boxShadow: 1,
+                        }}
+                        size="small"
+                      >
+                        <Iconify icon="solar:pen-bold" width={22} height={22} />
+                      </IconButton>
+                    </Tooltip>
+                  ) : (
+                    <Tooltip title="Ativar ficha">
+                      <IconButton
+                        onClick={handleActivate}
+                        sx={{
+                          position: 'absolute',
+                          bottom: 8,
+                          right: 8,
+                          bgcolor: 'rgba(0,0,0,0.35)',
+                          color: 'success.main',
+                          p: 0.5,
+                          zIndex: 2,
+                          '&:hover': { bgcolor: 'success.main', color: 'common.white' },
+                          boxShadow: 1,
+                        }}
+                        size="small"
+                      >
+                        <Iconify icon="solar:pen-bold" width={22} height={22} />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                </>
               )}
             </>
           )}
