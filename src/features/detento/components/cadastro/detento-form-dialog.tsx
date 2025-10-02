@@ -19,8 +19,9 @@ import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/
 
 import { Form, Field } from 'src/components/hook-form';
 
+import { Escolaridade, getRegimeOptions, getEscolaridadeOptions, Regime } from 'src/types/prisional';
+
 import { detentoService } from '../../data';
-import { Regime, Escolaridade } from '../../types';
 import { useCreateDetento } from '../../hooks/use-create-detento';
 import { useUpdateDetento } from '../../hooks/use-update-detento';
 import { createDetentoSchema, type CreateDetentoSchema } from '../../schemas';
@@ -180,9 +181,9 @@ export const DetentoFormDialog = ({
                 label="Regime"
                 slotProps={{ inputLabel: { shrink: true } }}
               >
-                {Object.values(Regime).map((option) => (
-                  <MenuItem key={option} value={option} sx={{ textTransform: 'capitalize' }}>
-                    {option}
+                {getRegimeOptions().map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
                   </MenuItem>
                 ))}
               </Field.Select>
@@ -195,9 +196,9 @@ export const DetentoFormDialog = ({
                 label="Escolaridade"
                 slotProps={{ inputLabel: { shrink: true } }}
               >
-                {Object.values(Escolaridade).map((option) => (
-                  <MenuItem key={option} value={option} sx={{ textTransform: 'capitalize' }}>
-                    {option}
+                {getEscolaridadeOptions().map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
                   </MenuItem>
                 ))}
               </Field.Select>

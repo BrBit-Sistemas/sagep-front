@@ -30,8 +30,9 @@ import { Form, Field } from 'src/components/hook-form';
 
 import { usePermissionCheck } from 'src/auth/guard/permission-guard';
 
+import { Escolaridade, getRegimeOptions, getEscolaridadeOptions, Regime } from 'src/types/prisional';
+
 import { detentoService } from '../data';
-import { Regime, Escolaridade } from '../types';
 import { createDetentoFichaCadastralSchema } from '../schemas';
 import { FichaDocumentosField } from '../components/ficha-documentos-field';
 import { useProfissoesAutocomplete } from '../../empresa-convenios/hooks/use-profissoes-options';
@@ -912,9 +913,9 @@ export default function FichaCadastralExternaPage() {
                 <Grid container spacing={2}>
                   <Grid size={{ md: 4, sm: 12 }}>
                     <Field.Select name="regime" label="Regime" fullWidth>
-                      {Object.values(Regime).map((regime) => (
-                        <MenuItem key={regime} value={regime}>
-                          {regime}
+                      {getRegimeOptions().map((option) => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.label}
                         </MenuItem>
                       ))}
                     </Field.Select>
@@ -1021,9 +1022,9 @@ export default function FichaCadastralExternaPage() {
                 <Grid container spacing={2}>
                   <Grid size={{ md: 6, sm: 12 }}>
                     <Field.Select name="escolaridade" label="Escolaridade" fullWidth>
-                      {Object.values(Escolaridade).map((escolaridade) => (
-                        <MenuItem key={escolaridade} value={escolaridade}>
-                          {escolaridade}
+                      {getEscolaridadeOptions().map((option) => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.label}
                         </MenuItem>
                       ))}
                     </Field.Select>

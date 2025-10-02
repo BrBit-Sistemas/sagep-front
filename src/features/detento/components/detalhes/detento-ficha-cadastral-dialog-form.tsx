@@ -29,9 +29,10 @@ import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/
 import { toast } from 'src/components/snackbar';
 import { Form, Field } from 'src/components/hook-form';
 
+import { getRegimeOptions, getEscolaridadeOptions } from 'src/types/prisional';
+
 import { detentoService } from '../../data';
 import { detentoKeys } from '../../hooks/keys';
-import { Regime, Escolaridade } from '../../../detento/types';
 import { FichaDocumentosField } from '../ficha-documentos-field';
 import { createDetentoFichaCadastralSchema } from '../../schemas';
 import { useDetentoDetalhesSearchParams } from '../../hooks/use-dentento-detalhes-search-params';
@@ -690,9 +691,9 @@ export const DetentoFichaCadastralDialogForm = ({
                     disabled
                     helperText="Campo preenchido automaticamente com os dados do cadastro do detento"
                   >
-                    {Object.values(Regime).map((regime) => (
-                      <MenuItem key={regime} value={regime}>
-                        {regime}
+                    {getRegimeOptions().map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
                       </MenuItem>
                     ))}
                   </Field.Select>
@@ -847,9 +848,9 @@ export const DetentoFichaCadastralDialogForm = ({
                     disabled
                     helperText="Campo preenchido automaticamente com os dados do cadastro do detento"
                   >
-                    {Object.values(Escolaridade).map((escolaridade) => (
-                      <MenuItem key={escolaridade} value={escolaridade}>
-                        {escolaridade}
+                    {getEscolaridadeOptions().map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
                       </MenuItem>
                     ))}
                   </Field.Select>

@@ -32,3 +32,6 @@ export type PaginatedParams = {
   sort?: string;
   order?: 'asc' | 'desc';
 };
+
+// Re-export dos tipos prisionais para facilitar importação
+export * from './prisional';
