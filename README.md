@@ -2,7 +2,7 @@
 
 - Node.js >=20 (Recommended)
 
-## Installation
+## Installation -
 
 **Using Yarn (Recommended)**
 
