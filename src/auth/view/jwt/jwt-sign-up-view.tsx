@@ -17,6 +17,8 @@ import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 import { RouterLink } from 'src/routes/components';
 
+import { isValidCpf } from 'src/utils/validate-cpf';
+
 import { Iconify } from 'src/components/iconify';
 import { Form, Field } from 'src/components/hook-form';
 
@@ -34,6 +36,11 @@ export const SignUpSchema = zod
   .object({
     firstName: zod.string().min(1, { message: 'O nome é obrigatório' }),
     lastName: zod.string().min(1, { message: 'O sobrenome é obrigatório' }),
+    cpf: zod
+      .string()
+      .min(1, { message: 'O CPF é obrigatório' })
+      .length(11, { message: 'O CPF deve ter 11 dígitos' })
+      .refine((value) => isValidCpf(value), { message: 'CPF inválido' }),
     email: zod
       .string()
       .min(1, { message: 'O email é obrigatório' })
@@ -63,6 +70,7 @@ export function JwtSignUpView() {
   const defaultValues: SignUpSchemaType = {
     firstName: '',
     lastName: '',
+    cpf: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -85,6 +93,7 @@ export function JwtSignUpView() {
         password: data.password,
         firstName: data.firstName,
         lastName: data.lastName,
+        cpf: data.cpf,
       });
       await checkUserSession?.();
 
@@ -123,6 +132,13 @@ export function JwtSignUpView() {
       </Box>
 
       <Field.Text name="email" label="Email" slotProps={{ inputLabel: { shrink: true } }} />
+
+      <Field.Text
+        name="cpf"
+        label="CPF"
+        placeholder="00000000000"
+        slotProps={{ inputLabel: { shrink: true } }}
+      />
 
       <Field.Text
         name="password"

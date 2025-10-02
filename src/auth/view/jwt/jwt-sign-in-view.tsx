@@ -16,6 +16,8 @@ import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 import { RouterLink } from 'src/routes/components';
 
+import { isValidCpf } from 'src/utils/validate-cpf';
+
 import { getAutenticação } from 'src/api/autenticação/autenticação';
 
 import { Iconify } from 'src/components/iconify';
@@ -31,10 +33,11 @@ import { signInWithPassword } from '../../context/jwt';
 export type SignInSchemaType = zod.infer<typeof SignInSchema>;
 
 export const SignInSchema = zod.object({
-  email: zod
+  cpf: zod
     .string()
-    .min(1, { message: 'E-mail é obrigatório!' })
-    .email({ message: 'E-mail deve ser um endereço de e-mail válido!' }),
+    .min(1, { message: 'CPF é obrigatório!' })
+    .length(11, { message: 'CPF deve ter 11 dígitos' })
+    .refine((value) => isValidCpf(value), { message: 'CPF inválido' }),
   password: zod
     .string()
     .min(1, { message: 'Senha é obrigatória!' })
@@ -64,7 +67,7 @@ export function JwtSignInView() {
   }, []);
 
   const defaultValues: SignInSchemaType = {
-    email: '',
+    cpf: '',
     password: '',
   };
 
@@ -80,7 +83,7 @@ export function JwtSignInView() {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      await signInWithPassword({ email: data.email, password: data.password });
+      await signInWithPassword({ cpf: data.cpf, password: data.password });
       await checkUserSession?.();
 
       // After session is set, fetch current user to decide redirect
@@ -138,8 +141,9 @@ export function JwtSignInView() {
   const renderForm = () => (
     <Box sx={{ gap: 3, display: 'flex', flexDirection: 'column' }}>
       <Field.Text
-        name="email"
-        label="Endereço de e-mail"
+        name="cpf"
+        label="CPF"
+        placeholder="00000000000"
         slotProps={{ inputLabel: { shrink: true } }}
       />
 

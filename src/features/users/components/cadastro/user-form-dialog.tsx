@@ -35,6 +35,7 @@ type UserFormDialogProps = {
 
 const INITIAL_VALUES: CreateUserSchema = {
   nome: '',
+  cpf: '',
   email: '',
   avatarUrl: null,
   senha: '',
@@ -139,6 +140,15 @@ export const UserFormDialog = ({
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>
+              <Field.Text 
+                name="cpf" 
+                label="CPF" 
+                placeholder="00000000000"
+                slotProps={{ inputLabel: { shrink: true } }}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
               <Field.Text name="email" label="Endereço de Email" />
             </Grid>
 
@@ -167,7 +177,7 @@ export const UserFormDialog = ({
               </Field.Select>
             </Grid>
 
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid size={{ xs: 12, md: 12 }}>
               <Field.Select
                 name="unidadeId"
                 label="Unidade Prisional"

@@ -5,8 +5,8 @@
  * OpenAPI spec version: 1.0
  */
 export interface LoginDto {
-  /** Email do usuário */
-  email: string;
+  /** CPF do usuário */
+  cpf: string;
   /** Senha do usuário */
   senha: string;
 }
@@ -76,6 +76,8 @@ export interface ReadUsuarioDto {
   id: string;
   /** Nome completo do usuário */
   nome: string;
+  /** CPF do usuário */
+  cpf: string;
   /** Email do usuário */
   email: string;
   /** Foto do usuário */
@@ -114,6 +116,8 @@ export interface PaginateRolesDto {
 export interface CreateUsuarioDto {
   /** Nome completo do usuário */
   nome: string;
+  /** CPF do usuário */
+  cpf: string;
   /** Email do usuário */
   email: string;
   /**
@@ -150,6 +154,8 @@ export interface PaginateUsuarioDto {
 export interface UpdateUsuarioDto {
   /** Nome completo do usuário */
   nome?: string;
+  /** CPF do usuário */
+  cpf?: string;
   /** Email do usuário */
   email?: string;
   /**

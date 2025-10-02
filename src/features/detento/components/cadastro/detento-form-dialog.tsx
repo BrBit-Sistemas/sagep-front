@@ -19,7 +19,7 @@ import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/
 
 import { Form, Field } from 'src/components/hook-form';
 
-import { Escolaridade, getRegimeOptions, getEscolaridadeOptions, Regime } from 'src/types/prisional';
+import { Regime, Escolaridade, getRegimeOptions, getEscolaridadeOptions } from 'src/types/prisional';
 
 import { detentoService } from '../../data';
 import { useCreateDetento } from '../../hooks/use-create-detento';

@@ -5,7 +5,7 @@ import { setSession } from './utils';
 // ----------------------------------------------------------------------
 
 export type SignInParams = {
-  email: string;
+  cpf: string;
   password: string;
 };
 
@@ -14,6 +14,7 @@ export type SignUpParams = {
   password: string;
   firstName: string;
   lastName: string;
+  cpf: string;
 };
 
 export type ForgotPasswordParams = {
@@ -28,10 +29,10 @@ export type ResetPasswordParams = {
 /** **************************************
  * Sign in
  *************************************** */
-export const signInWithPassword = async ({ email, password }: SignInParams): Promise<void> => {
+export const signInWithPassword = async ({ cpf, password }: SignInParams): Promise<void> => {
   try {
     const res = await axios.post(endpoints.auth.signIn, {
-      email,
+      cpf,
       senha: password,
     });
 
@@ -56,11 +57,13 @@ export const signUp = async ({
   password,
   firstName,
   lastName,
+  cpf,
 }: SignUpParams): Promise<void> => {
   const params = {
     email,
     senha: password,
     nome: `${firstName} ${lastName}`.trim(),
+    cpf,
   };
 
   try {

@@ -29,6 +29,7 @@ export const userService: CrudService<
   create: (data: CreateUserSchema) => {
     const payload = {
       nome: data.nome,
+      cpf: data.cpf,
       email: data.email,
       senha: data.senha,
       secretariaId: data.secretariaId ?? '',
@@ -40,6 +41,7 @@ export const userService: CrudService<
   update: (id: string, data: UpdateUserSchema) => {
     const payload: Record<string, unknown> = {};
     if (typeof data.nome !== 'undefined') payload.nome = data.nome;
+    if (typeof data.cpf !== 'undefined') payload.cpf = data.cpf;
     if (typeof data.email !== 'undefined') payload.email = data.email;
     if (typeof data.senha !== 'undefined' && data.senha !== '') payload.senha = data.senha;
     if (typeof data.secretariaId !== 'undefined') payload.secretariaId = data.secretariaId;

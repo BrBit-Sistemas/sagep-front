@@ -1,9 +1,16 @@
 import { z } from 'zod';
 
+import { isValidCpf } from 'src/utils/validate-cpf';
+
 import { schemaHelper } from 'src/components/hook-form';
 
 const baseSchema = z.object({
   nome: z.string().min(1, { message: 'O nome é obrigatório!' }),
+  cpf: z
+    .string()
+    .min(1, { message: 'O CPF é obrigatório!' })
+    .length(11, { message: 'O CPF deve ter 11 dígitos' })
+    .refine((value) => isValidCpf(value), { message: 'CPF inválido' }),
   avatarUrl: schemaHelper.file({ required: false }),
   regionalId: z.string().optional(),
   secretariaId: z.string().optional(),
