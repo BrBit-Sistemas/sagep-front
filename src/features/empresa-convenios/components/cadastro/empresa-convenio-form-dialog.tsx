@@ -60,9 +60,12 @@ const ProfissaoFieldRow = ({ index, onRemove }: ProfissaoFieldRowProps) => {
   const [initialProfissoes, setInitialProfissoes] = useState<any[]>([]);
   const labelCache = useRef<Map<string, string>>(new Map());
   const { watch } = useFormContext();
-  
-  const { options: profissoes, loading: loadingProf, hasMinimum: hasMin } =
-    useProfissoesAutocomplete(profissaoInput, 3);
+
+  const {
+    options: profissoes,
+    loading: loadingProf,
+    hasMinimum: hasMin,
+  } = useProfissoesAutocomplete(profissaoInput, 3);
 
   // Buscar profissão atual do formulário
   const currentProfissaoId = watch(`quantitativos_profissoes.${index}.profissao_id`);
@@ -72,7 +75,8 @@ const ProfissaoFieldRow = ({ index, onRemove }: ProfissaoFieldRowProps) => {
     if (currentProfissaoId && !labelCache.current.has(String(currentProfissaoId))) {
       const api = getProfissoes();
       // Buscar todas as profissões para encontrar a atual
-      api.findAll({ page: 0, limit: 100 })
+      api
+        .findAll({ page: 0, limit: 100 })
         .then((response) => {
           if (response.items) {
             setInitialProfissoes(response.items);
@@ -99,8 +103,8 @@ const ProfissaoFieldRow = ({ index, onRemove }: ProfissaoFieldRowProps) => {
   const allOptions = useMemo(() => {
     const combined = [...initialProfissoes, ...profissoes];
     // Remover duplicatas baseado no ID
-    const unique = combined.filter((p, idx, self) => 
-      idx === self.findIndex((t) => String(t.id) === String(p.id))
+    const unique = combined.filter(
+      (p, idx, self) => idx === self.findIndex((t) => String(t.id) === String(p.id))
     );
     return unique.map((p: any) => p.id);
   }, [initialProfissoes, profissoes]);
@@ -125,7 +129,10 @@ const ProfissaoFieldRow = ({ index, onRemove }: ProfissaoFieldRowProps) => {
           noOptionsText="Procure uma profissão"
           slotProps={{
             textField: {
-              helperText: !hasMin && (profissaoInput?.length || 0) > 0 ? 'Digite ao menos 3 caracteres' : undefined,
+              helperText:
+                !hasMin && (profissaoInput?.length || 0) > 0
+                  ? 'Digite ao menos 3 caracteres'
+                  : undefined,
             },
           }}
         />
@@ -204,12 +211,16 @@ export const EmpresaConvenioFormDialog = ({
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>{isEditing ? 'Editar' : 'Adicionar'} Convênio</DialogTitle>
       <DialogContent sx={{ pt: 3 }}>
+        <Typography variant="caption" sx={{ color: 'text.secondary', mb: 2, display: 'block' }}>
+          * Campos obrigatórios
+        </Typography>
         <Form methods={methods} onSubmit={handleSubmit}>
           <Grid container spacing={2}>
             <Grid size={{ md: 6, sm: 12 }} sx={{ mt: 1 }}>
               <Field.Select
                 name="empresa_id"
                 label="Empresa"
+                required
                 slotProps={{
                   inputLabel: {
                     shrink: true,
@@ -229,6 +240,7 @@ export const EmpresaConvenioFormDialog = ({
               <Field.Select
                 name="tipo_codigo"
                 label="Tipo"
+                required
                 slotProps={{
                   inputLabel: {
                     shrink: true,
@@ -245,7 +257,7 @@ export const EmpresaConvenioFormDialog = ({
               </Field.Select>
             </Grid>
             <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Select name="modalidade_execucao" label="Modalidade de Execução">
+              <Field.Select required name="modalidade_execucao" label="Modalidade de Execução">
                 <MenuItem value="INTRAMUROS">Intramuros</MenuItem>
                 <MenuItem value="EXTRAMUROS">Extramuros</MenuItem>
               </Field.Select>
@@ -253,6 +265,7 @@ export const EmpresaConvenioFormDialog = ({
             <Grid size={{ md: 6, sm: 12 }}>
               <Field.MultiSelect
                 name="regimes_permitidos"
+                required
                 label="Regimes Permitidos"
                 options={regimesOptions}
                 fullWidth
@@ -269,7 +282,9 @@ export const EmpresaConvenioFormDialog = ({
                 label="Artigos Vedados"
                 placeholder="Digite para buscar..."
                 options={artigosOptions.map((a) => Number(a.value))}
-                groupBy={(option) => artigosCodigoIndex[typeof option === 'number' ? option : Number(option)] || 'CP'}
+                groupBy={(option) =>
+                  artigosCodigoIndex[typeof option === 'number' ? option : Number(option)] || 'CP'
+                }
                 getOptionLabel={(option) => {
                   const num = typeof option === 'number' ? option : Number(option);
                   const found = artigosOptions.find((a) => Number(a.value) === num);
@@ -294,11 +309,7 @@ export const EmpresaConvenioFormDialog = ({
             <Grid size={{ md: 12, sm: 12 }}>
               <Grid container spacing={1}>
                 {fields.map((field, idx) => (
-                  <ProfissaoFieldRow
-                    key={field.id}
-                    index={idx}
-                    onRemove={() => remove(idx)}
-                  />
+                  <ProfissaoFieldRow key={field.id} index={idx} onRemove={() => remove(idx)} />
                 ))}
                 <Grid size={{ md: 12, sm: 12 }} sx={{ mt: 3, mb: 3 }}>
                   <Button
@@ -352,10 +363,7 @@ export const EmpresaConvenioFormDialog = ({
                       />
                     </Grid>
                     <Grid size={{ md: 4, sm: 12 }}>
-                      <Field.Text
-                        name={`locais_execucao.${idx}.bairro`}
-                        label="Bairro"
-                      />
+                      <Field.Text name={`locais_execucao.${idx}.bairro`} label="Bairro" />
                     </Grid>
                     <Grid size={{ md: 4, sm: 12 }}>
                       <Field.Text
@@ -387,12 +395,11 @@ export const EmpresaConvenioFormDialog = ({
                         placeholder="Ponto de referência"
                       />
                     </Grid>
-                    <Grid size={{ md: 2, sm: 12 }} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                      <Button
-                        color="error"
-                        variant="outlined"
-                        onClick={() => removeLocal(idx)}
-                      >
+                    <Grid
+                      size={{ md: 2, sm: 12 }}
+                      sx={{ display: 'flex', justifyContent: 'flex-end' }}
+                    >
+                      <Button color="error" variant="outlined" onClick={() => removeLocal(idx)}>
                         Remover local
                       </Button>
                     </Grid>
