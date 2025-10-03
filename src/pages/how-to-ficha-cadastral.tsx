@@ -16,19 +16,10 @@ import {
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components/router-link';
 
-import { getAutenticação } from 'src/api/autenticação/autenticação';
-
 import { useAuthContext } from 'src/auth/hooks/use-auth-context';
 
 export default function HowToFichaCadastralPage() {
   const { authenticated } = useAuthContext();
-
-  const func = async () => {
-    const me = await getAutenticação().me();
-    console.log(me);
-  };
-
-  func();
 
   return (
     <Container maxWidth="md" sx={{ py: 6 }}>

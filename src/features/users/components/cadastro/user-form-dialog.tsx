@@ -3,6 +3,7 @@ import type { CreateUserSchema, UpdateUserSchema } from 'src/features/users/sche
 
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { useBoolean } from 'minimal-shared/hooks';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import {
@@ -11,9 +12,11 @@ import {
   Dialog,
   MenuItem,
   Typography,
+  IconButton,
   DialogTitle,
   DialogActions,
   DialogContent,
+  InputAdornment,
 } from '@mui/material';
 
 import { useCreateUser } from 'src/features/users/hooks/use-create-user';
@@ -23,6 +26,7 @@ import { useListRegionais } from 'src/features/regionais/hooks/use-list-regionai
 import { useListSecretarias } from 'src/features/secretarias/hooks/use-list-secretaria';
 import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/use-unidade-prisional-list';
 
+import { Iconify } from 'src/components/iconify';
 import { Form, Field } from 'src/components/hook-form';
 
 type UserFormDialogProps = {
@@ -52,6 +56,9 @@ export const UserFormDialog = ({
 }: UserFormDialogProps) => {
   const { mutateAsync: createUser, isPending: isCreating } = useCreateUser();
   const { mutateAsync: updateUser, isPending: isUpdating } = useUpdateUser();
+
+  const showPassword = useBoolean();
+  const showConfirmPassword = useBoolean();
 
   const { data: { items: regionais } = { items: [] } } = useListRegionais({
     page: 0,
@@ -128,6 +135,10 @@ export const UserFormDialog = ({
           Preencha os campos abaixo para {isEditing ? 'editar' : 'adicionar'} um novo usuário.
         </Typography>
 
+        <Typography variant="caption" sx={{ color: 'text.secondary', mb: 2, display: 'block' }}>
+          * Campos obrigatórios
+        </Typography>
+
         <Form methods={methods} onSubmit={onSubmit}>
           <Grid container spacing={3}>
             <Grid size={{ xs: 12 }}>
@@ -135,15 +146,15 @@ export const UserFormDialog = ({
             </Grid>
 
             <Grid size={{ xs: 12 }}>
-              <Field.Text name="nome" label="Nome Completo" />
+              <Field.Text required name="nome" label="Nome Completo" />
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>
-              <Field.Text name="email" label="Endereço de Email" />
+              <Field.Text required name="email" label="Endereço de Email" />
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>
-              <Field.Select name="secretariaId" label="Secretaria">
+              <Field.Select required name="secretariaId" label="Secretaria">
                 {secretarias.map((secretaria) => (
                   <MenuItem key={secretaria.id} value={secretaria.id}>
                     {secretaria.nome}
@@ -185,13 +196,47 @@ export const UserFormDialog = ({
               <Field.Text
                 name="senha"
                 label="Senha"
-                type="password"
+                type={showPassword.value ? 'text' : 'password'}
+                required={!isEditing}
                 helperText={isEditing ? 'Deixe em branco para não alterar' : ''}
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton onClick={showPassword.onToggle} edge="end">
+                          <Iconify
+                            icon={showPassword.value ? 'solar:eye-bold' : 'solar:eye-closed-bold'}
+                          />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
               />
             </Grid>
 
             <Grid size={{ xs: 12 }}>
-              <Field.Text name="confirmarSenha" label="Confirmar Senha" type="password" />
+              <Field.Text
+                name="confirmarSenha"
+                required={!isEditing}
+                label="Confirmar Senha"
+                type={showConfirmPassword.value ? 'text' : 'password'}
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton onClick={showConfirmPassword.onToggle} edge="end">
+                          <Iconify
+                            icon={
+                              showConfirmPassword.value ? 'solar:eye-bold' : 'solar:eye-closed-bold'
+                            }
+                          />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
             </Grid>
           </Grid>
         </Form>

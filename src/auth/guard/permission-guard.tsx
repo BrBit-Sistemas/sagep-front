@@ -86,8 +86,6 @@ export function usePermissionCheck() {
 
   const isAdmin = Boolean((me as any)?.isAdmin);
 
-  console.log('me: ', me);
-
   const hasPermission = (req: { action: string; subject: string }) =>
     Boolean(
       (me as any)?.roles?.some((role: any) =>

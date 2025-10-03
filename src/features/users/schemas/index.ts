@@ -19,7 +19,7 @@ export const createUserSchema = baseSchema
     senha: z.string().min(6, { message: 'A senha deve ter pelo menos 6 caracteres!' }),
     confirmarSenha: z.string().min(6, { message: 'A senha deve ter pelo menos 6 caracteres!' }),
   })
-  .superRefine(({ senha, confirmarSenha, unidadeId, regionalId, secretariaId }, ctx) => {
+  .superRefine(({ senha, confirmarSenha, secretariaId }, ctx) => {
     if (senha !== confirmarSenha) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -28,11 +28,11 @@ export const createUserSchema = baseSchema
       });
     }
 
-    if (!unidadeId && !regionalId && !secretariaId) {
+    if (!secretariaId) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Pelo menos um campo de (Secretaria, Regional ou Unidade) é obrigatório!',
-        path: ['unidadeId', 'regionalId', 'secretariaId'],
+        message: 'O campo Secretaria é obrigatório!',
+        path: ['secretariaId'],
       });
     }
   });
@@ -49,7 +49,7 @@ export const updateUserSchema = baseSchema
       .min(6, { message: 'A senha deve ter pelo menos 6 caracteres!' })
       .or(z.literal('')),
   })
-  .superRefine(({ senha, confirmarSenha, unidadeId, regionalId, secretariaId }, ctx) => {
+  .superRefine(({ senha, confirmarSenha, secretariaId }, ctx) => {
     if (senha !== confirmarSenha) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -58,11 +58,11 @@ export const updateUserSchema = baseSchema
       });
     }
 
-    if (!unidadeId && !regionalId && !secretariaId) {
+    if (!secretariaId) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Pelo menos um campo de (Secretaria, Regional ou Unidade) é obrigatório!',
-        path: ['unidadeId', 'regionalId', 'secretariaId'],
+        message: 'O campo Secretaria é obrigatório!',
+        path: ['secretariaId'],
       });
     }
   });
