@@ -24,7 +24,8 @@ export const getRegionais = () => {
   const create = (
     createRegionalDto: BodyType<CreateRegionalDto>,
     options?: SecondParameter<typeof customInstance>
-  ) => customInstance<ReadRegionalDto>(
+  ) =>
+    customInstance<ReadRegionalDto>(
       {
         url: `/regionais`,
         method: 'POST',
@@ -39,14 +40,12 @@ export const getRegionais = () => {
   const findAll = (
     params?: RegionalControllerFindAllParams,
     options?: SecondParameter<typeof customInstance>
-  ) => customInstance<PaginateRegionalDto>(
-      { url: `/regionais`, method: 'GET', params },
-      options
-    );
+  ) => customInstance<PaginateRegionalDto>({ url: `/regionais`, method: 'GET', params }, options);
   /**
    * @summary Buscar uma regional pelo ID
    */
-  const findOne = (id: string, options?: SecondParameter<typeof customInstance>) => customInstance<ReadRegionalDto>({ url: `/regionais/${id}`, method: 'GET' }, options);
+  const findOne = (id: string, options?: SecondParameter<typeof customInstance>) =>
+    customInstance<ReadRegionalDto>({ url: `/regionais/${id}`, method: 'GET' }, options);
   /**
    * @summary Atualizar uma regional pelo ID
    */
@@ -54,7 +53,8 @@ export const getRegionais = () => {
     id: string,
     updateRegionalDto: BodyType<UpdateRegionalDto>,
     options?: SecondParameter<typeof customInstance>
-  ) => customInstance<ReadRegionalDto>(
+  ) =>
+    customInstance<ReadRegionalDto>(
       {
         url: `/regionais/${id}`,
         method: 'PUT',
@@ -66,7 +66,8 @@ export const getRegionais = () => {
   /**
    * @summary Remover uma regional pelo ID
    */
-  const remove = (id: string, options?: SecondParameter<typeof customInstance>) => customInstance<void>({ url: `/regionais/${id}`, method: 'DELETE' }, options);
+  const remove = (id: string, options?: SecondParameter<typeof customInstance>) =>
+    customInstance<void>({ url: `/regionais/${id}`, method: 'DELETE' }, options);
   return { create, findAll, findOne, update, remove };
 };
 export type CreateResult = NonNullable<

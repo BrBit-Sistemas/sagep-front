@@ -1,9 +1,7 @@
 import type { EmpresaConvenio } from '../types';
 import type { CreateEmpresaConvenioSchema } from '../schemas';
 
-export const empresaConvenioToFormValues = (
-  x: EmpresaConvenio
-): CreateEmpresaConvenioSchema => ({
+export const empresaConvenioToFormValues = (x: EmpresaConvenio): CreateEmpresaConvenioSchema => ({
   empresa_id: x.empresa_id,
   tipo_codigo: x.tipo_codigo,
   modalidade_execucao: x.modalidade_execucao,

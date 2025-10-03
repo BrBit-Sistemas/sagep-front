@@ -14,7 +14,7 @@ import { CONVENIO_TIPOS, getRegimeOptions } from 'src/types/prisional';
 export const convenioTipos = CONVENIO_TIPOS;
 
 // Regimes permitidos - usando enum centralizado
-export const regimesOptions = getRegimeOptions().map(option => ({
+export const regimesOptions = getRegimeOptions().map((option) => ({
   value: option.value,
   label: option.label,
 }));

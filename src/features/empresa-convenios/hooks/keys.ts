@@ -4,4 +4,3 @@ export const empresaConvenioKeys = {
   all: ['empresa-convenios'] as const,
   list: (params: PaginatedParams) => [...empresaConvenioKeys.all, params] as const,
 };
-

@@ -32,7 +32,7 @@ export type ConfigValue = {
 export const CONFIG: ConfigValue = {
   appName: 'SAGEP',
   appVersion: packageJson.version,
-  serverUrl: import.meta.env.VITE_SERVER_URL ?? '',
+  serverUrl: import.meta.env.VITE_SERVER_URL ?? 'http://localhost:3000',
   assetsDir: import.meta.env.VITE_ASSETS_DIR ?? '',
   /**
    * Auth

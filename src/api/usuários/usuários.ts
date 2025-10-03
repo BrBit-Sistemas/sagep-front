@@ -24,7 +24,8 @@ export const getUsuários = () => {
   const create = (
     createUsuarioDto: BodyType<CreateUsuarioDto>,
     options?: SecondParameter<typeof customInstance>
-  ) => customInstance<ReadUsuarioDto>(
+  ) =>
+    customInstance<ReadUsuarioDto>(
       {
         url: `/usuarios`,
         method: 'POST',
@@ -43,7 +44,8 @@ export const getUsuários = () => {
   /**
    * @summary Buscar um usuário pelo ID
    */
-  const findOne = (id: string, options?: SecondParameter<typeof customInstance>) => customInstance<ReadUsuarioDto>({ url: `/usuarios/${id}`, method: 'GET' }, options);
+  const findOne = (id: string, options?: SecondParameter<typeof customInstance>) =>
+    customInstance<ReadUsuarioDto>({ url: `/usuarios/${id}`, method: 'GET' }, options);
   /**
    * @summary Atualizar um usuário pelo ID
    */
@@ -51,7 +53,8 @@ export const getUsuários = () => {
     id: string,
     updateUsuarioDto: BodyType<UpdateUsuarioDto>,
     options?: SecondParameter<typeof customInstance>
-  ) => customInstance<ReadUsuarioDto>(
+  ) =>
+    customInstance<ReadUsuarioDto>(
       {
         url: `/usuarios/${id}`,
         method: 'PUT',
@@ -63,7 +66,8 @@ export const getUsuários = () => {
   /**
    * @summary Remover um usuário pelo ID
    */
-  const remove = (id: string, options?: SecondParameter<typeof customInstance>) => customInstance<void>({ url: `/usuarios/${id}`, method: 'DELETE' }, options);
+  const remove = (id: string, options?: SecondParameter<typeof customInstance>) =>
+    customInstance<void>({ url: `/usuarios/${id}`, method: 'DELETE' }, options);
   return { create, paginate, findOne, update, remove };
 };
 export type CreateResult = NonNullable<

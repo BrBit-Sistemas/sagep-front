@@ -18,4 +18,3 @@ export const useCreateEmpresaConvenio = () => {
     onSettled: () => queryClient.invalidateQueries({ queryKey: empresaConvenioKeys.all }),
   });
 };
-

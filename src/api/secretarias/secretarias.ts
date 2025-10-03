@@ -24,7 +24,8 @@ export const getSecretarias = () => {
   const create = (
     createSecretariaDto: BodyType<CreateSecretariaDto>,
     options?: SecondParameter<typeof customInstance>
-  ) => customInstance<ReadSecretariaDto>(
+  ) =>
+    customInstance<ReadSecretariaDto>(
       {
         url: `/secretarias`,
         method: 'POST',
@@ -39,14 +40,13 @@ export const getSecretarias = () => {
   const findAll = (
     params?: SecretariaControllerFindAllParams,
     options?: SecondParameter<typeof customInstance>
-  ) => customInstance<PaginateSecretariaDto>(
-      { url: `/secretarias`, method: 'GET', params },
-      options
-    );
+  ) =>
+    customInstance<PaginateSecretariaDto>({ url: `/secretarias`, method: 'GET', params }, options);
   /**
    * @summary Buscar uma secretaria pelo ID
    */
-  const findOne = (id: string, options?: SecondParameter<typeof customInstance>) => customInstance<ReadSecretariaDto>({ url: `/secretarias/${id}`, method: 'GET' }, options);
+  const findOne = (id: string, options?: SecondParameter<typeof customInstance>) =>
+    customInstance<ReadSecretariaDto>({ url: `/secretarias/${id}`, method: 'GET' }, options);
   /**
    * @summary Atualizar uma secretaria pelo ID
    */
@@ -54,7 +54,8 @@ export const getSecretarias = () => {
     id: string,
     updateSecretariaDto: BodyType<UpdateSecretariaDto>,
     options?: SecondParameter<typeof customInstance>
-  ) => customInstance<ReadSecretariaDto>(
+  ) =>
+    customInstance<ReadSecretariaDto>(
       {
         url: `/secretarias/${id}`,
         method: 'PUT',
@@ -66,7 +67,8 @@ export const getSecretarias = () => {
   /**
    * @summary Remover uma secretaria pelo ID
    */
-  const remove = (id: string, options?: SecondParameter<typeof customInstance>) => customInstance<void>({ url: `/secretarias/${id}`, method: 'DELETE' }, options);
+  const remove = (id: string, options?: SecondParameter<typeof customInstance>) =>
+    customInstance<void>({ url: `/secretarias/${id}`, method: 'DELETE' }, options);
   return { create, findAll, findOne, update, remove };
 };
 export type CreateResult = NonNullable<

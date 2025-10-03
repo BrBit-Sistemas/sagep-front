@@ -16,4 +16,3 @@ export const useDeleteEmpresaConvenio = () => {
     onSettled: () => queryClient.invalidateQueries({ queryKey: empresaConvenioKeys.all }),
   });
 };
-

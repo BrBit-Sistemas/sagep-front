@@ -125,10 +125,7 @@ export function FichaDocumentosField({
       acceptedFiles.forEach((file) => {
         const id = crypto.randomUUID();
         const previewUrl = URL.createObjectURL(file);
-        setPendingUploads((prev) => [
-          ...prev,
-          { id, file, previewUrl, status: 'uploading' },
-        ]);
+        setPendingUploads((prev) => [...prev, { id, file, previewUrl, status: 'uploading' }]);
 
         fichasApi
           .uploadDocumento(file, detentoId)
@@ -210,9 +207,7 @@ export function FichaDocumentosField({
           const message = extractErrorMessage(error);
           setPendingUploads((prev) =>
             prev.map((item) =>
-              item.id === pending.id
-                ? { ...item, status: 'error', error: message }
-                : item
+              item.id === pending.id ? { ...item, status: 'error', error: message } : item
             )
           );
         });
@@ -258,7 +253,8 @@ export function FichaDocumentosField({
         title={title}
         subheader={
           <Alert severity="info" sx={{ mt: 1 }}>
-            <strong>Atenção:</strong> Os documentos devem ser os do reeducando que está em busca da oportunidade de emprego, por meio desta ficha cadastral.
+            <strong>Atenção:</strong> Os documentos devem ser os do reeducando que está em busca da
+            oportunidade de emprego, por meio desta ficha cadastral.
           </Alert>
         }
       />

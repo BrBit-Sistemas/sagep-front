@@ -40,6 +40,9 @@ export interface PaginateDetentoDto {
   total: number;
   page: number;
   limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
 }
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];

@@ -13,4 +13,3 @@ export const listEmpresaConvenioQueryOptions = (params: PaginatedParams) =>
 
 export const useEmpresaConvenioList = (params: PaginatedParams) =>
   useQuery(listEmpresaConvenioQueryOptions(params));
-

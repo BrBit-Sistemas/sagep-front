@@ -21,11 +21,10 @@ export const useEmpresasOptions = (search: string) => {
         label: e.razao_social,
         value: e.empresa_id,
       })),
-    [data?.items],
+    [data?.items]
   );
 
   const indexMap = useMemo(() => new Map(options.map((o) => [o.value, o.label])), [options]);
 
   return { options, indexMap };
 };
-

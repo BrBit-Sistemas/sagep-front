@@ -85,35 +85,41 @@ export function AvatarCropDialog({
     };
   }, [imageMetrics, zoom]);
 
-  const handlePointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    if (!displaySize) return;
-    (event.target as HTMLElement).setPointerCapture(event.pointerId);
-    setIsDragging(true);
-    dragSnapshotRef.current = {
-      startX: event.clientX,
-      startY: event.clientY,
-      startPercentX: position.x,
-      startPercentY: position.y,
-    };
-  }, [displaySize, position.x, position.y]);
+  const handlePointerDown = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (!displaySize) return;
+      (event.target as HTMLElement).setPointerCapture(event.pointerId);
+      setIsDragging(true);
+      dragSnapshotRef.current = {
+        startX: event.clientX,
+        startY: event.clientY,
+        startPercentX: position.x,
+        startPercentY: position.y,
+      };
+    },
+    [displaySize, position.x, position.y]
+  );
 
-  const handlePointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDragging || !displaySize || !dragSnapshotRef.current) return;
-    const maxOffsetX = Math.max(displaySize.width - CROP_SIZE, 0);
-    const maxOffsetY = Math.max(displaySize.height - CROP_SIZE, 0);
-    if (maxOffsetX === 0 && maxOffsetY === 0) return;
+  const handlePointerMove = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (!isDragging || !displaySize || !dragSnapshotRef.current) return;
+      const maxOffsetX = Math.max(displaySize.width - CROP_SIZE, 0);
+      const maxOffsetY = Math.max(displaySize.height - CROP_SIZE, 0);
+      if (maxOffsetX === 0 && maxOffsetY === 0) return;
 
-    const deltaX = event.clientX - dragSnapshotRef.current.startX;
-    const deltaY = event.clientY - dragSnapshotRef.current.startY;
+      const deltaX = event.clientX - dragSnapshotRef.current.startX;
+      const deltaY = event.clientY - dragSnapshotRef.current.startY;
 
-    const percentXDelta = maxOffsetX ? (deltaX / maxOffsetX) * 100 : 0;
-    const percentYDelta = maxOffsetY ? (deltaY / maxOffsetY) * 100 : 0;
+      const percentXDelta = maxOffsetX ? (deltaX / maxOffsetX) * 100 : 0;
+      const percentYDelta = maxOffsetY ? (deltaY / maxOffsetY) * 100 : 0;
 
-    setPosition({
-      x: clamp(dragSnapshotRef.current.startPercentX + percentXDelta, 0, 100),
-      y: clamp(dragSnapshotRef.current.startPercentY + percentYDelta, 0, 100),
-    });
-  }, [displaySize, isDragging]);
+      setPosition({
+        x: clamp(dragSnapshotRef.current.startPercentX + percentXDelta, 0, 100),
+        y: clamp(dragSnapshotRef.current.startPercentY + percentYDelta, 0, 100),
+      });
+    },
+    [displaySize, isDragging]
+  );
 
   const stopDragging = useCallback((event?: React.PointerEvent<HTMLDivElement>) => {
     if (event) {
@@ -219,7 +225,9 @@ export function AvatarCropDialog({
                 min={0}
                 max={100}
                 step={0.5}
-                onChange={(_, value) => setPosition((prev) => ({ ...prev, x: Array.isArray(value) ? value[0] : value }))}
+                onChange={(_, value) =>
+                  setPosition((prev) => ({ ...prev, x: Array.isArray(value) ? value[0] : value }))
+                }
                 disabled={!displaySize || displaySize.width <= CROP_SIZE}
               />
             </Stack>
@@ -233,7 +241,9 @@ export function AvatarCropDialog({
                 min={0}
                 max={100}
                 step={0.5}
-                onChange={(_, value) => setPosition((prev) => ({ ...prev, y: Array.isArray(value) ? value[0] : value }))}
+                onChange={(_, value) =>
+                  setPosition((prev) => ({ ...prev, y: Array.isArray(value) ? value[0] : value }))
+                }
                 disabled={!displaySize || displaySize.height <= CROP_SIZE}
               />
             </Stack>

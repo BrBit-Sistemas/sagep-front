@@ -6,6 +6,4 @@ export const dashboardService = {
   getMetrics: () => dashboardApi.metrics(),
 };
 
-export type DashboardMetrics = Awaited<
-  ReturnType<typeof dashboardService.getMetrics>
->;
+export type DashboardMetrics = Awaited<ReturnType<typeof dashboardService.getMetrics>>;

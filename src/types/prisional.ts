@@ -1,6 +1,6 @@
 /**
  * Tipos e Enums do Sistema Prisional
- * 
+ *
  * Este arquivo centraliza todas as definições relacionadas ao sistema prisional,
  * incluindo regimes, escolaridade e outras constantes utilizadas em todo o sistema.
  */
@@ -32,7 +32,7 @@ export const getRegimeOptions = (): { value: Regime; label: string }[] => [
  * Obtém o label formatado de um regime
  */
 export const getRegimeLabel = (regime: Regime): string => {
-  const option = getRegimeOptions().find(opt => opt.value === regime);
+  const option = getRegimeOptions().find((opt) => opt.value === regime);
   return option?.label || regime;
 };
 
@@ -41,19 +41,19 @@ export const getRegimeLabel = (regime: Regime): string => {
 // ============================================================================
 
 export enum Escolaridade {
-  NAO_ALFABETIZADO = "NÃO ALFABETIZADO",
-  FUNDAMENTAL_I_INCOMPLETO = "FUNDAMENTAL I INCOMPLETO",
-  FUNDAMENTAL_I_COMPLETO = "FUNDAMENTAL I COMPLETO",
-  FUNDAMENTAL_II_INCOMPLETO = "FUNDAMENTAL II INCOMPLETO",
-  FUNDAMENTAL_II_COMPLETO = "FUNDAMENTAL II COMPLETO",
-  ENSINO_MEDIO_INCOMPLETO = "ENSINO MÉDIO INCOMPLETO",
-  ENSINO_MEDIO_COMPLETO = "ENSINO MÉDIO COMPLETO",
-  SUPERIOR_INCOMPLETO = "SUPERIOR INCOMPLETO",
-  SUPERIOR_COMPLETO = "SUPERIOR COMPLETO",
-  POS_GRADUACAO = "PÓS-GRADUAÇÃO",
-  MESTRADO = "MESTRADO",
-  DOUTORADO = "DOUTORADO",
-  POS_DOUTORADO = "PÓS-DOUTORADO",
+  NAO_ALFABETIZADO = 'NÃO ALFABETIZADO',
+  FUNDAMENTAL_I_INCOMPLETO = 'FUNDAMENTAL I INCOMPLETO',
+  FUNDAMENTAL_I_COMPLETO = 'FUNDAMENTAL I COMPLETO',
+  FUNDAMENTAL_II_INCOMPLETO = 'FUNDAMENTAL II INCOMPLETO',
+  FUNDAMENTAL_II_COMPLETO = 'FUNDAMENTAL II COMPLETO',
+  ENSINO_MEDIO_INCOMPLETO = 'ENSINO MÉDIO INCOMPLETO',
+  ENSINO_MEDIO_COMPLETO = 'ENSINO MÉDIO COMPLETO',
+  SUPERIOR_INCOMPLETO = 'SUPERIOR INCOMPLETO',
+  SUPERIOR_COMPLETO = 'SUPERIOR COMPLETO',
+  POS_GRADUACAO = 'PÓS-GRADUAÇÃO',
+  MESTRADO = 'MESTRADO',
+  DOUTORADO = 'DOUTORADO',
+  POS_DOUTORADO = 'PÓS-DOUTORADO',
 }
 
 /**
@@ -79,7 +79,7 @@ export const getEscolaridadeOptions = (): { value: Escolaridade; label: string }
  * Obtém o label formatado de uma escolaridade
  */
 export const getEscolaridadeLabel = (escolaridade: Escolaridade): string => {
-  const option = getEscolaridadeOptions().find(opt => opt.value === escolaridade);
+  const option = getEscolaridadeOptions().find((opt) => opt.value === escolaridade);
   return option?.label || escolaridade;
 };
 
@@ -104,8 +104,8 @@ export const CONVENIO_TIPOS = [
 export const enumToMultiSelectOptions = <T extends string>(
   enumObject: Record<string, T>,
   getLabel: (value: T) => string
-): { value: T; label: string }[] => 
-  Object.values(enumObject).map(value => ({
+): { value: T; label: string }[] =>
+  Object.values(enumObject).map((value) => ({
     value,
     label: getLabel(value),
   }));

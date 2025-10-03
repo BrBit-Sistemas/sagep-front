@@ -34,4 +34,3 @@ export const useEmpresaConvenioCadastroStore = create<Store>((set) => ({
   selected: null,
   setSelected: (item) => set({ selected: item }),
 }));
-

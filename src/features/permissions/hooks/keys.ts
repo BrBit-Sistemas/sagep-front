@@ -7,4 +7,3 @@ export const permissionsKeys = {
   rolesList: (params: PaginatedParams) => [...permissionsKeys.rolesAll, params] as const,
   roleDetail: (id: string) => [...permissionsKeys.rolesAll, 'detail', id] as const,
 };
-

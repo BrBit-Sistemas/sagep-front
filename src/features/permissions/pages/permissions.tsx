@@ -50,7 +50,6 @@ const ACTION_LABELS: Record<string, string> = {
 
 const getActionLabel = (action?: string) => ACTION_LABELS[action ?? ''] ?? action ?? '';
 
-
 export default function PermissionsPage() {
   const queryClient = useQueryClient();
   const [selectedUser, setSelectedUser] = useState<ReadUsuarioDto | null>(null);
@@ -182,7 +181,10 @@ export default function PermissionsPage() {
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 5 }}>
           <Card>
-            <CardHeader title="Usuários" subheader="Adicione ou retire grupos de permissões dos usuários" />
+            <CardHeader
+              title="Usuários"
+              subheader="Adicione ou retire grupos de permissões dos usuários"
+            />
             <CardContent>
               <TextField
                 fullWidth
@@ -289,7 +291,10 @@ export default function PermissionsPage() {
         </Grid>
         <Grid size={{ xs: 12, md: 7 }}>
           <Card>
-            <CardHeader title="Grupos de permissões" subheader="Crie um grupo de permissões e adicione a ele as permissões que desejar" />
+            <CardHeader
+              title="Grupos de permissões"
+              subheader="Crie um grupo de permissões e adicione a ele as permissões que desejar"
+            />
             <CardContent>
               <Grid container spacing={2}>
                 <Grid size={{ xs: 12, md: 6 }}>

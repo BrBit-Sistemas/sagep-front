@@ -12,5 +12,3 @@ export function isValidRg(input: string): boolean {
 
   return true;
 }
-
-

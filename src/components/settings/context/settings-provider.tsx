@@ -49,7 +49,6 @@ export function SettingsProvider({
         onReset();
       }
     }
-     
   }, []);
 
   const memoizedValue = useMemo(

@@ -39,17 +39,15 @@ export const getEmpresas = () => {
 
   const create = (
     body: BodyType<CreateEmpresaDto>,
-    options?: Parameters<typeof customInstance>[1],
+    options?: Parameters<typeof customInstance>[1]
   ) =>
     customInstance<ReadEmpresaDto>(
       { url: base, method: 'POST', headers: { 'Content-Type': 'application/json' }, data: body },
-      options,
+      options
     );
 
-  const findAll = (
-    params?: ListEmpresaParams,
-    options?: Parameters<typeof customInstance>[1],
-  ) => customInstance<PaginateEmpresaDto>({ url: base, method: 'GET', params }, options);
+  const findAll = (params?: ListEmpresaParams, options?: Parameters<typeof customInstance>[1]) =>
+    customInstance<PaginateEmpresaDto>({ url: base, method: 'GET', params }, options);
 
   const findOne = (id: string, options?: Parameters<typeof customInstance>[1]) =>
     customInstance<ReadEmpresaDto>({ url: `${base}/${id}`, method: 'GET' }, options);
@@ -57,11 +55,16 @@ export const getEmpresas = () => {
   const update = (
     id: string,
     body: BodyType<UpdateEmpresaDto>,
-    options?: Parameters<typeof customInstance>[1],
+    options?: Parameters<typeof customInstance>[1]
   ) =>
     customInstance<ReadEmpresaDto>(
-      { url: `${base}/${id}`, method: 'PUT', headers: { 'Content-Type': 'application/json' }, data: body },
-      options,
+      {
+        url: `${base}/${id}`,
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        data: body,
+      },
+      options
     );
 
   const remove = (id: string, options?: Parameters<typeof customInstance>[1]) =>

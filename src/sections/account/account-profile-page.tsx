@@ -3,15 +3,7 @@ import type { ReadUsuarioDto } from 'src/api/generated.schemas';
 import { useState, useEffect, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-import {
-  Grid,
-  Card,
-  Stack,
-  Button,
-  Divider,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { Grid, Card, Stack, Button, Divider, TextField, Typography } from '@mui/material';
 
 import { paths } from 'src/routes/paths';
 
@@ -131,7 +123,8 @@ export default function AccountProfilePage() {
                 accept={{ 'image/*': [] }}
               />
               <Typography variant="body2" color="text.secondary" textAlign="center">
-                Utilize uma imagem quadrada para obter o melhor recorte. Você poderá ajustar o zoom antes de salvar.
+                Utilize uma imagem quadrada para obter o melhor recorte. Você poderá ajustar o zoom
+                antes de salvar.
               </Typography>
               <Stack direction="row" spacing={1.5}>
                 <Button

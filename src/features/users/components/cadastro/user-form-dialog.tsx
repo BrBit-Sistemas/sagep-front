@@ -140,9 +140,9 @@ export const UserFormDialog = ({
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>
-              <Field.Text 
-                name="cpf" 
-                label="CPF" 
+              <Field.Text
+                name="cpf"
+                label="CPF"
                 placeholder="00000000000"
                 slotProps={{ inputLabel: { shrink: true } }}
               />

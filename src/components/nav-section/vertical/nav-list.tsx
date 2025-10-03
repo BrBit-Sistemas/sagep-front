@@ -31,7 +31,6 @@ export function NavList({
     if (!isActive) {
       onClose();
     }
-     
   }, [pathname]);
 
   const handleToggleMenu = useCallback(() => {

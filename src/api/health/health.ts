@@ -11,7 +11,8 @@ import { customInstance } from '../../lib/axios';
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 export const getHealth = () => {
-  const check = (options?: SecondParameter<typeof customInstance>) => customInstance<HealthControllerCheck200>({ url: `/health`, method: 'GET' }, options);
+  const check = (options?: SecondParameter<typeof customInstance>) =>
+    customInstance<HealthControllerCheck200>({ url: `/health`, method: 'GET' }, options);
   return { check };
 };
 export type CheckResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getHealth>['check']>>>;

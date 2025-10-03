@@ -144,7 +144,7 @@ const ConveniosStatusCard = ({ data, isLoading }: { data: StatusMetric[]; isLoad
                 </Typography>
               )}
             </Stack>
-            <Box 
+            <Box
               sx={{
                 p: 1.5,
                 borderRadius: '50%',
@@ -158,44 +158,42 @@ const ConveniosStatusCard = ({ data, isLoading }: { data: StatusMetric[]; isLoad
           </Stack>
           <Divider sx={{ borderStyle: 'dashed' }} />
           <Stack spacing={2}>
-            {isLoading
-              ? Array.from({ length: 3 }).map((_, index) => (
-                  <Stack key={index} spacing={0.5}>
-                    <Skeleton variant="text" width="50%" />
-                    <Skeleton variant="rectangular" height={6} sx={{ borderRadius: 6 }} />
-                  </Stack>
-                ))
-              : data.length === 0
-                ? (
-                    <Typography variant="body2" color="text.secondary">
-                      Nenhum convênio encontrado.
-                    </Typography>
-                  )
-                : (
-                    data.map((status) => {
-                      const paletteColor = theme.palette[status.color as PaletteColorKey];
-                      const percentage = total ? Math.round((status.value / total) * 100) : 0;
+            {isLoading ? (
+              Array.from({ length: 3 }).map((_, index) => (
+                <Stack key={index} spacing={0.5}>
+                  <Skeleton variant="text" width="50%" />
+                  <Skeleton variant="rectangular" height={6} sx={{ borderRadius: 6 }} />
+                </Stack>
+              ))
+            ) : data.length === 0 ? (
+              <Typography variant="body2" color="text.secondary">
+                Nenhum convênio encontrado.
+              </Typography>
+            ) : (
+              data.map((status) => {
+                const paletteColor = theme.palette[status.color as PaletteColorKey];
+                const percentage = total ? Math.round((status.value / total) * 100) : 0;
 
-                      return (
-                        <Stack key={status.label} spacing={0.5}>
-                          <Stack direction="row" justifyContent="space-between" alignItems="center">
-                            <Typography variant="body2">{status.label}</Typography>
-                            <Typography variant="subtitle2">{status.value}</Typography>
-                          </Stack>
-                          <LinearProgress
-                            variant="determinate"
-                            value={percentage}
-                            sx={{
-                              height: 6,
-                              borderRadius: 6,
-                              bgcolor: alpha(paletteColor.main, 0.16),
-                              '& .MuiLinearProgress-bar': { bgcolor: paletteColor.main },
-                            }}
-                          />
-                        </Stack>
-                      );
-                    })
-                  )}
+                return (
+                  <Stack key={status.label} spacing={0.5}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center">
+                      <Typography variant="body2">{status.label}</Typography>
+                      <Typography variant="subtitle2">{status.value}</Typography>
+                    </Stack>
+                    <LinearProgress
+                      variant="determinate"
+                      value={percentage}
+                      sx={{
+                        height: 6,
+                        borderRadius: 6,
+                        bgcolor: alpha(paletteColor.main, 0.16),
+                        '& .MuiLinearProgress-bar': { bgcolor: paletteColor.main },
+                      }}
+                    />
+                  </Stack>
+                );
+              })
+            )}
           </Stack>
         </Stack>
       </CardContent>

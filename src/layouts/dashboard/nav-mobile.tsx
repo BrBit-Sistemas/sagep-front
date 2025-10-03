@@ -41,7 +41,6 @@ export function NavMobile({
     if (open) {
       onClose();
     }
-     
   }, [pathname]);
 
   return (

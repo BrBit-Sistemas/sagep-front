@@ -46,7 +46,6 @@ export function NavList({
     if (open) {
       onClose();
     }
-     
   }, [pathname]);
 
   const handleOpenMenu = useCallback(() => {

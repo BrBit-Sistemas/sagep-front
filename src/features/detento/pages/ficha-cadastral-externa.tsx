@@ -30,7 +30,12 @@ import { Form, Field } from 'src/components/hook-form';
 
 import { usePermissionCheck } from 'src/auth/guard/permission-guard';
 
-import { Regime, Escolaridade, getRegimeOptions, getEscolaridadeOptions } from 'src/types/prisional';
+import {
+  Regime,
+  Escolaridade,
+  getRegimeOptions,
+  getEscolaridadeOptions,
+} from 'src/types/prisional';
 
 import { detentoService } from '../data';
 import { createDetentoFichaCadastralSchema } from '../schemas';

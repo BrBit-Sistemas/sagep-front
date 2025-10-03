@@ -99,12 +99,10 @@ export const detentoService: DetentoService = {
   createFichaCadastral: async (data) => {
     // Chama a API real para criar a ficha cadastral
     const fichasApi = getFichasCadastrais();
-    const ficha = await fichasApi.create(
-      {
-        ...data,
-        documentos: mapDocumentosPayload((data as any)?.documentos),
-      } as CreateFichaCadastralDto,
-    );
+    const ficha = await fichasApi.create({
+      ...data,
+      documentos: mapDocumentosPayload((data as any)?.documentos),
+    } as CreateFichaCadastralDto);
     return ficha;
   },
   updateFichaCadastral: async (fichacadastral_id, data) => {
@@ -115,16 +113,24 @@ export const detentoService: DetentoService = {
     });
   },
   paginate: async ({ page, limit, search, cpf, nome, sort, order }: any) => {
-    const res = await api.findAll({ page, limit, search, cpf, nome, sort, order });
-    return {
+    // Converter página de 1-based (frontend) para 0-based (backend)
+    const backendPage = page - 1;
+    
+
+    const res = await api.findAll({ page: backendPage, limit, search, cpf, nome, sort, order });
+
+    const result = {
       items: res.items.map(toDetento),
-      page: res.page,
+      page: Number(res.page) + 1, // Converter de volta para 1-based para o frontend
       limit: res.limit,
       total: res.total,
       totalPages: Math.ceil((res.total ?? 0) / (res.limit || 1)) || 0,
-      hasNextPage: res.page * res.limit < res.total,
-      hasPrevPage: res.page > 1,
+      hasNextPage: res.hasNextPage,
+      hasPrevPage: res.hasPrevPage,
     } as const;
+
+
+    return result;
   },
   create: async (data) => {
     const dto = await api.create(data);

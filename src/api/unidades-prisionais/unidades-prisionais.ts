@@ -24,7 +24,8 @@ export const getUnidadesPrisionais = () => {
   const create = (
     createUnidadePrisionalDto: BodyType<CreateUnidadePrisionalDto>,
     options?: SecondParameter<typeof customInstance>
-  ) => customInstance<ReadUnidadePrisionalDto>(
+  ) =>
+    customInstance<ReadUnidadePrisionalDto>(
       {
         url: `/unidades-prisionais`,
         method: 'POST',
@@ -39,14 +40,16 @@ export const getUnidadesPrisionais = () => {
   const findAll = (
     params?: UnidadePrisionalControllerFindAllParams,
     options?: SecondParameter<typeof customInstance>
-  ) => customInstance<PaginateUnidadePrisionalDto>(
+  ) =>
+    customInstance<PaginateUnidadePrisionalDto>(
       { url: `/unidades-prisionais`, method: 'GET', params },
       options
     );
   /**
    * @summary Buscar uma unidade prisional pelo ID
    */
-  const findOne = (id: string, options?: SecondParameter<typeof customInstance>) => customInstance<ReadUnidadePrisionalDto>(
+  const findOne = (id: string, options?: SecondParameter<typeof customInstance>) =>
+    customInstance<ReadUnidadePrisionalDto>(
       { url: `/unidades-prisionais/${id}`, method: 'GET' },
       options
     );
@@ -57,7 +60,8 @@ export const getUnidadesPrisionais = () => {
     id: string,
     updateUnidadePrisionalDto: BodyType<UpdateUnidadePrisionalDto>,
     options?: SecondParameter<typeof customInstance>
-  ) => customInstance<ReadUnidadePrisionalDto>(
+  ) =>
+    customInstance<ReadUnidadePrisionalDto>(
       {
         url: `/unidades-prisionais/${id}`,
         method: 'PUT',
@@ -69,7 +73,8 @@ export const getUnidadesPrisionais = () => {
   /**
    * @summary Remover uma unidade prisional pelo ID
    */
-  const remove = (id: string, options?: SecondParameter<typeof customInstance>) => customInstance<void>({ url: `/unidades-prisionais/${id}`, method: 'DELETE' }, options);
+  const remove = (id: string, options?: SecondParameter<typeof customInstance>) =>
+    customInstance<void>({ url: `/unidades-prisionais/${id}`, method: 'DELETE' }, options);
   return { create, findAll, findOne, update, remove };
 };
 export type CreateResult = NonNullable<

@@ -55,11 +55,11 @@ export const getEmpresaConvenios = () => {
 
   const create = (
     body: BodyType<CreateEmpresaConvenioDto>,
-    options?: Parameters<typeof customInstance>[1],
+    options?: Parameters<typeof customInstance>[1]
   ) =>
     customInstance<ReadEmpresaConvenioDto>(
       { url: base, method: 'POST', headers: { 'Content-Type': 'application/json' }, data: body },
-      options,
+      options
     );
 
   const findAll = (params?: ListParams, options?: Parameters<typeof customInstance>[1]) =>
@@ -71,11 +71,16 @@ export const getEmpresaConvenios = () => {
   const update = (
     id: string,
     body: BodyType<UpdateEmpresaConvenioDto>,
-    options?: Parameters<typeof customInstance>[1],
+    options?: Parameters<typeof customInstance>[1]
   ) =>
     customInstance<ReadEmpresaConvenioDto>(
-      { url: `${base}/${id}`, method: 'PUT', headers: { 'Content-Type': 'application/json' }, data: body },
-      options,
+      {
+        url: `${base}/${id}`,
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        data: body,
+      },
+      options
     );
 
   const remove = (id: string, options?: Parameters<typeof customInstance>[1]) =>

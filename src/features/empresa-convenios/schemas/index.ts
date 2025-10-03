@@ -3,7 +3,12 @@ import type { StatusConvenio, ModalidadeExecucao } from '../types';
 import { z } from 'zod';
 
 export const modalidadesExecucao: ModalidadeExecucao[] = ['INTRAMUROS', 'EXTRAMUROS'];
-export const statusConvenioValues: StatusConvenio[] = ['RASCUNHO', 'ATIVO', 'SUSPENSO', 'ENCERRADO'];
+export const statusConvenioValues: StatusConvenio[] = [
+  'RASCUNHO',
+  'ATIVO',
+  'SUSPENSO',
+  'ENCERRADO',
+];
 
 const toNumberArray = (val: unknown) => {
   if (Array.isArray(val)) return val.map((x) => Number(x)).filter((x) => !Number.isNaN(x));

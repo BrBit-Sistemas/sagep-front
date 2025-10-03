@@ -201,89 +201,85 @@ export function DashboardLayout({
         )
       }
       slots={{
-        topArea: isNavMini
-          ? undefined
-          : (
-              <Box
-                sx={(navTheme) => ({
-                  px: 3,
-                  pt: 2,
-                  pb: 2,
-                  color: 'var(--layout-nav-text-primary-color)',
-                  [navTheme.breakpoints.up(layoutQuery)]: {
-                    ...dashboardLayoutVars(navTheme),
-                    height: 'auto',
-                  },
-                })}
-              >
-                <Logo sx={{ height: 56, width: 'auto', mb: 2 }} />
-                
-                {/* Linha divisória sutil após o logo */}
-                <Box
-                  sx={{
-                    height: 0.008,
-                    bgcolor: 'var(--layout-nav-text-secondary-color)',
-                    opacity: 0.12,
-                    mb: 2,
-                    mt: 2,
-                  }}
-                />
-                
-                <Box
-                  sx={{
-                    mb: 2,
-                    py: 1.5,
-                    px: 1.5,
-                    borderRadius: 1,
-                    // backgroundImage: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="%23ffffff" fill-opacity="0.15"%3E%3Cpath d="M30 30c0-8.3-6.7-15-15-15s-15 6.7-15 15 6.7 15 15 15 15-6.7 15-15zm15 0c0-8.3-6.7-15-15-15s-15 6.7-15 15 6.7 15 15 15 15-6.7 15-15z"/%3E%3C/g%3E%3C/svg%3E")',
-                    backgroundImage: 'url("/imgs/5807322.jpg")',
-                    backgroundSize: '269px 169px',
-                    backgroundRepeat: 'no-repeat',
-                    opacity: 0.7,
-                    // backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  }}
+        topArea: isNavMini ? undefined : (
+          <Box
+            sx={(navTheme) => ({
+              px: 3,
+              pt: 2,
+              pb: 2,
+              color: 'var(--layout-nav-text-primary-color)',
+              [navTheme.breakpoints.up(layoutQuery)]: {
+                ...dashboardLayoutVars(navTheme),
+                height: 'auto',
+              },
+            })}
+          >
+            <Logo sx={{ height: 56, width: 'auto', mb: 2 }} />
+
+            {/* Linha divisória sutil após o logo */}
+            <Box
+              sx={{
+                height: 0.008,
+                bgcolor: 'var(--layout-nav-text-secondary-color)',
+                opacity: 0.12,
+                mb: 2,
+                mt: 2,
+              }}
+            />
+
+            <Box
+              sx={{
+                mb: 2,
+                py: 1.5,
+                px: 1.5,
+                borderRadius: 1,
+                // backgroundImage: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="%23ffffff" fill-opacity="0.15"%3E%3Cpath d="M30 30c0-8.3-6.7-15-15-15s-15 6.7-15 15 6.7 15 15 15 15-6.7 15-15zm15 0c0-8.3-6.7-15-15-15s-15 6.7-15 15 6.7 15 15 15 15-6.7 15-15z"/%3E%3C/g%3E%3C/svg%3E")',
+                backgroundImage: 'url("/imgs/5807322.jpg")',
+                backgroundSize: '269px 169px',
+                backgroundRepeat: 'no-repeat',
+                opacity: 0.7,
+                // backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              }}
+            >
+              <Stack direction="row" spacing={1.5} alignItems="center">
+                <Avatar
+                  src={userAvatarUrl}
+                  alt={userName}
+                  sx={(avatarTheme) => ({
+                    width: 48,
+                    height: 48,
+                    color: 'var(--layout-nav-text-primary-color)',
+                    backgroundColor: varAlpha(avatarTheme.vars.palette.common.whiteChannel, 0.08),
+                    border: `1px solid ${varAlpha(avatarTheme.vars.palette.common.whiteChannel, 0.16)}`,
+                  })}
                 >
-                  <Stack direction="row" spacing={1.5} alignItems="center">
-                    <Avatar
-                      src={userAvatarUrl}
-                      alt={userName}
-                      sx={(avatarTheme) => ({
-                        width: 48,
-                        height: 48,
-                        color: 'var(--layout-nav-text-primary-color)',
-                        backgroundColor: varAlpha(avatarTheme.vars.palette.common.whiteChannel, 0.08),
-                        border: `1px solid ${varAlpha(avatarTheme.vars.palette.common.whiteChannel, 0.16)}`,
-                      })}
+                  {userInitial}
+                </Avatar>
+                <Stack spacing={0.5} alignItems="flex-start" sx={{ minWidth: 0 }}>
+                  <Typography variant="subtitle2">{userName}</Typography>
+                  {userSecretaria && (
+                    <Typography
+                      variant="caption"
+                      sx={{ color: 'var(--layout-nav-text-primary-color)' }}
+                      noWrap
                     >
-                      {userInitial}
-                    </Avatar>
-                    <Stack spacing={0.5} alignItems="flex-start" sx={{ minWidth: 0 }}>
-                      <Typography variant="subtitle2">
-                        {userName}
-                      </Typography>
-                      {userSecretaria && (
-                        <Typography
-                          variant="caption"
-                          sx={{ color: 'var(--layout-nav-text-primary-color)' }}
-                          noWrap
-                        >
-                          {userSecretaria}
-                        </Typography>
-                      )}
-                    </Stack>
-                  </Stack>
-                </Box>
-                {/* Linha divisória sutil antes do menu */}   
-                  <Box
-                    sx={{
-                      height: 0.005,
-                      bgcolor: 'var(--layout-nav-text-secondary-color)',
-                      opacity: 0.12,
-                      mb: 3,
-                    }}
-                  /> 
-                </Box>
-            ),
+                      {userSecretaria}
+                    </Typography>
+                  )}
+                </Stack>
+              </Stack>
+            </Box>
+            {/* Linha divisória sutil antes do menu */}
+            <Box
+              sx={{
+                height: 0.005,
+                bgcolor: 'var(--layout-nav-text-secondary-color)',
+                opacity: 0.12,
+                mb: 3,
+              }}
+            />
+          </Box>
+        ),
         bottomArea: (
           <NavSectionVertical
             data={navBottomData}
