@@ -1,4 +1,5 @@
-import type { CrudService, PaginatedParams } from 'src/types';
+import type { CrudService } from 'src/types';
+import type { UnidadePrisionalListParams } from 'src/features/unidades-prisionais/types';
 import type {
   ReadUnidadePrisionalDto,
   CreateUnidadePrisionalDto,
@@ -13,9 +14,9 @@ export const unidadePrisionalService: CrudService<
   ReadUnidadePrisionalDto,
   CreateUnidadePrisionalDto,
   UpdateUnidadePrisionalDto,
-  PaginatedParams
+  UnidadePrisionalListParams
 > = {
-  paginate: async ({ page, limit, search }: PaginatedParams) => {
+  paginate: async ({ page, limit, search }: UnidadePrisionalListParams) => {
     // Converter página de 1-based (frontend) para 0-based (backend)
     const backendPage = page - 1;
     
@@ -29,7 +30,7 @@ export const unidadePrisionalService: CrudService<
       totalPages: Math.ceil((res.total ?? 0) / (res.limit || 1)) || 0,
       hasNextPage: res.hasNextPage,
       hasPrevPage: res.hasPrevPage,
-    };
+    } as const;
   },
   create: async (data) => api.create(data),
   read: async (id) => api.findOne(id),
