@@ -1,5 +1,5 @@
-import type { Empresa } from '../types';
-import type { CrudService, PaginatedParams } from 'src/types';
+import type { CrudService } from 'src/types';
+import type { Empresa, EmpresaListParams } from '../types';
 import type { CreateEmpresaSchema, UpdateEmpresaSchema } from '../schemas';
 
 import {
@@ -25,9 +25,9 @@ export const empresaService: CrudService<
   Empresa,
   CreateEmpresaSchema,
   UpdateEmpresaSchema,
-  PaginatedParams
+  EmpresaListParams
 > = {
-  paginate: async ({ page, limit, search, sort, order }) => {
+  paginate: async ({ page, limit, search, sort, order }: EmpresaListParams) => {
     const api = getEmpresas();
     // Converter página de 1-based (frontend) para 0-based (backend)
     const backendPage = page - 1;
@@ -42,7 +42,7 @@ export const empresaService: CrudService<
       hasNextPage: response.hasNextPage,
       hasPrevPage: response.hasPrevPage,
       items: response.items.map(fromApi),
-    };
+    } as const;
   },
   create: async (data) => {
     const api = getEmpresas();

@@ -1,4 +1,5 @@
-import type { CrudService, PaginatedParams, PaginatedResponse } from 'src/types';
+import type { CrudService, PaginatedResponse } from 'src/types';
+import type { ProfissaoListParams } from 'src/features/profissoes/types';
 import type {
   ReadProfissaoDto,
   CreateProfissaoDto,
@@ -13,9 +14,9 @@ export const profissaoService: CrudService<
   ReadProfissaoDto,
   CreateProfissaoDto,
   UpdateProfissaoDto,
-  PaginatedParams
+  ProfissaoListParams
 > = {
-  paginate: async ({ page, limit, search }: PaginatedParams): Promise<PaginatedResponse<ReadProfissaoDto>> => {
+  paginate: async ({ page, limit, search, sort, order }: ProfissaoListParams): Promise<PaginatedResponse<ReadProfissaoDto>> => {
     // Converter página de 1-based (frontend) para 0-based (backend)
     const backendPage = page - 1;
     
@@ -29,7 +30,7 @@ export const profissaoService: CrudService<
       totalPages: Math.ceil((res.total ?? 0) / (res.limit || 1)) || 0,
       hasNextPage: res.hasNextPage,
       hasPrevPage: res.hasPrevPage,
-    };
+    } as const;
   },
   create: async (data: CreateProfissaoDto): Promise<ReadProfissaoDto> => {
     const response = await api.create(data);

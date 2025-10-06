@@ -1,5 +1,7 @@
 import type { GridSortModel, GridFilterModel, GridPaginationModel } from '@mui/x-data-grid/models';
 
+import { useMemo, useCallback } from 'react';
+
 import { Card, Button } from '@mui/material';
 
 import { paths } from 'src/routes/paths';
@@ -38,10 +40,45 @@ export default function SecretariaCadastroPage() {
     setSearchParams({ sort: newModel[0]?.field || '', order: newModel[0]?.sort || 'asc' });
   };
 
-  const handleFilterModelChange = (model: GridFilterModel) => {
+  const handleFilterModelChange = useCallback((model: GridFilterModel) => {
     const quick = Array.isArray(model.quickFilterValues) ? model.quickFilterValues.join(' ') : '';
     setSearchParams({ search: quick, page: 1 });
-  };
+  }, [setSearchParams]);
+
+  // Memoizar as props para evitar re-renderizações desnecessárias
+  const dataGridProps = useMemo(
+    () => ({
+      hasNextPage: data?.hasNextPage || false,
+      total: data?.total || 0,
+      rows: data?.items || [],
+      columns,
+      loading: isLoading,
+      page: searchParams.page,
+      limit: searchParams.limit,
+      sort: searchParams.sort,
+      order: searchParams.order,
+      search: searchParams.search,
+      onPaginationModelChange: handlePaginationModelChange,
+      onSortModelChange: handleSortModelChange,
+      onFilterModelChange: handleFilterModelChange,
+      getRowId: (row: any) => row.id,
+    }),
+    [
+      data?.hasNextPage,
+      data?.total,
+      data?.items,
+      columns,
+      isLoading,
+      searchParams.page,
+      searchParams.limit,
+      searchParams.sort,
+      searchParams.order,
+      searchParams.search,
+      handlePaginationModelChange,
+      handleSortModelChange,
+      handleFilterModelChange,
+    ]
+  );
 
   return (
     <DashboardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
@@ -77,22 +114,7 @@ export default function SecretariaCadastroPage() {
           flexDirection: { md: 'column' },
         }}
       >
-        <CustomDataGrid
-          hasNextPage={data?.hasNextPage || false}
-          total={data?.total || 0}
-          rows={data?.items || []}
-          columns={columns}
-          loading={isLoading}
-          page={searchParams.page}
-          limit={searchParams.limit}
-          sort={searchParams.sort}
-          order={searchParams.order}
-          search={searchParams.search}
-          onPaginationModelChange={handlePaginationModelChange}
-          onSortModelChange={handleSortModelChange}
-          onFilterModelChange={handleFilterModelChange}
-          getRowId={(row: any) => row.id}
-        />
+        <CustomDataGrid {...dataGridProps} />
 
         <SecretariaFormDialog
           open={isFormDialogOpen}

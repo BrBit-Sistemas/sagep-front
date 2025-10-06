@@ -1,4 +1,5 @@
-import type { CrudService, PaginatedParams } from 'src/types';
+import type { CrudService } from 'src/types';
+import type { RegionalListParams } from 'src/features/regionais/types';
 import type {
   ReadRegionalDto,
   CreateRegionalDto,
@@ -13,9 +14,9 @@ export const regionalService: CrudService<
   ReadRegionalDto,
   CreateRegionalDto,
   UpdateRegionalDto,
-  PaginatedParams
+  RegionalListParams
 > = {
-  paginate: async ({ page, limit, search }: PaginatedParams) => {
+  paginate: async ({ page, limit, search, sort, order }: RegionalListParams) => {
     // Converter página de 1-based (frontend) para 0-based (backend)
     const backendPage = page - 1;
     
@@ -29,7 +30,7 @@ export const regionalService: CrudService<
       totalPages: Math.ceil((res.total ?? 0) / (res.limit || 1)) || 0,
       hasNextPage: res.hasNextPage,
       hasPrevPage: res.hasPrevPage,
-    };
+    } as const;
   },
   create: async (data: CreateRegionalDto) => api.create(data),
   read: async (id: string) => api.findOne(id),

@@ -25,3 +25,11 @@ export interface RegionalFilters {
   nome?: string;
   secretariaId?: string;
 }
+
+export type SecretariaListParams = {
+  page: number;
+  limit: number;
+  search?: string;
+  sort?: string;
+  order?: 'asc' | 'desc';
+};

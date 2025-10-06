@@ -10,7 +10,7 @@ import {
 export const secretariaSearchQueryParsers = {
   search: parseAsString.withDefault(''),
   nome: parseAsString.withDefault(''),
-  page: parseAsInteger.withDefault(0),
+  page: parseAsInteger.withDefault(1),
   limit: parseAsInteger.withDefault(10),
   sort: parseAsString.withDefault(''),
   order: parseAsStringEnum(['asc', 'desc']).withDefault('asc'),

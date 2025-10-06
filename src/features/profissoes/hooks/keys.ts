@@ -1,6 +1,6 @@
-import type { PaginatedParams } from 'src/types';
+import type { ProfissaoListParams } from 'src/features/profissoes/types';
 
 export const profissaoKeys = {
   all: ['profissoes'] as const,
-  list: (params: PaginatedParams) => [...profissaoKeys.all, params] as const,
+  list: (params: ProfissaoListParams) => [...profissaoKeys.all, params] as const,
 };

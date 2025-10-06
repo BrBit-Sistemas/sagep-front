@@ -1,6 +1,6 @@
 import type { GridSortModel, GridFilterModel, GridPaginationModel } from '@mui/x-data-grid/models';
 
-import { useCallback } from 'react';
+import { useMemo, useCallback } from 'react';
 
 import { Card, Button } from '@mui/material';
 
@@ -56,6 +56,41 @@ export default function ProfissaoCadastroPage() {
     [setSearchParams]
   );
 
+  // Memoizar as props para evitar re-renderizações desnecessárias
+  const dataGridProps = useMemo(
+    () => ({
+      hasNextPage: data?.hasNextPage || false,
+      total: data?.total || 0,
+      rows: data?.items || [],
+      columns,
+      loading: isLoading,
+      page: searchParams.page,
+      limit: searchParams.limit,
+      sort: searchParams.sort,
+      order: searchParams.order,
+      search: searchParams.search,
+      onPaginationModelChange: handlePaginationModelChange,
+      onSortModelChange: handleSortModelChange,
+      onFilterModelChange: handleFilterModelChange,
+      getRowId: (row: any) => row.id,
+    }),
+    [
+      data?.hasNextPage,
+      data?.total,
+      data?.items,
+      columns,
+      isLoading,
+      searchParams.page,
+      searchParams.limit,
+      searchParams.sort,
+      searchParams.order,
+      searchParams.search,
+      handlePaginationModelChange,
+      handleSortModelChange,
+      handleFilterModelChange,
+    ]
+  );
+
   return (
     <DashboardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
       <CustomBreadcrumbs
@@ -90,22 +125,7 @@ export default function ProfissaoCadastroPage() {
           flexDirection: { md: 'column' },
         }}
       >
-        <CustomDataGrid
-          hasNextPage={data?.hasNextPage || false}
-          total={data?.total || 0}
-          rows={data?.items || []}
-          columns={columns}
-          loading={isLoading}
-          page={searchParams.page}
-          limit={searchParams.limit}
-          sort={searchParams.sort}
-          order={searchParams.order}
-          search={searchParams.search}
-          onPaginationModelChange={handlePaginationModelChange}
-          onSortModelChange={handleSortModelChange}
-          onFilterModelChange={handleFilterModelChange}
-          getRowId={(row: any) => row.id}
-        />
+        <CustomDataGrid {...dataGridProps} />
 
         <ProfissaoFormDialog
           open={isFormDialogOpen}
