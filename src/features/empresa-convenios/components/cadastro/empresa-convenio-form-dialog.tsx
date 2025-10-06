@@ -76,7 +76,7 @@ const ProfissaoFieldRow = ({ index, onRemove }: ProfissaoFieldRowProps) => {
       const api = getProfissoes();
       // Buscar todas as profissões para encontrar a atual
       api
-        .findAll({ page: 0, limit: 100 })
+        .findAll({ page: 1, limit: 100 })
         .then((response) => {
           if (response.items) {
             setInitialProfissoes(response.items);

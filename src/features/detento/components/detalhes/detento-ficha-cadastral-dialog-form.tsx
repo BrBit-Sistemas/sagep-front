@@ -240,7 +240,7 @@ const ProfissaoField = ({ name, label, excludeValue, onLabelUpdate }: ProfissaoF
       const api = getProfissoes();
       // Buscar todas as profissões para encontrar a atual
       api
-        .findAll({ page: 0, limit: 100 })
+        .findAll({ page: 1, limit: 100 })
         .then((response) => {
           if (response.items) {
             setInitialProfissoes(response.items);
@@ -319,7 +319,7 @@ export const DetentoFichaCadastralDialogForm = ({
   const [error, setError] = useState<string | null>(null);
 
   const { data: { items: unidades } = { items: [] } } = useUnidadePrisionalList({
-    page: 0,
+    page: 1,
     limit: 1000,
   });
 
@@ -425,7 +425,7 @@ export const DetentoFichaCadastralDialogForm = ({
         // Pre-validação: prontuário único (bloqueia antes da criação)
         const prontuario = String((data as any).prontuario || '').trim();
         if (prontuario) {
-          const existing = await detentoService.paginate({ page: 0, limit: 1, search: prontuario });
+          const existing = await detentoService.paginate({ page: 1, limit: 1, search: prontuario });
           const found = existing.items?.find(
             (d: any) => String(d.prontuario).trim() === prontuario
           );

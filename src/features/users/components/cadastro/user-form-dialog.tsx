@@ -55,17 +55,17 @@ export const UserFormDialog = ({
   const { mutateAsync: updateUser, isPending: isUpdating } = useUpdateUser();
 
   const { data: { items: regionais } = { items: [] } } = useListRegionais({
-    page: 0,
+    page: 1,
     limit: 1000,
   });
 
   const { data: { items: secretarias } = { items: [] } } = useListSecretarias({
-    page: 0,
+    page: 1,
     limit: 1000,
   });
 
   const { data: { items: unidades } = { items: [] } } = useUnidadePrisionalList({
-    page: 0,
+    page: 1,
     limit: 1000,
   });
 

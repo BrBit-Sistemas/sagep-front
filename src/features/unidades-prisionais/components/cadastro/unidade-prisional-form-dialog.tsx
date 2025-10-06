@@ -48,7 +48,7 @@ export const UnidadePrisionalFormDialog = ({
     useUpdateUnidadePrisional();
 
   const { data: { items: regionais } = { items: [] } } = useListRegionais({
-    page: 0,
+    page: 1,
     limit: 1000,
   });
 

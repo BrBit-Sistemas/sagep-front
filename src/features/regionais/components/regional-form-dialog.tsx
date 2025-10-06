@@ -47,7 +47,7 @@ export const RegionalFormDialog = ({
   const { mutateAsync: updateRegional, isPending: isUpdating } = useUpdateRegional();
 
   const { data: { items: secretarias } = { items: [] } } = useListSecretarias({
-    page: 0,
+    page: 1,
     limit: 1000,
   });
 

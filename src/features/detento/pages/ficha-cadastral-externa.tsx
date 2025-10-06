@@ -206,7 +206,7 @@ const ProfissaoField = ({ name, label, excludeValue, onLabelUpdate }: ProfissaoF
       const api = getProfissoes();
       // Buscar todas as profissões para encontrar a atual
       api
-        .findAll({ page: 0, limit: 100 })
+        .findAll({ page: 1, limit: 100 })
         .then((response) => {
           if (response.items) {
             setInitialProfissoes(response.items);
@@ -343,7 +343,7 @@ export default function FichaCadastralExternaPage() {
   });
 
   const { data: { items: unidades } = { items: [] } } = useUnidadePrisionalList({
-    page: 0,
+    page: 1,
     limit: 1000,
   });
 
@@ -405,7 +405,7 @@ export default function FichaCadastralExternaPage() {
       // 1) Verificar detento pelo CPF (normalizado)
       const cleanCpf = cpf.replace(/\D/g, '');
       let detentos = await detentoService.paginate({
-        page: 0,
+        page: 1,
         limit: 1,
         search: undefined,
         cpf: cleanCpf,
@@ -413,7 +413,7 @@ export default function FichaCadastralExternaPage() {
       let detento = detentos.items?.[0];
       // fallback: tentar com o valor original caso o backend armazene com pontuação
       if (!detento && cleanCpf !== cpf) {
-        detentos = await detentoService.paginate({ page: 0, limit: 1, search: undefined, cpf });
+        detentos = await detentoService.paginate({ page: 1, limit: 1, search: undefined, cpf });
         detento = detentos.items?.[0];
       }
 
@@ -493,7 +493,7 @@ export default function FichaCadastralExternaPage() {
           const prontuario = prontuarioValor;
           if (prontuario) {
             const existing = await detentoService.paginate({
-              page: 0,
+              page: 1,
               limit: 1,
               search: prontuario,
             });

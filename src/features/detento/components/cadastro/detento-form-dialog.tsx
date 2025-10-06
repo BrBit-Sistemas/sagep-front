@@ -66,7 +66,7 @@ export const DetentoFormDialog = ({
   const isLoading = isEditing ? isUpdating : isCreating;
 
   const { data: { items: unidades } = { items: [] } } = useUnidadePrisionalList({
-    page: 0,
+    page: 1,
     limit: 1000,
   });
 
@@ -94,7 +94,7 @@ export const DetentoFormDialog = ({
       // Pre-validação: prontuário único
       const prontuario = String(payload.prontuario || '').trim();
       if (prontuario) {
-        const existing = await detentoService.paginate({ page: 0, limit: 1, search: prontuario });
+        const existing = await detentoService.paginate({ page: 1, limit: 1, search: prontuario });
         const found = existing.items?.find((d: any) => String(d.prontuario).trim() === prontuario);
         if (found && (!isEditing || found.id !== detentoId)) {
           methods.setError('prontuario' as any, {

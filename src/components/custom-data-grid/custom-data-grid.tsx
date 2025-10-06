@@ -79,7 +79,7 @@ export default function CustomDataGrid(props: CustomDataGridProps) {
       paginationModel={paginationModel}
       onPaginationModelChange={(model) => {
         // Evitar loops infinitos verificando se realmente mudou
-        const newPage = model.page + 1;
+        const newPage = Math.max(1, model.page + 1); // Garantir que nunca seja menor que 1
         const newPageSize = model.pageSize;
         const now = Date.now();
 
@@ -87,8 +87,8 @@ export default function CustomDataGrid(props: CustomDataGridProps) {
         // Se apenas o pageSize mudou, calcular a página correta baseada na posição atual
         if (newPageSize !== props.limit && model.page === 0) {
           // Calcular qual item estamos vendo atualmente
-          const currentItemIndex = (props.page - 1) * props.limit;
-          const newPageForCurrentItem = Math.floor(currentItemIndex / newPageSize) + 1;
+          const currentItemIndex = Math.max(0, (props.page - 1) * props.limit);
+          const newPageForCurrentItem = Math.max(1, Math.floor(currentItemIndex / newPageSize) + 1);
           
           
           lastPaginationCall.current = { page: newPageForCurrentItem, pageSize: newPageSize, timestamp: now };
