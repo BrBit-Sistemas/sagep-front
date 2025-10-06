@@ -151,6 +151,7 @@ export const empresaConvenioService: CrudService<
 
 const fromApi = (dto: ReadEmpresaConvenioDto): EmpresaConvenio => ({
   ...dto,
+  id: dto.convenio_id, // Usar convenio_id como id para o MUI DataGrid
   artigos_vedados: dto.artigos_vedados ?? [],
   regimes_permitidos: dto.regimes_permitidos ?? [],
   quantitativos_profissoes: dto.quantitativos_profissoes ?? [],

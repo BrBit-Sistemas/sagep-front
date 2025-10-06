@@ -14,15 +14,18 @@ export const userService: CrudService<
   UserListParams
 > = {
   paginate: async ({ page, limit, search, nome, email, sort, order }: any) => {
-    const res = await api.paginate({ page, limit, search, nome, email, sort, order });
+    // Converter página de 1-based (frontend) para 0-based (backend)
+    const backendPage = page - 1;
+    
+    const res = await api.paginate({ page: backendPage, limit, search, nome, email, sort, order });
     return {
       items: res.items,
-      page: res.page,
+      page: Number(res.page) + 1, // Converter de volta para 1-based para o frontend
       limit: res.limit,
       total: res.total,
       totalPages: Math.ceil((res.total ?? 0) / (res.limit || 1)) || 0,
-      hasNextPage: res.page * res.limit < res.total,
-      hasPrevPage: res.page > 1,
+      hasNextPage: res.hasNextPage,
+      hasPrevPage: res.hasPrevPage,
     } as const;
   },
   read: (id: string) => api.findOne(id),

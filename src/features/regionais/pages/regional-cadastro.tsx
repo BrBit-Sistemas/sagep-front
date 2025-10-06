@@ -1,5 +1,7 @@
 import type { GridSortModel, GridFilterModel, GridPaginationModel } from '@mui/x-data-grid/models';
 
+import { useCallback } from 'react';
+
 import { Card, Button } from '@mui/material';
 
 import { paths } from 'src/routes/paths';
@@ -29,18 +31,30 @@ export default function RegionalCadastroPage() {
 
   const { columns } = useRegionalListTable();
 
-  const handlePaginationModelChange = (newModel: GridPaginationModel) => {
-    setSearchParams({ page: newModel.page, limit: newModel.pageSize });
-  };
+  const handlePaginationModelChange = useCallback(
+    (newModel: GridPaginationModel) => {
+      // Se a página já está no formato 1-based (vem do CustomDataGrid), usar diretamente
+      // Se vem do MUI DataGrid (0-based), converter para 1-based
+      const frontendPage = newModel.page >= 1 ? newModel.page : newModel.page + 1;
+      setSearchParams({ page: frontendPage, limit: newModel.pageSize });
+    },
+    [setSearchParams]
+  );
 
-  const handleSortModelChange = (newModel: GridSortModel) => {
-    setSearchParams({ sort: newModel[0]?.field || '', order: newModel[0]?.sort || 'asc' });
-  };
+  const handleSortModelChange = useCallback(
+    (newModel: GridSortModel) => {
+      setSearchParams({ sort: newModel[0]?.field || '', order: newModel[0]?.sort || 'asc' });
+    },
+    [setSearchParams]
+  );
 
-  const handleFilterModelChange = (model: GridFilterModel) => {
-    const quick = Array.isArray(model.quickFilterValues) ? model.quickFilterValues.join(' ') : '';
-    setSearchParams({ search: quick, page: 1 });
-  };
+  const handleFilterModelChange = useCallback(
+    (model: GridFilterModel) => {
+      const quick = Array.isArray(model.quickFilterValues) ? model.quickFilterValues.join(' ') : '';
+      setSearchParams({ search: quick, page: 1 }); // Frontend usa 1-based, está correto
+    },
+    [setSearchParams]
+  );
 
   return (
     <DashboardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
@@ -83,13 +97,11 @@ export default function RegionalCadastroPage() {
           limit={searchParams.limit}
           sort={searchParams.sort}
           order={searchParams.order}
-          filterModel={{
-            items: [],
-            quickFilterValues: searchParams.search ? [searchParams.search] : [],
-          }}
-          onFilterModelChange={handleFilterModelChange}
+          search={searchParams.search}
           onPaginationModelChange={handlePaginationModelChange}
           onSortModelChange={handleSortModelChange}
+          onFilterModelChange={handleFilterModelChange}
+          getRowId={(row: any) => row.id}
         />
 
         <RegionalFormDialog

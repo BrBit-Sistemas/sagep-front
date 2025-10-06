@@ -11,6 +11,7 @@ import {
 const sanitizeCnpj = (value: string) => value.replace(/\D/g, '');
 
 const fromApi = (dto: ReadEmpresaDto): Empresa => ({
+  id: dto.empresa_id, // MUI DataGrid precisa do campo 'id'
   empresa_id: dto.empresa_id,
   razao_social: dto.razao_social,
   cnpj: dto.cnpj,
@@ -28,11 +29,14 @@ export const empresaService: CrudService<
 > = {
   paginate: async ({ page, limit, search, sort, order }) => {
     const api = getEmpresas();
-    const response: PaginateEmpresaDto = await api.findAll({ page, limit, search });
+    // Converter página de 1-based (frontend) para 0-based (backend)
+    const backendPage = page - 1;
+    
+    const response: PaginateEmpresaDto = await api.findAll({ page: backendPage, limit, search });
 
     return {
       totalPages: response.totalPages,
-      page: response.page,
+      page: Number(response.page) + 1, // Converter de volta para 1-based para o frontend
       limit: response.limit,
       total: response.total,
       hasNextPage: response.hasNextPage,

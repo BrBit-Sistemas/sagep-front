@@ -87,14 +87,11 @@ export default function SecretariaCadastroPage() {
           limit={searchParams.limit}
           sort={searchParams.sort}
           order={searchParams.order}
-          filterModel={{
-            items: [],
-            quickFilterValues: searchParams.search ? [searchParams.search] : [],
-          }}
-          onFilterModelChange={handleFilterModelChange}
+          search={searchParams.search}
           onPaginationModelChange={handlePaginationModelChange}
           onSortModelChange={handleSortModelChange}
-          getRowId={(row) => row.id}
+          onFilterModelChange={handleFilterModelChange}
+          getRowId={(row: any) => row.id}
         />
 
         <SecretariaFormDialog

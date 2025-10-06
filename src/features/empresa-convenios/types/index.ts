@@ -16,6 +16,7 @@ export type EmpresaConvenioLocal = {
 };
 
 export type EmpresaConvenio = {
+  id: string; // Campo necessário para MUI DataGrid
   convenio_id: string;
   empresa_id: string;
   tipo_codigo: string;
