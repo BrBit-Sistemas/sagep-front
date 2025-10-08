@@ -579,6 +579,7 @@ export const DetentoFichaCadastralDialogForm = ({
               <Grid container spacing={2}>
                 <Grid size={{ md: 6, sm: 12 }}>
                   <Field.Text
+                    required
                     name="nome"
                     label="Nome completo"
                     disabled
@@ -587,6 +588,7 @@ export const DetentoFichaCadastralDialogForm = ({
                 </Grid>
                 <Grid size={{ md: 6, sm: 12 }}>
                   <Field.Cpf
+                    required
                     name="cpf"
                     label="CPF"
                     disabled
@@ -594,12 +596,12 @@ export const DetentoFichaCadastralDialogForm = ({
                   />
                 </Grid>
                 <Grid size={{ md: 4, sm: 12 }}>
-                  <Field.Text name="rg" label="RG" />
+                  <Field.Text required name="rg" label="RG" />
                 </Grid>
                 <Grid size={{ md: 4, sm: 12 }}>
                   <Field.DatePicker
                     name="rg_expedicao"
-                    label="Data de expedição do RG"
+                    label="Data de expedição do RG*"
                     disableFuture
                   />
                 </Grid>
@@ -630,7 +632,7 @@ export const DetentoFichaCadastralDialogForm = ({
                 <Grid size={{ md: 5, sm: 12 }}>
                   <Field.DatePicker
                     name="data_nascimento"
-                    label="Data de nascimento"
+                    label="Data de nascimento*"
                     disableFuture
                     disabled
                     slotProps={{
@@ -642,10 +644,11 @@ export const DetentoFichaCadastralDialogForm = ({
                   />
                 </Grid>
                 <Grid size={{ md: 5, sm: 12 }}>
-                  <Field.Text name="naturalidade" label="Naturalidade (Cidade)" />
+                  <Field.Text required name="naturalidade" label="Naturalidade (Cidade)" />
                 </Grid>
                 <Grid size={{ md: 2, sm: 12 }}>
                   <Field.Select
+                    required
                     name="naturalidade_uf"
                     label="UF"
                     fullWidth
@@ -663,6 +666,7 @@ export const DetentoFichaCadastralDialogForm = ({
                 </Grid>
                 <Grid size={{ md: 6, sm: 12 }}>
                   <Field.Text
+                    required
                     name="filiacao_mae"
                     label="Nome da mãe"
                     disabled
@@ -685,6 +689,7 @@ export const DetentoFichaCadastralDialogForm = ({
               <Grid container spacing={2}>
                 <Grid size={{ md: 4, sm: 12 }}>
                   <Field.Select
+                    required
                     name="regime"
                     label="Regime"
                     fullWidth
@@ -700,6 +705,7 @@ export const DetentoFichaCadastralDialogForm = ({
                 </Grid>
                 <Grid size={{ md: 4, sm: 12 }}>
                   <Field.Select
+                    required
                     name="unidade_prisional"
                     label="Unidade prisional"
                     fullWidth
@@ -766,6 +772,7 @@ export const DetentoFichaCadastralDialogForm = ({
               <Grid container spacing={2}>
                 <Grid size={{ md: 12, sm: 12 }}>
                   <Field.Text
+                    required
                     name="endereco"
                     label="Endereço completo"
                     placeholder="Ex: Rua das Flores, 123, Apt 45, Bairro Centro"
@@ -774,6 +781,7 @@ export const DetentoFichaCadastralDialogForm = ({
                 </Grid>
                 <Grid size={{ md: 6, sm: 12 }}>
                   <Field.Select
+                    required
                     name="regiao_administrativa"
                     label="Região Administrativa (RA)"
                     fullWidth
@@ -842,6 +850,7 @@ export const DetentoFichaCadastralDialogForm = ({
               <Grid container spacing={2}>
                 <Grid size={{ md: 6, sm: 12 }}>
                   <Field.Select
+                    required
                     name="escolaridade"
                     label="Escolaridade"
                     fullWidth
@@ -985,7 +994,7 @@ export const DetentoFichaCadastralDialogForm = ({
               <FichaDocumentosField
                 fichaId={fichaCadastralId}
                 detentoId={detentoId}
-                title="7. Documentos anexados"
+                title="7. Documentos anexados*"
                 helperText="Anexe imagens de documentos relevantes e nomeie cada arquivo para facilitar o controle."
               />
             </Box>
