@@ -76,7 +76,7 @@ const ProfissaoFieldRow = ({ index, onRemove }: ProfissaoFieldRowProps) => {
       const api = getProfissoes();
       // Buscar todas as profissões para encontrar a atual
       api
-        .findAll({ page: 1, limit: 100 })
+        .findAll({ page: 0, limit: 100 })
         .then((response) => {
           if (response.items) {
             setInitialProfissoes(response.items);
@@ -211,12 +211,16 @@ export const EmpresaConvenioFormDialog = ({
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>{isEditing ? 'Editar' : 'Adicionar'} Convênio</DialogTitle>
       <DialogContent sx={{ pt: 3 }}>
+        <Typography variant="caption" sx={{ color: 'text.secondary', mb: 2, display: 'block' }}>
+          * Campos obrigatórios
+        </Typography>
         <Form methods={methods} onSubmit={handleSubmit}>
           <Grid container spacing={2}>
             <Grid size={{ md: 6, sm: 12 }} sx={{ mt: 1 }}>
               <Field.Select
                 name="empresa_id"
                 label="Empresa"
+                required
                 slotProps={{
                   inputLabel: {
                     shrink: true,
@@ -236,6 +240,7 @@ export const EmpresaConvenioFormDialog = ({
               <Field.Select
                 name="tipo_codigo"
                 label="Tipo"
+                required
                 slotProps={{
                   inputLabel: {
                     shrink: true,
@@ -252,7 +257,7 @@ export const EmpresaConvenioFormDialog = ({
               </Field.Select>
             </Grid>
             <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Select name="modalidade_execucao" label="Modalidade de Execução">
+              <Field.Select required name="modalidade_execucao" label="Modalidade de Execução">
                 <MenuItem value="INTRAMUROS">Intramuros</MenuItem>
                 <MenuItem value="EXTRAMUROS">Extramuros</MenuItem>
               </Field.Select>
@@ -260,6 +265,7 @@ export const EmpresaConvenioFormDialog = ({
             <Grid size={{ md: 6, sm: 12 }}>
               <Field.MultiSelect
                 name="regimes_permitidos"
+                required
                 label="Regimes Permitidos"
                 options={regimesOptions}
                 fullWidth

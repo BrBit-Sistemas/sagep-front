@@ -26,12 +26,20 @@ export const createUserSchema = baseSchema
     senha: z.string().min(8, { message: 'A senha deve ter pelo menos 8 caracteres!' }).max(30, { message: 'A senha deve ter no máximo 30 caracteres!' }),
     confirmarSenha: z.string().min(8, { message: 'A senha deve ter pelo menos 8 caracteres!' }).max(30, { message: 'A senha deve ter no máximo 30 caracteres!' }),
   })
-  .superRefine(({ senha, confirmarSenha }, ctx) => {
+  .superRefine(({ senha, confirmarSenha, secretariaId }, ctx) => {
     if (senha !== confirmarSenha) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'As senhas não coincidem!',
         path: ['confirmarSenha'],
+      });
+    }
+
+    if (!secretariaId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'O campo Secretaria é obrigatório!',
+        path: ['secretariaId'],
       });
     }
   });
@@ -50,12 +58,20 @@ export const updateUserSchema = baseSchema
       .max(30, { message: 'A senha deve ter no máximo 30 caracteres!' })
       .or(z.literal('')),
   })
-  .superRefine(({ senha, confirmarSenha }, ctx) => {
+  .superRefine(({ senha, confirmarSenha, secretariaId }, ctx) => {
     if (senha !== confirmarSenha) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'As senhas não coincidem!',
         path: ['confirmarSenha'],
+      });
+    }
+
+    if (!secretariaId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'O campo Secretaria é obrigatório!',
+        path: ['secretariaId'],
       });
     }
   });

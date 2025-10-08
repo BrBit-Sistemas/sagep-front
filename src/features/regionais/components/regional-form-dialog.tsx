@@ -9,6 +9,7 @@ import {
   Button,
   Dialog,
   MenuItem,
+  Typography,
   DialogTitle,
   DialogActions,
   DialogContent,
@@ -77,10 +78,14 @@ export const RegionalFormDialog = ({
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>{isEditing ? 'Editar' : 'Adicionar'} Regional</DialogTitle>
       <DialogContent>
+        <Typography variant="caption" sx={{ color: 'text.secondary', mb: 2, display: 'block' }}>
+          * Campos obrigatórios
+        </Typography>
         <Form methods={methods} onSubmit={handleSubmit}>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid size={{ md: 6, sm: 12 }}>
               <Field.Text
+                required
                 name="nome"
                 label="Nome da Regional"
                 placeholder="Digite o nome da regional"
@@ -90,6 +95,7 @@ export const RegionalFormDialog = ({
             <Grid size={{ md: 6, sm: 12 }}>
               <Field.Select
                 name="secretariaId"
+                required
                 label="Secretaria"
                 placeholder="Selecione a secretaria"
                 slotProps={{ inputLabel: { shrink: true } }}

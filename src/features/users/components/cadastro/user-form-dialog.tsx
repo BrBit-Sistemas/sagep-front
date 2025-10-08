@@ -62,6 +62,8 @@ export const UserFormDialog = ({
   const { mutateAsync: updateUser, isPending: isUpdating } = useUpdateUser();
   const showPassword = useBoolean();
 
+  const showConfirmPassword = useBoolean();
+
   const { data: { items: regionais } = { items: [] } } = useListRegionais({
     page: 1,
     limit: 1000,
@@ -94,7 +96,8 @@ export const UserFormDialog = ({
       const sanitizedData = {
         ...data,
         regionalId: data.regionalId && data.regionalId.trim() !== '' ? data.regionalId : null,
-        secretariaId: data.secretariaId && data.secretariaId.trim() !== '' ? data.secretariaId : null,
+        secretariaId:
+          data.secretariaId && data.secretariaId.trim() !== '' ? data.secretariaId : null,
         unidadeId: data.unidadeId && data.unidadeId.trim() !== '' ? data.unidadeId : null,
       };
 
@@ -145,6 +148,10 @@ export const UserFormDialog = ({
           Preencha os campos abaixo para {isEditing ? 'editar' : 'adicionar'} um novo usuário.
         </Typography>
 
+        <Typography variant="caption" sx={{ color: 'text.secondary', mb: 2, display: 'block' }}>
+          * Campos obrigatórios
+        </Typography>
+
         <Form methods={methods} onSubmit={onSubmit}>
           <Grid container spacing={3}>
             <Grid size={{ xs: 12 }}>
@@ -152,12 +159,13 @@ export const UserFormDialog = ({
             </Grid>
 
             <Grid size={{ xs: 12 }}>
-              <Field.Text name="nome" label="Nome Completo" />
+              <Field.Text required name="nome" label="Nome Completo" />
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>
               <Field.Text
                 name="cpf"
+                required
                 label="CPF"
                 placeholder="00000000000"
                 slotProps={{ inputLabel: { shrink: true } }}
@@ -165,11 +173,11 @@ export const UserFormDialog = ({
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>
-              <Field.Text name="email" label="Endereço de Email" />
+              <Field.Text required name="email" label="Endereço de Email" />
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>
-              <Field.Select name="secretariaId" label="Secretaria">
+              <Field.Select required name="secretariaId" label="Secretaria">
                 {secretarias.map((secretaria) => (
                   <MenuItem key={secretaria.id} value={secretaria.id}>
                     {secretaria.nome}
@@ -212,6 +220,7 @@ export const UserFormDialog = ({
                 name="senha"
                 label="Senha"
                 type={showPassword.value ? 'text' : 'password'}
+                required={!isEditing}
                 helperText={isEditing ? 'Deixe em branco para não alterar' : ''}
                 slotProps={{
                   input: {
@@ -230,17 +239,20 @@ export const UserFormDialog = ({
             </Grid>
 
             <Grid size={{ xs: 12 }}>
-              <Field.Text 
-                name="confirmarSenha" 
-                label="Confirmar Senha" 
-                type={showPassword.value ? 'text' : 'password'}
+              <Field.Text
+                name="confirmarSenha"
+                required={!isEditing}
+                label="Confirmar Senha"
+                type={showConfirmPassword.value ? 'text' : 'password'}
                 slotProps={{
                   input: {
                     endAdornment: (
                       <InputAdornment position="end">
-                        <IconButton onClick={showPassword.onToggle} edge="end">
+                        <IconButton onClick={showConfirmPassword.onToggle} edge="end">
                           <Iconify
-                            icon={showPassword.value ? 'solar:eye-bold' : 'solar:eye-closed-bold'}
+                            icon={
+                              showConfirmPassword.value ? 'solar:eye-bold' : 'solar:eye-closed-bold'
+                            }
                           />
                         </IconButton>
                       </InputAdornment>

@@ -83,15 +83,20 @@ export const UnidadePrisionalFormDialog = ({
           Preencha os campos abaixo para {isEditing ? 'editar' : 'adicionar'} a unidade prisional.
         </Typography>
 
+        <Typography variant="caption" sx={{ color: 'text.secondary', mb: 2, display: 'block' }}>
+          * Campos obrigatórios
+        </Typography>
+
         <Form methods={methods} onSubmit={handleSubmit}>
           <Grid container spacing={2}>
             <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="nome" label="Nome da Unidade" />
+              <Field.Text required name="nome" label="Nome da Unidade" />
             </Grid>
 
             <Grid size={{ md: 6, sm: 12 }}>
               <Field.Select
                 name="regionalId"
+                required
                 label="Regional"
                 slotProps={{ inputLabel: { shrink: true } }}
                 disabled={isLoading || !regionais?.length}
