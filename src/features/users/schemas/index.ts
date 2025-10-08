@@ -12,9 +12,9 @@ const baseSchema = z.object({
     .length(11, { message: 'O CPF deve ter 11 dígitos' })
     .refine((value) => isValidCpf(value), { message: 'CPF inválido' }),
   avatarUrl: schemaHelper.file({ required: false }),
-  regionalId: z.string().optional(),
-  secretariaId: z.string().optional(),
-  unidadeId: z.string().optional(),
+  regionalId: z.union([z.string(), z.literal('')]).optional(),
+  secretariaId: z.union([z.string(), z.literal('')]).optional(),
+  unidadeId: z.union([z.string(), z.literal('')]).optional(),
   email: z
     .string()
     .min(1, { message: 'O email é obrigatório!' })
@@ -23,23 +23,15 @@ const baseSchema = z.object({
 
 export const createUserSchema = baseSchema
   .extend({
-    senha: z.string().min(6, { message: 'A senha deve ter pelo menos 6 caracteres!' }),
-    confirmarSenha: z.string().min(6, { message: 'A senha deve ter pelo menos 6 caracteres!' }),
+    senha: z.string().min(8, { message: 'A senha deve ter pelo menos 8 caracteres!' }).max(30, { message: 'A senha deve ter no máximo 30 caracteres!' }),
+    confirmarSenha: z.string().min(8, { message: 'A senha deve ter pelo menos 8 caracteres!' }).max(30, { message: 'A senha deve ter no máximo 30 caracteres!' }),
   })
-  .superRefine(({ senha, confirmarSenha, unidadeId, regionalId, secretariaId }, ctx) => {
+  .superRefine(({ senha, confirmarSenha }, ctx) => {
     if (senha !== confirmarSenha) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'As senhas não coincidem!',
         path: ['confirmarSenha'],
-      });
-    }
-
-    if (!unidadeId && !regionalId && !secretariaId) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Pelo menos um campo de (Secretaria, Regional ou Unidade) é obrigatório!',
-        path: ['unidadeId', 'regionalId', 'secretariaId'],
       });
     }
   });
@@ -49,27 +41,21 @@ export const updateUserSchema = baseSchema
     id: z.string().uuid('ID do usuário é obrigatório!'),
     senha: z
       .string()
-      .min(6, { message: 'A senha deve ter pelo menos 6 caracteres!' })
+      .min(8, { message: 'A senha deve ter pelo menos 8 caracteres!' })
+      .max(30, { message: 'A senha deve ter no máximo 30 caracteres!' })
       .or(z.literal('')),
     confirmarSenha: z
       .string()
-      .min(6, { message: 'A senha deve ter pelo menos 6 caracteres!' })
+      .min(8, { message: 'A senha deve ter pelo menos 8 caracteres!' })
+      .max(30, { message: 'A senha deve ter no máximo 30 caracteres!' })
       .or(z.literal('')),
   })
-  .superRefine(({ senha, confirmarSenha, unidadeId, regionalId, secretariaId }, ctx) => {
+  .superRefine(({ senha, confirmarSenha }, ctx) => {
     if (senha !== confirmarSenha) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'As senhas não coincidem!',
         path: ['confirmarSenha'],
-      });
-    }
-
-    if (!unidadeId && !regionalId && !secretariaId) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Pelo menos um campo de (Secretaria, Regional ou Unidade) é obrigatório!',
-        path: ['unidadeId', 'regionalId', 'secretariaId'],
       });
     }
   });

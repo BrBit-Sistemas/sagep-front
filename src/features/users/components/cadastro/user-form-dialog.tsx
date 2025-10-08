@@ -3,6 +3,7 @@ import type { CreateUserSchema, UpdateUserSchema } from 'src/features/users/sche
 
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { useBoolean } from 'minimal-shared/hooks';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import {
@@ -11,9 +12,11 @@ import {
   Dialog,
   MenuItem,
   Typography,
+  IconButton,
   DialogTitle,
   DialogActions,
   DialogContent,
+  InputAdornment,
 } from '@mui/material';
 
 import { useCreateUser } from 'src/features/users/hooks/use-create-user';
@@ -23,6 +26,7 @@ import { useListRegionais } from 'src/features/regionais/hooks/use-list-regionai
 import { useListSecretarias } from 'src/features/secretarias/hooks/use-list-secretaria';
 import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/use-unidade-prisional-list';
 
+import { Iconify } from 'src/components/iconify';
 import { Form, Field } from 'src/components/hook-form';
 
 type UserFormDialogProps = {
@@ -40,6 +44,9 @@ const INITIAL_VALUES: CreateUserSchema = {
   avatarUrl: null,
   senha: '',
   confirmarSenha: '',
+  regionalId: '',
+  secretariaId: '',
+  unidadeId: '',
 };
 
 const getFormSchema = (isEditing: boolean) => (isEditing ? updateUserSchema : createUserSchema);
@@ -53,6 +60,7 @@ export const UserFormDialog = ({
 }: UserFormDialogProps) => {
   const { mutateAsync: createUser, isPending: isCreating } = useCreateUser();
   const { mutateAsync: updateUser, isPending: isUpdating } = useUpdateUser();
+  const showPassword = useBoolean();
 
   const { data: { items: regionais } = { items: [] } } = useListRegionais({
     page: 1,
@@ -82,10 +90,18 @@ export const UserFormDialog = ({
 
   const onSubmit = methods.handleSubmit(async (data) => {
     try {
+      // Convert empty strings to null for optional fields (backend expects null, not undefined)
+      const sanitizedData = {
+        ...data,
+        regionalId: data.regionalId && data.regionalId.trim() !== '' ? data.regionalId : null,
+        secretariaId: data.secretariaId && data.secretariaId.trim() !== '' ? data.secretariaId : null,
+        unidadeId: data.unidadeId && data.unidadeId.trim() !== '' ? data.unidadeId : null,
+      };
+
       if (isEditing) {
-        await updateUser(data as UpdateUserSchema);
+        await updateUser(sanitizedData as UpdateUserSchema);
       } else {
-        await createUser(data as CreateUserSchema);
+        await createUser(sanitizedData as CreateUserSchema);
       }
       methods.reset(INITIAL_VALUES);
       onSuccess();
@@ -111,13 +127,13 @@ export const UserFormDialog = ({
 
   useEffect(() => {
     // When secretaria changes, clear regional and unidade selections
-    methods.setValue('regionalId', undefined);
-    methods.setValue('unidadeId', undefined);
+    methods.setValue('regionalId', '');
+    methods.setValue('unidadeId', '');
   }, [secretariaId, methods]);
 
   useEffect(() => {
     // When regional changes, clear unidade selection
-    methods.setValue('unidadeId', undefined);
+    methods.setValue('unidadeId', '');
   }, [regionalId, methods]);
 
   return (
@@ -195,13 +211,43 @@ export const UserFormDialog = ({
               <Field.Text
                 name="senha"
                 label="Senha"
-                type="password"
+                type={showPassword.value ? 'text' : 'password'}
                 helperText={isEditing ? 'Deixe em branco para não alterar' : ''}
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton onClick={showPassword.onToggle} edge="end">
+                          <Iconify
+                            icon={showPassword.value ? 'solar:eye-bold' : 'solar:eye-closed-bold'}
+                          />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
               />
             </Grid>
 
             <Grid size={{ xs: 12 }}>
-              <Field.Text name="confirmarSenha" label="Confirmar Senha" type="password" />
+              <Field.Text 
+                name="confirmarSenha" 
+                label="Confirmar Senha" 
+                type={showPassword.value ? 'text' : 'password'}
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton onClick={showPassword.onToggle} edge="end">
+                          <Iconify
+                            icon={showPassword.value ? 'solar:eye-bold' : 'solar:eye-closed-bold'}
+                          />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
             </Grid>
           </Grid>
         </Form>
