@@ -40,29 +40,15 @@ import { useDetentoDetalhesSearchParams } from '../../hooks/use-dentento-detalhe
 // Schema estendido para o formulário interno que inclui campos separados de RG
 const dialogFormSchema = createDetentoFichaCadastralSchema
   .extend({
-    rg_orgao: z.string().optional(),
-    rg_uf: z.string().optional(),
+    rg_orgao: z.string().min(1, 'Órgão expedidor é obrigatório'),
+    rg_uf: z.string().min(1, 'UF do RG é obrigatória'),
   })
   .omit({
     rg_orgao_uf: true, // Remove a validação obrigatória do campo combinado
   })
   .extend({
     rg_orgao_uf: z.string().optional(), // Torna o campo combinado opcional
-  })
-  .refine(
-    (data) => {
-      // Validação customizada: pelo menos um dos campos de RG deve estar preenchido
-      const hasOrgao = Boolean(data.rg_orgao && data.rg_orgao.trim());
-      const hasUf = Boolean(data.rg_uf && data.rg_uf.trim());
-      const hasRgOrgaoUf = Boolean(data.rg_orgao_uf && data.rg_orgao_uf.trim());
-
-      return hasRgOrgaoUf || hasOrgao || hasUf;
-    },
-    {
-      message: 'Pelo menos o órgão expedidor ou UF deve ser preenchido',
-      path: ['rg_orgao'], // Mostra erro no primeiro campo para melhor UX
-    }
-  );
+  });
 
 // Órgãos expedidores de RG
 const ORGAOS_EXPEDIDORES = [
@@ -606,7 +592,7 @@ export const DetentoFichaCadastralDialogForm = ({
                   />
                 </Grid>
                 <Grid size={{ md: 2, sm: 6 }}>
-                  <Field.Select name="rg_orgao" label="Órgão expedidor" fullWidth>
+                  <Field.Select required name="rg_orgao" label="Órgão expedidor" fullWidth>
                     <MenuItem value="">
                       <em>Órgão</em>
                     </MenuItem>
@@ -618,7 +604,13 @@ export const DetentoFichaCadastralDialogForm = ({
                   </Field.Select>
                 </Grid>
                 <Grid size={{ md: 2, sm: 6 }}>
-                  <Field.Select name="rg_uf" label="UF do RG" fullWidth helperText="Estado emissor">
+                  <Field.Select
+                    required
+                    name="rg_uf"
+                    label="UF do RG"
+                    fullWidth
+                    helperText="Estado emissor"
+                  >
                     <MenuItem value="">
                       <em>UF</em>
                     </MenuItem>
