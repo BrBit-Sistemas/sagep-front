@@ -30,9 +30,11 @@ export const createDetentoFichaCadastralSchema = z.object({
     .refine((value) => isValidCpf(value), 'CPF inválido'),
   rg: z
     .string()
-    .min(1, 'RG é obrigatório')
-    .refine((value) => isValidRg(value), 'RG inválido'),
-  rg_expedicao: z.string().min(1, 'Data de expedição é obrigatória'),
+    .min(3, 'RG deve ter no mínimo 3 caracteres')
+    .max(15, 'RG deve ter no máximo 15 caracteres')
+    .optional()
+    .or(z.literal('')),
+  rg_expedicao: z.string().optional().or(z.literal('')),
   rg_orgao_uf: z.string().min(1, 'Órgão expedidor/UF é obrigatório'),
   data_nascimento: z.string().min(1, 'Data de nascimento é obrigatória'),
   naturalidade: z.string().min(1, 'Naturalidade é obrigatória'),

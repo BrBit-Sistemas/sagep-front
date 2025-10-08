@@ -160,21 +160,7 @@ const externalSchema = createDetentoFichaCadastralSchema
   .refine((data) => /^\d{4}-\d{2}-\d{2}$/.test(data.data_nascimento || ''), {
     path: ['data_nascimento'],
     message: 'Data deve estar no formato YYYY-MM-DD',
-  })
-  .refine(
-    (data) => {
-      // Validação customizada: pelo menos um dos campos de RG deve estar preenchido
-      const hasOrgao = Boolean(data.rg_orgao && data.rg_orgao.trim());
-      const hasUf = Boolean(data.rg_uf && data.rg_uf.trim());
-      const hasRgOrgaoUf = Boolean(data.rg_orgao_uf && data.rg_orgao_uf.trim());
-
-      return hasRgOrgaoUf || hasOrgao || hasUf;
-    },
-    {
-      message: 'Pelo menos o órgão expedidor ou UF deve ser preenchido',
-      path: ['rg_orgao'], // Mostra erro no primeiro campo para melhor UX
-    }
-  );
+  });
 type ExternalFichaSchema = z.infer<typeof externalSchema>;
 
 // Componente interno para campo de profissão com cache de rótulos

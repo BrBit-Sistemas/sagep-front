@@ -48,21 +48,7 @@ const dialogFormSchema = createDetentoFichaCadastralSchema
   })
   .extend({
     rg_orgao_uf: z.string().optional(), // Torna o campo combinado opcional
-  })
-  .refine(
-    (data) => {
-      // Validação customizada: pelo menos um dos campos de RG deve estar preenchido
-      const hasOrgao = Boolean(data.rg_orgao && data.rg_orgao.trim());
-      const hasUf = Boolean(data.rg_uf && data.rg_uf.trim());
-      const hasRgOrgaoUf = Boolean(data.rg_orgao_uf && data.rg_orgao_uf.trim());
-
-      return hasRgOrgaoUf || hasOrgao || hasUf;
-    },
-    {
-      message: 'Pelo menos o órgão expedidor ou UF deve ser preenchido',
-      path: ['rg_orgao'], // Mostra erro no primeiro campo para melhor UX
-    }
-  );
+  });
 
 // Órgãos expedidores de RG
 const ORGAOS_EXPEDIDORES = [
