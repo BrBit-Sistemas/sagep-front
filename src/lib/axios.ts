@@ -24,7 +24,24 @@ axiosInstance.interceptors.request.use((config) => {
   return AxiosLogger.requestLogger(config);
 }, AxiosLogger.errorLogger);
 
-axiosInstance.interceptors.response.use(AxiosLogger.responseLogger, AxiosLogger.errorLogger);
+axiosInstance.interceptors.response.use(
+  AxiosLogger.responseLogger,
+  (error) => {
+    // Handle 401 errors globally
+    if (error.response?.status === 401) {
+      // Clear any stored tokens
+      localStorage.removeItem('accessToken');
+      sessionStorage.removeItem('accessToken');
+      
+      // Redirect to login if not already there
+      if (window.location.pathname !== '/auth/jwt/sign-in') {
+        window.location.href = '/auth/jwt/sign-in';
+      }
+    }
+    
+    return AxiosLogger.errorLogger(error);
+  }
+);
 
 export const customInstance = <T>(
   config: AxiosRequestConfig,
