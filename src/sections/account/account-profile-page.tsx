@@ -90,6 +90,20 @@ export default function AccountProfilePage() {
       });
 
       queryClient.setQueryData<ReadUsuarioDto | undefined>(['me'], updatedUser);
+      // Invalidar outros caches para garantir sincronização
+      queryClient.invalidateQueries({ queryKey: ['usuarios'] });
+      if (updatedUser.id) {
+        queryClient.invalidateQueries({ queryKey: ['usuario', updatedUser.id] });
+      }
+      
+      // Forçar refetch imediato e agressivo
+      await queryClient.refetchQueries({ queryKey: ['me'] });
+      
+      // Aguardar um pouco e forçar novamente para garantir propagação
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['me'] });
+      }, 100);
+      
       setAvatarPreview(updatedUser.avatarUrl ?? null);
       setAvatarFile(null);
       setAvatarDirty(false);

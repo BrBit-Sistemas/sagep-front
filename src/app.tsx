@@ -32,6 +32,11 @@ export default function App({ children }: AppProps) {
   const queryClient = new QueryClient();
   dayjs.locale('pt-br');
 
+  // Disponibilizar queryClient globalmente para invalidação de cache
+  if (typeof window !== 'undefined') {
+    window.queryClient = queryClient;
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>

@@ -6,7 +6,7 @@ export const userToFormValues = (user: User): UpdateUserSchema => ({
   nome: user.nome || '',
   cpf: user.cpf || '',
   email: user.email || '',
-  avatarUrl: null,
+  avatarUrl: user.avatarUrl || null,
   senha: '',
   confirmarSenha: '',
   regionalId: user.regional?.id || '',

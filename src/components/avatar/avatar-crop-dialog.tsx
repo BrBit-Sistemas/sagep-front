@@ -24,7 +24,7 @@ const ZOOM_MIN = 1;
 const ZOOM_MAX = 3;
 const ZOOM_STEP = 0.05;
 const CROP_SIZE = 360;
-const OUTPUT_SIZE = 512;
+const OUTPUT_SIZE = 256;
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 

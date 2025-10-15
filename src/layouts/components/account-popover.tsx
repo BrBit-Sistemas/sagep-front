@@ -1,8 +1,7 @@
 import type { IconButtonProps } from '@mui/material/IconButton';
-import type { ReadUsuarioDto } from 'src/api/generated.schemas';
 
+import { useQuery } from '@tanstack/react-query';
 import { usePopover } from 'minimal-shared/hooks';
-import { useQueryClient } from '@tanstack/react-query';
 
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
@@ -14,6 +13,8 @@ import Typography from '@mui/material/Typography';
 import { paths } from 'src/routes/paths';
 import { usePathname } from 'src/routes/hooks';
 import { RouterLink } from 'src/routes/components';
+
+import { getAutenticação } from 'src/api/autenticação/autenticação';
 
 import { Label } from 'src/components/label';
 import { CustomPopover } from 'src/components/custom-popover';
@@ -40,8 +41,12 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
   const { open, anchorEl, onClose, onOpen } = usePopover();
 
   const { user } = useAuthContext();
-  const queryClient = useQueryClient();
-  const me = queryClient.getQueryData<ReadUsuarioDto>(['me']);
+  const authApi = getAutenticação();
+  const { data: me } = useQuery({ 
+    queryKey: ['me'], 
+    queryFn: () => authApi.me(),
+    staleTime: 0, // Sempre refetch quando invalidado
+  });
 
   const displayName = me?.nome ?? user?.nome ?? '';
   const email = me?.email ?? user?.email ?? '';
