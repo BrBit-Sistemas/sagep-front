@@ -5,6 +5,7 @@ import { useRef, useMemo, useState, useEffect } from 'react';
 
 import MenuItem from '@mui/material/MenuItem';
 import {
+  Box,
   Card,
   Grid,
   Alert,
@@ -26,6 +27,7 @@ import { formatDateToYYYYMMDD } from 'src/utils/format-date';
 import { getProfissoes } from 'src/api/profissoes/profissoes';
 import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/use-unidade-prisional-list';
 
+import { Iconify } from 'src/components/iconify';
 import { Form, Field } from 'src/components/hook-form';
 
 import { usePermissionCheck } from 'src/auth/guard/permission-guard';
@@ -695,13 +697,106 @@ export default function FichaCadastralExternaPage() {
 
         {step === 'cpf' && (
           <Card sx={{ p: 3 }}>
-            <Stack spacing={2}>
+            <Stack spacing={3}>
               {successMessage && (
                 <Alert severity="success" onClose={() => setSuccessMessage(null)}>
                   {successMessage}
                 </Alert>
               )}
-              <Typography fontSize={20}>
+              
+              {/* Requisitos para cadastro - design clean */}
+              <Box 
+                sx={{ 
+                  p: 3,
+                  backgroundColor: 'grey.50',
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: 'grey.200',
+                }}
+              >
+                <Typography 
+                  variant="subtitle1" 
+                  sx={{ 
+                    mb: 2, 
+                    color: 'text.primary', 
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}
+                >
+                  <Iconify icon="solar:list-bold" sx={{ color: 'primary.main' }} />
+                  Requisitos para Cadastro
+                </Typography>
+                
+                <Stack spacing={1.5}>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                    <Box 
+                      sx={{ 
+                        width: 6, 
+                        height: 6, 
+                        borderRadius: '50%', 
+                        backgroundColor: 'primary.main',
+                        mt: 1,
+                        flexShrink: 0
+                      }} 
+                    />
+                    <Typography variant="body2" color="text.secondary">
+                      Ter a posse os documentos pessoais: carteira de identidade e CPF;
+                    </Typography>
+                  </Box>
+                  
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                    <Box 
+                      sx={{ 
+                        width: 6, 
+                        height: 6, 
+                        borderRadius: '50%', 
+                        backgroundColor: 'primary.main',
+                        mt: 1,
+                        flexShrink: 0
+                      }} 
+                    />
+                    <Typography variant="body2" color="text.secondary">
+                      Estar cumprindo pena resultante de processos judiciais conduzidos no Distrito Federal;
+                    </Typography>
+                  </Box>
+                  
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                    <Box 
+                      sx={{ 
+                        width: 6, 
+                        height: 6, 
+                        borderRadius: '50%', 
+                        backgroundColor: 'primary.main',
+                        mt: 1,
+                        flexShrink: 0
+                      }} 
+                    />
+                    <Typography variant="body2" color="text.secondary">
+                      Estar cumprindo pena no regime semiaberto com autorização para trabalho externo concedida pela VEP; ou
+                    </Typography>
+                  </Box>
+                  
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                    <Box 
+                      sx={{ 
+                        width: 6, 
+                        height: 6, 
+                        borderRadius: '50%', 
+                        backgroundColor: 'primary.main',
+                        mt: 1,
+                        flexShrink: 0
+                      }} 
+                    />
+                    <Typography variant="body2" color="text.secondary">
+                      Estar cumprindo pena no regime aberto ou em livramento condicional.
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Box>
+
+              <Typography fontSize={20} sx={{ fontWeight: 500, color: 'text.primary' }}>
                 {canCreate
                   ? 'Informe o CPF do reeducando para iniciar o cadastro.'
                   : 'Esta é a tela inicial onde o CPF do reeducando seria informado para iniciar o cadastro.'}
