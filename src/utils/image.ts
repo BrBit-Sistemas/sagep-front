@@ -29,7 +29,7 @@ export const createCircularAvatar = async (
     cropSize,
     outputSize = 512,
     imageMetrics,
-    fileName = 'avatar.png',
+    fileName = 'avatar.webp',
   }: AvatarCropOptions
 ): Promise<CroppedImageResult> => {
   const image = await createImage(imageSrc);
@@ -75,7 +75,7 @@ export const createCircularAvatar = async (
   );
   context.restore();
 
-  const dataUrl = canvas.toDataURL('image/png');
+  const dataUrl = canvas.toDataURL('image/webp', 0.90);
 
   const blob = await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((file) => {
@@ -84,10 +84,10 @@ export const createCircularAvatar = async (
         return;
       }
       resolve(file);
-    }, 'image/png');
+    }, 'image/webp', 0.90);
   });
 
-  const file = new File([blob], fileName, { type: 'image/png' });
+  const file = new File([blob], fileName, { type: 'image/webp' });
 
   return { file, dataUrl };
 };

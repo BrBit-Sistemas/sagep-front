@@ -45,9 +45,23 @@ const dialogFormSchema = createDetentoFichaCadastralSchema
   })
   .omit({
     rg_orgao_uf: true, // Remove a validação obrigatória do campo combinado
+    rg: true, // Remove a validação do campo RG para sobrescrever
   })
   .extend({
     rg_orgao_uf: z.string().optional(), // Torna o campo combinado opcional
+    rg: z
+      .string()
+      .optional()
+      .transform((value) => value || '') // Transforma undefined/null em string vazia
+      .refine(
+        (value) => {
+          // Se está vazio ou só espaços, é válido
+          if (!value || value.trim() === '') return true;
+          // Se tem conteúdo, deve ter entre 3 e 15 caracteres
+          return value.length >= 3 && value.length <= 15;
+        },
+        'RG deve ter entre 3 e 15 caracteres'
+      ),
   });
 
 // Órgãos expedidores de RG
@@ -355,21 +369,15 @@ export const DetentoFichaCadastralDialogForm = ({
         const rgOrgao = (data as any).rg_orgao?.trim() || '';
         const rgUf = (data as any).rg_uf?.trim() || '';
 
-        // Validação adicional para garantir que pelo menos um campo foi preenchido
-        if (!rgOrgao && !rgUf) {
-          methods.setError('rg_orgao' as any, {
-            type: 'manual',
-            message: 'Pelo menos o órgão expedidor ou UF deve ser preenchido',
-          });
-          return;
-        }
-
+        // Combinar os campos apenas se pelo menos um foi preenchido
         if (rgOrgao && rgUf) {
           (data as any).rg_orgao_uf = `${rgOrgao}/${rgUf}`;
         } else if (rgOrgao) {
           (data as any).rg_orgao_uf = rgOrgao;
         } else if (rgUf) {
           (data as any).rg_orgao_uf = rgUf;
+        } else {
+          (data as any).rg_orgao_uf = undefined;
         }
 
         // Remover campos separados para evitar conflito no backend

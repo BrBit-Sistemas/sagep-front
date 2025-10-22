@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-import { isValidRg } from 'src/utils/validate-rg';
 import { isValidCpf } from 'src/utils/validate-cpf';
 
 import { Regime, Escolaridade } from 'src/types/prisional';
@@ -30,10 +29,19 @@ export const createDetentoFichaCadastralSchema = z.object({
     .refine((value) => isValidCpf(value), 'CPF inválido'),
   rg: z
     .string()
-    .min(1, 'RG é obrigatório')
-    .refine((value) => isValidRg(value), 'RG inválido'),
-  rg_expedicao: z.string().min(1, 'Data de expedição é obrigatória'),
-  rg_orgao_uf: z.string().min(1, 'Órgão expedidor/UF é obrigatório'),
+    .optional()
+    .transform((value) => value || '') // Transforma undefined/null em string vazia
+    .refine(
+      (value) => {
+        // Se está vazio ou só espaços, é válido
+        if (!value || value.trim() === '') return true;
+        // Se tem conteúdo, deve ter entre 3 e 15 caracteres
+        return value.length >= 3 && value.length <= 15;
+      },
+      'RG deve ter entre 3 e 15 caracteres'
+    ),
+  rg_expedicao: z.string().optional().or(z.literal('')),
+  rg_orgao_uf: z.string().optional().or(z.literal('')),
   data_nascimento: z.string().min(1, 'Data de nascimento é obrigatória'),
   naturalidade: z.string().min(1, 'Naturalidade é obrigatória'),
   naturalidade_uf: z.string().min(1, 'UF de naturalidade é obrigatória'),

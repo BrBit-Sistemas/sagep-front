@@ -29,7 +29,7 @@ export function Logo({
   const singleLogo = (
     <img
       alt="Single logo"
-      src={`${CONFIG.assetsDir}/logo/logo-single.svg`}
+      src={`${CONFIG.assetsDir}/logo/logo-single-atual.svg`}
       width="100%"
       height="100%"
     />
@@ -38,7 +38,7 @@ export function Logo({
   const fullLogo = (
     <img
       alt="Full logo"
-      src={`${CONFIG.assetsDir}/logo/logo-full.svg`}
+      src={`${CONFIG.assetsDir}/logo/logo-full-atual.png`}
       width="100%"
       height="100%"
     />

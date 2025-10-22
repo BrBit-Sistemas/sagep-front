@@ -5,6 +5,7 @@ import { useRef, useMemo, useState, useEffect } from 'react';
 
 import MenuItem from '@mui/material/MenuItem';
 import {
+  Box,
   Card,
   Grid,
   Alert,
@@ -26,6 +27,7 @@ import { formatDateToYYYYMMDD } from 'src/utils/format-date';
 import { getProfissoes } from 'src/api/profissoes/profissoes';
 import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/use-unidade-prisional-list';
 
+import { Iconify } from 'src/components/iconify';
 import { Form, Field } from 'src/components/hook-form';
 
 import { usePermissionCheck } from 'src/auth/guard/permission-guard';
@@ -153,28 +155,28 @@ const externalSchema = createDetentoFichaCadastralSchema
   })
   .omit({
     rg_orgao_uf: true, // Remove a validação obrigatória do campo combinado
+    rg: true, // Remove a validação do campo RG para sobrescrever
   })
   .extend({
     rg_orgao_uf: z.string().optional(), // Torna o campo combinado opcional
+    rg: z
+      .string()
+      .optional()
+      .transform((value) => value || '') // Transforma undefined/null em string vazia
+      .refine(
+        (value) => {
+          // Se está vazio ou só espaços, é válido
+          if (!value || value.trim() === '') return true;
+          // Se tem conteúdo, deve ter entre 3 e 15 caracteres
+          return value.length >= 3 && value.length <= 15;
+        },
+        'RG deve ter entre 3 e 15 caracteres'
+      ),
   })
   .refine((data) => /^\d{4}-\d{2}-\d{2}$/.test(data.data_nascimento || ''), {
     path: ['data_nascimento'],
     message: 'Data deve estar no formato YYYY-MM-DD',
-  })
-  .refine(
-    (data) => {
-      // Validação customizada: pelo menos um dos campos de RG deve estar preenchido
-      const hasOrgao = Boolean(data.rg_orgao && data.rg_orgao.trim());
-      const hasUf = Boolean(data.rg_uf && data.rg_uf.trim());
-      const hasRgOrgaoUf = Boolean(data.rg_orgao_uf && data.rg_orgao_uf.trim());
-
-      return hasRgOrgaoUf || hasOrgao || hasUf;
-    },
-    {
-      message: 'Pelo menos o órgão expedidor ou UF deve ser preenchido',
-      path: ['rg_orgao'], // Mostra erro no primeiro campo para melhor UX
-    }
-  );
+  });
 type ExternalFichaSchema = z.infer<typeof externalSchema>;
 
 // Componente interno para campo de profissão com cache de rótulos
@@ -598,21 +600,15 @@ export default function FichaCadastralExternaPage() {
         const rgOrgao = restData.rg_orgao?.trim() || '';
         const rgUf = restData.rg_uf?.trim() || '';
 
-        // Validação adicional para garantir que pelo menos um campo foi preenchido
-        if (!rgOrgao && !rgUf) {
-          methods.setError('rg_orgao' as any, {
-            type: 'manual',
-            message: 'Pelo menos o órgão expedidor ou UF deve ser preenchido',
-          });
-          return;
-        }
-
+        // Combinar os campos apenas se pelo menos um foi preenchido
         if (rgOrgao && rgUf) {
           restData.rg_orgao_uf = `${rgOrgao}/${rgUf}`;
         } else if (rgOrgao) {
           restData.rg_orgao_uf = rgOrgao;
         } else if (rgUf) {
           restData.rg_orgao_uf = rgUf;
+        } else {
+          restData.rg_orgao_uf = undefined;
         }
 
         delete (restData as any).unidade_id;
@@ -701,13 +697,106 @@ export default function FichaCadastralExternaPage() {
 
         {step === 'cpf' && (
           <Card sx={{ p: 3 }}>
-            <Stack spacing={2}>
+            <Stack spacing={3}>
               {successMessage && (
                 <Alert severity="success" onClose={() => setSuccessMessage(null)}>
                   {successMessage}
                 </Alert>
               )}
-              <Typography fontSize={20}>
+              
+              {/* Requisitos para cadastro - design clean */}
+              <Box 
+                sx={{ 
+                  p: 3,
+                  backgroundColor: 'grey.50',
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: 'grey.200',
+                }}
+              >
+                <Typography 
+                  variant="subtitle1" 
+                  sx={{ 
+                    mb: 2, 
+                    color: 'text.primary', 
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}
+                >
+                  <Iconify icon="solar:list-bold" sx={{ color: 'primary.main' }} />
+                  Requisitos para Cadastro
+                </Typography>
+                
+                <Stack spacing={1.5}>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                    <Box 
+                      sx={{ 
+                        width: 6, 
+                        height: 6, 
+                        borderRadius: '50%', 
+                        backgroundColor: 'primary.main',
+                        mt: 1,
+                        flexShrink: 0
+                      }} 
+                    />
+                    <Typography variant="body2" color="text.secondary">
+                      Ter a posse os documentos pessoais: carteira de identidade e CPF;
+                    </Typography>
+                  </Box>
+                  
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                    <Box 
+                      sx={{ 
+                        width: 6, 
+                        height: 6, 
+                        borderRadius: '50%', 
+                        backgroundColor: 'primary.main',
+                        mt: 1,
+                        flexShrink: 0
+                      }} 
+                    />
+                    <Typography variant="body2" color="text.secondary">
+                      Estar cumprindo pena resultante de processos judiciais conduzidos no Distrito Federal;
+                    </Typography>
+                  </Box>
+                  
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                    <Box 
+                      sx={{ 
+                        width: 6, 
+                        height: 6, 
+                        borderRadius: '50%', 
+                        backgroundColor: 'primary.main',
+                        mt: 1,
+                        flexShrink: 0
+                      }} 
+                    />
+                    <Typography variant="body2" color="text.secondary">
+                      Estar cumprindo pena no regime semiaberto com autorização para trabalho externo concedida pela VEP; ou
+                    </Typography>
+                  </Box>
+                  
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                    <Box 
+                      sx={{ 
+                        width: 6, 
+                        height: 6, 
+                        borderRadius: '50%', 
+                        backgroundColor: 'primary.main',
+                        mt: 1,
+                        flexShrink: 0
+                      }} 
+                    />
+                    <Typography variant="body2" color="text.secondary">
+                      Estar cumprindo pena no regime aberto ou em livramento condicional.
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Box>
+
+              <Typography fontSize={20} sx={{ fontWeight: 500, color: 'text.primary' }}>
                 {canCreate
                   ? 'Informe o CPF do reeducando para iniciar o cadastro.'
                   : 'Esta é a tela inicial onde o CPF do reeducando seria informado para iniciar o cadastro.'}

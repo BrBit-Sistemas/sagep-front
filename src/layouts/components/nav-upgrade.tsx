@@ -1,9 +1,8 @@
 import type { BoxProps } from '@mui/material/Box';
-import type { ReadUsuarioDto } from 'src/api/generated.schemas';
 
 import { m } from 'framer-motion';
 import { varAlpha } from 'minimal-shared/utils';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -13,6 +12,7 @@ import Typography from '@mui/material/Typography';
 import { paths } from 'src/routes/paths';
 
 import { CONFIG } from 'src/global-config';
+import { getAutenticação } from 'src/api/autenticação/autenticação';
 
 import { Label } from 'src/components/label';
 
@@ -22,8 +22,12 @@ import { useAuthContext } from 'src/auth/hooks';
 
 export function NavUpgrade({ sx, ...other }: BoxProps) {
   const { user } = useAuthContext();
-  const queryClient = useQueryClient();
-  const me = queryClient.getQueryData<ReadUsuarioDto>(['me']);
+  const authApi = getAutenticação();
+  const { data: me } = useQuery({ 
+    queryKey: ['me'], 
+    queryFn: () => authApi.me(),
+    staleTime: 0, // Sempre refetch quando invalidado
+  });
 
   const displayName = me?.nome ?? user?.nome ?? '';
   const email = me?.email ?? user?.email ?? '';
