@@ -73,13 +73,18 @@ export const EmpresaFormDialog = ({
           Preencha os campos abaixo para {isEditing ? 'editar' : 'adicionar'} a empresa.
         </Typography>
 
+        <Typography variant="caption" sx={{ color: 'text.secondary', mb: 2, display: 'block' }}>
+          * Campos obrigatórios
+        </Typography>
+
         <Form methods={methods} onSubmit={handleSubmit}>
           <Grid container spacing={2}>
             <Grid size={{ md: 12, sm: 12 }}>
-              <Field.Text name="razao_social" label="Razão Social" />
+              <Field.Text required name="razao_social" label="Razão Social" />
             </Grid>
             <Grid size={{ md: 12, sm: 12 }}>
               <Field.Text
+                required
                 name="cnpj"
                 label="CNPJ"
                 placeholder="12345678000199"

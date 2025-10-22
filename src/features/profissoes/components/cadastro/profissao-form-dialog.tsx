@@ -9,6 +9,7 @@ import {
   Dialog,
   Button,
   Switch,
+  Typography,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -73,14 +74,29 @@ export function ProfissaoFormDialog({
       <DialogTitle>{isEditing ? 'Editar Profissão' : 'Nova Profissão'}</DialogTitle>
 
       <DialogContent>
+        <Typography variant="caption" sx={{ color: 'text.secondary', mb: 2, display: 'block' }}>
+          * Campos obrigatórios
+        </Typography>
         <Form methods={methods} onSubmit={handleSubmit}>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="nome" label="Nome" placeholder="Digite o nome da profissão" />
+              <Field.Text
+                required
+                name="nome"
+                label="Nome"
+                placeholder="Digite o nome da profissão"
+              />
             </Grid>
 
             <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="descricao" label="Descrição" fullWidth multiline rows={3} />
+              <Field.Text
+                required
+                name="descricao"
+                label="Descrição"
+                fullWidth
+                multiline
+                rows={3}
+              />
             </Grid>
 
             <FormControlLabel

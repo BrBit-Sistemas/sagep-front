@@ -4,7 +4,15 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-import { Grid, Button, Dialog, DialogTitle, DialogActions, DialogContent } from '@mui/material';
+import {
+  Grid,
+  Button,
+  Dialog,
+  Typography,
+  DialogTitle,
+  DialogActions,
+  DialogContent,
+} from '@mui/material';
 
 import { Form, Field } from 'src/components/hook-form';
 
@@ -61,10 +69,14 @@ export const SecretariaFormDialog = ({
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>{isEditing ? 'Editar' : 'Adicionar'} Secretaria</DialogTitle>
       <DialogContent>
+        <Typography variant="caption" sx={{ color: 'text.secondary', mb: 2, display: 'block' }}>
+          * Campos obrigatórios
+        </Typography>
         <Form methods={methods} onSubmit={handleSubmit}>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid size={{ md: 12, sm: 12 }}>
               <Field.Text
+                required
                 name="nome"
                 label="Nome da Secretaria"
                 placeholder="Digite o nome da secretaria"

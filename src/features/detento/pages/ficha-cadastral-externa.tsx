@@ -147,8 +147,8 @@ const externalSchema = createDetentoFichaCadastralSchema
     profissao_01: z.preprocess((v) => (v === null ? '' : v), z.string().optional()),
     profissao_02: z.preprocess((v) => (v === null ? '' : v), z.string().optional()),
     // Campos separados para RG
-    rg_orgao: z.string().optional(),
-    rg_uf: z.string().optional(),
+    rg_orgao: z.string().min(1, 'Órgão expedidor é obrigatório'),
+    rg_uf: z.string().min(1, 'UF do RG é obrigatória'),
     // Sobrescrever regime e escolaridade para aceitar valores dos enums
     regime: z.nativeEnum(Regime, { message: 'Regime é obrigatório' }),
     escolaridade: z.nativeEnum(Escolaridade, { message: 'Escolaridade é obrigatória' }),
@@ -906,6 +906,7 @@ export default function FichaCadastralExternaPage() {
                 <Grid container spacing={2}>
                   <Grid size={{ md: 6, sm: 12 }}>
                     <Field.Text
+                      required
                       name="nome"
                       label="Nome completo"
                       helperText={
@@ -916,20 +917,20 @@ export default function FichaCadastralExternaPage() {
                     />
                   </Grid>
                   <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Cpf name="cpf" label="CPF" />
+                    <Field.Cpf required name="cpf" label="CPF" />
                   </Grid>
                   <Grid size={{ md: 4, sm: 12 }}>
-                    <Field.Text name="rg" label="RG" />
+                    <Field.Text required name="rg" label="RG" />
                   </Grid>
                   <Grid size={{ md: 4, sm: 12 }}>
                     <Field.DatePicker
                       name="rg_expedicao"
-                      label="Data de expedição do RG"
+                      label="Data de expedição do RG*"
                       disableFuture
                     />
                   </Grid>
                   <Grid size={{ md: 2, sm: 6 }}>
-                    <Field.Select name="rg_orgao" label="Órgão expedidor" fullWidth>
+                    <Field.Select required name="rg_orgao" label="Órgão expedidor" fullWidth>
                       <MenuItem value="">
                         <em>Órgão</em>
                       </MenuItem>
@@ -942,6 +943,7 @@ export default function FichaCadastralExternaPage() {
                   </Grid>
                   <Grid size={{ md: 2, sm: 6 }}>
                     <Field.Select
+                      required
                       name="rg_uf"
                       label="UF do RG"
                       fullWidth
@@ -960,7 +962,7 @@ export default function FichaCadastralExternaPage() {
                   <Grid size={{ md: 4, sm: 12 }}>
                     <Field.DatePicker
                       name="data_nascimento"
-                      label="Data de nascimento"
+                      label="Data de nascimento*"
                       views={['day', 'month', 'year']}
                       format="DD/MM/YYYY"
                       disableFuture
@@ -973,10 +975,15 @@ export default function FichaCadastralExternaPage() {
                     />
                   </Grid>
                   <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Text name="naturalidade" label="Naturalidade (Cidade)" />
+                    <Field.Text required name="naturalidade" label="Naturalidade (Cidade)" />
                   </Grid>
                   <Grid size={{ md: 2, sm: 12 }}>
-                    <Field.Select name="naturalidade_uf" label="UF de naturalidade" fullWidth>
+                    <Field.Select
+                      required
+                      name="naturalidade_uf"
+                      label="UF de naturalidade"
+                      fullWidth
+                    >
                       <MenuItem value="">
                         <em>UF</em>
                       </MenuItem>
@@ -989,6 +996,7 @@ export default function FichaCadastralExternaPage() {
                   </Grid>
                   <Grid size={{ md: 6, sm: 12 }}>
                     <Field.Text
+                      required
                       name="filiacao_mae"
                       label="Nome da mãe"
                       helperText={
@@ -1006,7 +1014,7 @@ export default function FichaCadastralExternaPage() {
                 <Typography variant="h6">2. Situação Prisional</Typography>
                 <Grid container spacing={2}>
                   <Grid size={{ md: 4, sm: 12 }}>
-                    <Field.Select name="regime" label="Regime" fullWidth>
+                    <Field.Select required name="regime" label="Regime" fullWidth>
                       {getRegimeOptions().map((option) => (
                         <MenuItem key={option.value} value={option.value}>
                           {option.label}
@@ -1015,7 +1023,7 @@ export default function FichaCadastralExternaPage() {
                     </Field.Select>
                   </Grid>
                   <Grid size={{ md: 4, sm: 12 }}>
-                    <Field.Select name="unidade_id" label="Unidade prisional" fullWidth>
+                    <Field.Select required name="unidade_id" label="Unidade prisional" fullWidth>
                       {unidades.map((u) => (
                         <MenuItem key={u.id} value={u.id}>
                           {u.nome}
@@ -1061,6 +1069,7 @@ export default function FichaCadastralExternaPage() {
                 <Grid container spacing={2}>
                   <Grid size={{ md: 12, sm: 12 }}>
                     <Field.Text
+                      required
                       name="endereco"
                       label="Endereço completo"
                       placeholder="Ex: Rua das Flores, 123, Apt 45, Bairro Centro"
@@ -1069,6 +1078,7 @@ export default function FichaCadastralExternaPage() {
                   </Grid>
                   <Grid size={{ md: 6, sm: 12 }}>
                     <Field.Select
+                      required
                       name="regiao_administrativa"
                       label="Região Administrativa onde pode trabalhar"
                       fullWidth
@@ -1115,7 +1125,7 @@ export default function FichaCadastralExternaPage() {
                 <Typography variant="h6">4. Escolaridade e Saúde</Typography>
                 <Grid container spacing={2}>
                   <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Select name="escolaridade" label="Escolaridade" fullWidth>
+                    <Field.Select required name="escolaridade" label="Escolaridade" fullWidth>
                       {getEscolaridadeOptions().map((option) => (
                         <MenuItem key={option.value} value={option.value}>
                           {option.label}
@@ -1219,7 +1229,7 @@ export default function FichaCadastralExternaPage() {
 
                 <FichaDocumentosField
                   detentoId={methods.watch('detento_id')}
-                  title="7. Documentos anexados"
+                  title="7. Documentos anexados*"
                   helperText="Envie imagens legíveis e nomeie cada documento para facilitar a conferência pela equipe."
                 />
 
