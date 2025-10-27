@@ -154,29 +154,33 @@ export const DetentoFormDialog = ({
       <DialogTitle>{isEditing ? 'Editar reeducando' : 'Adicionar reeducando'}</DialogTitle>
 
       <DialogContent>
-        <Typography sx={{ mb: 2 }}>
+        <Typography sx={{ mb: 1 }}>
           {isEditing
             ? 'Edite os campos abaixo para atualizar o reeducando.'
             : 'Preencha os campos abaixo para adicionar um novo reeducando.'}
         </Typography>
 
+        <Typography variant="caption" sx={{ color: 'text.secondary', mb: 2, display: 'block' }}>
+          * Campos obrigatórios
+        </Typography>
+
         <Form methods={methods} onSubmit={handleSubmit}>
           <Grid container spacing={2}>
             <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="nome" label="Nome" />
+              <Field.Text required name="nome" label="Nome" />
             </Grid>
             <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="mae" label="Nome da mãe" />
+              <Field.Text required name="mae" label="Nome da mãe" />
             </Grid>
             <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="prontuario" label="Prontuário" />
+              <Field.Text required name="prontuario" label="Prontuário" />
             </Grid>
 
             <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Cpf name="cpf" label="CPF" />
+              <Field.Cpf required name="cpf" label="CPF" />
             </Grid>
             <Grid size={{ md: 6, sm: 12 }}>
-              <Field.DatePicker name="data_nascimento" label="Data de nascimento" disableFuture />
+              <Field.DatePicker name="data_nascimento" label="Data de nascimento *" disableFuture />
             </Grid>
 
             <Grid size={{ md: 6, sm: 12 }}>
@@ -184,6 +188,7 @@ export const DetentoFormDialog = ({
                 fullWidth
                 name="regime"
                 label="Regime"
+                required
                 slotProps={{ inputLabel: { shrink: true } }}
               >
                 {getRegimeOptions().map((option) => (
@@ -197,6 +202,7 @@ export const DetentoFormDialog = ({
             <Grid size={{ md: 6, sm: 12 }}>
               <Field.Select
                 fullWidth
+                required
                 name="escolaridade"
                 label="Escolaridade"
                 slotProps={{ inputLabel: { shrink: true } }}

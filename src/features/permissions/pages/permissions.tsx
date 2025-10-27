@@ -14,16 +14,22 @@ import {
   Stack,
   Avatar,
   Button,
+  Dialog,
   Divider,
   Tooltip,
   Checkbox,
+  Collapse,
   TextField,
   CardHeader,
   IconButton,
   Typography,
   CardActions,
+  DialogTitle,
   CardContent,
+  DialogActions,
+  DialogContent,
   InputAdornment,
+  DialogContentText,
 } from '@mui/material';
 
 import { paths } from 'src/routes/paths';
@@ -53,6 +59,9 @@ const getActionLabel = (action?: string) => ACTION_LABELS[action ?? ''] ?? actio
 export default function PermissionsPage() {
   const queryClient = useQueryClient();
   const [selectedUser, setSelectedUser] = useState<ReadUsuarioDto | null>(null);
+  const [selectedRole, setSelectedRole] = useState<RoleDto | null>(null);
+  const [roleToDelete, setRoleToDelete] = useState<RoleDto | null>(null);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [roleName, setRoleName] = useState('');
   const [roleDesc, setRoleDesc] = useState('');
   const [selectedPermissionIds, setSelectedPermissionIds] = useState<string[]>([]);
@@ -68,8 +77,6 @@ export default function PermissionsPage() {
     queryKey: ['roles', { page: 0, limit: 100 }],
     queryFn: () => permsApi.paginateRoles({ page: 0, limit: 100 }).then((r) => r),
   });
-
-  console.log(rolesPage);
 
   const { data: permissions } = useQuery({
     queryKey: ['permissions'],
@@ -96,10 +103,55 @@ export default function PermissionsPage() {
         .createRole({ nome: roleName, descricao: roleDesc, permissionIds: selectedPermissionIds })
         .then((r) => r),
     onSuccess: async () => {
+      toast.success('Grupo de permissões criado com sucesso!');
       setRoleName('');
       setRoleDesc('');
       setSelectedPermissionIds([]);
+      setSelectedRole(null);
       await queryClient.invalidateQueries({ queryKey: ['roles'] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || 'Erro ao criar grupo de permissões');
+    },
+  });
+
+  const updateRoleMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedRole?.id) throw new Error('Nenhum grupo selecionado');
+      await permsApi.updateRole(selectedRole.id, {
+        nome: roleName,
+        descricao: roleDesc,
+        permissionIds: selectedPermissionIds,
+      });
+    },
+    onSuccess: async () => {
+      toast.success('Grupo de permissões atualizado com sucesso!');
+      setRoleName('');
+      setRoleDesc('');
+      setSelectedPermissionIds([]);
+      setSelectedRole(null);
+      await queryClient.invalidateQueries({ queryKey: ['roles'] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || 'Erro ao atualizar grupo de permissões');
+    },
+  });
+
+  const deleteRoleMutation = useMutation({
+    mutationFn: async (roleId: string) => {
+      await permsApi.removeRole(roleId);
+    },
+    onSuccess: async () => {
+      toast.success('Grupo de permissões deletado com sucesso!');
+      setRoleName('');
+      setRoleDesc('');
+      setSelectedPermissionIds([]);
+      setSelectedRole(null);
+      await queryClient.invalidateQueries({ queryKey: ['roles'] });
+      await queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || 'Erro ao deletar grupo de permissões');
     },
   });
 
@@ -116,6 +168,26 @@ export default function PermissionsPage() {
     } else {
       setSelectedPermissionIds((prev) => Array.from(new Set([...prev, ...ids])));
     }
+  };
+
+  const toggleGroupExpanded = (subject: string) => {
+    setExpandedGroups((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(subject)) {
+        newSet.delete(subject);
+      } else {
+        newSet.add(subject);
+      }
+      return newSet;
+    });
+  };
+
+  const expandAll = () => {
+    setExpandedGroups(new Set(Object.keys(groupedPermissions)));
+  };
+
+  const collapseAll = () => {
+    setExpandedGroups(new Set());
   };
 
   const groupedPermissions = (permissions ?? []).reduce(
@@ -165,9 +237,14 @@ export default function PermissionsPage() {
         return;
       }
     }
-    await permsApi.updateUserRoles(user.id, roleIds);
-    await queryClient.invalidateQueries({ queryKey: ['users'] });
-    setSelectedUser(await usersApi.findOne(user.id).then((r) => r));
+    try {
+      await permsApi.updateUserRoles(user.id, roleIds);
+      await queryClient.invalidateQueries({ queryKey: ['users'] });
+      setSelectedUser(await usersApi.findOne(user.id).then((r) => r));
+      toast.success('Permissões do usuário atualizadas com sucesso!');
+    } catch (error: any) {
+      toast.error(error?.message || 'Erro ao atualizar permissões do usuário');
+    }
   };
 
   return (
@@ -293,13 +370,61 @@ export default function PermissionsPage() {
           <Card>
             <CardHeader
               title="Grupos de permissões"
-              subheader="Crie um grupo de permissões e adicione a ele as permissões que desejar"
+              subheader="Crie ou edite grupos de permissões e adicione as permissões que desejar"
             />
             <CardContent>
+              {roles.length > 0 && (
+                <>
+                  <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                    <Typography variant="subtitle2" sx={{ flexGrow: 1 }}>
+                      Grupos existentes
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Clique para editar ou no ícone de lixeira para deletar
+                    </Typography>
+                  </Stack>
+                  <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mb: 2 }}>
+                    {roles.map((r) => {
+                      const isSelected = selectedRole?.id === r.id;
+                      return (
+                        <Chip
+                          key={r.id}
+                          label={r.nome}
+                          color={isSelected ? 'primary' : 'default'}
+                          variant={isSelected ? 'filled' : 'outlined'}
+                          onClick={() => {
+                            if (isSelected) {
+                              setSelectedRole(null);
+                              setRoleName('');
+                              setRoleDesc('');
+                              setSelectedPermissionIds([]);
+                            } else {
+                              setSelectedRole(r);
+                              setRoleName(r.nome);
+                              setRoleDesc(r.descricao);
+                              setSelectedPermissionIds(r.permissions?.map((p) => p.id) ?? []);
+                            }
+                          }}
+                          onDelete={() => {
+                            setRoleToDelete(r);
+                          }}
+                          deleteIcon={
+                            <Tooltip title="Deletar grupo">
+                              <Iconify icon="solar:trash-bin-trash-bold" width={18} />
+                            </Tooltip>
+                          }
+                        />
+                      );
+                    })}
+                  </Stack>
+                  <Divider sx={{ mb: 2 }} />
+                </>
+              )}
               <Grid container spacing={2}>
                 <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
                     fullWidth
+                    required
                     label="Nome do grupo de permissões"
                     value={roleName}
                     onChange={(e) => setRoleName(e.target.value)}
@@ -308,6 +433,7 @@ export default function PermissionsPage() {
                 <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
                     fullWidth
+                    required
                     label="Descrição"
                     value={roleDesc}
                     onChange={(e) => setRoleDesc(e.target.value)}
@@ -318,13 +444,20 @@ export default function PermissionsPage() {
               <Divider sx={{ my: 2 }} />
               <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
                 <Typography variant="subtitle2" sx={{ flexGrow: 1 }}>
-                  Permissões
+                  Permissões ({selectedPermissionIds.length} selecionadas)
                 </Typography>
+                <Button size="small" onClick={expandAll} sx={{ minWidth: 'auto' }}>
+                  Expandir tudo
+                </Button>
+                <Button size="small" onClick={collapseAll} sx={{ minWidth: 'auto' }}>
+                  Colapsar tudo
+                </Button>
                 <TextField
                   size="small"
                   placeholder="Buscar por ação ou assunto"
                   value={permQuery}
                   onChange={(e) => setPermQuery(e.target.value)}
+                  sx={{ width: 240 }}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -335,75 +468,173 @@ export default function PermissionsPage() {
                 />
               </Stack>
 
-              <Stack spacing={1.5}>
-                {Object.entries(groupedPermissions).map(([subject, list]) => {
-                  const ids = list.map((p) => p.id);
-                  const allSelected = ids.every((id) => selectedPermissionIds.includes(id));
-                  const someSelected =
-                    !allSelected && ids.some((id) => selectedPermissionIds.includes(id));
-                  return (
-                    <Paper key={subject} variant="outlined" sx={{ p: 1.25, borderRadius: 1.5 }}>
-                      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
-                        <Checkbox
-                          checked={allSelected}
-                          indeterminate={someSelected}
-                          onChange={() => onTogglePermissionGroup(subject, ids)}
-                        />
-                        <Typography variant="subtitle2" sx={{ flexGrow: 1 }}>
-                          {subject}
-                        </Typography>
-                        {allSelected ? (
-                          <Tooltip title="Desmarcar grupo">
-                            <IconButton
-                              size="small"
-                              onClick={() => onTogglePermissionGroup(subject, ids)}
-                            >
-                              <Iconify icon="solar:close-circle-bold" width={18} />
-                            </IconButton>
-                          </Tooltip>
-                        ) : (
-                          <Tooltip title="Selecionar grupo">
-                            <IconButton
-                              size="small"
-                              onClick={() => onTogglePermissionGroup(subject, ids)}
-                            >
-                              <Iconify icon="solar:check-circle-bold" width={18} />
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                      </Stack>
-                      <Grid container spacing={1}>
-                        {list.map((p) => (
-                          <Grid key={p.id} size={{ xs: 12, sm: 6 }}>
-                            <Stack direction="row" alignItems="center" spacing={1}>
-                              <Checkbox
-                                checked={selectedPermissionIds.includes(p.id)}
-                                onChange={() => onTogglePermission(p.id)}
-                              />
-                              <Typography variant="body2">
-                                {`${getActionLabel(p.action)}: ${p.subject}`}
-                              </Typography>
-                            </Stack>
-                          </Grid>
-                        ))}
-                      </Grid>
-                    </Paper>
-                  );
-                })}
-              </Stack>
+              <Box
+                sx={{
+                  maxHeight: 400,
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                  pr: 1,
+                  '&::-webkit-scrollbar': {
+                    width: '8px',
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    backgroundColor: (theme) => alpha(theme.palette.grey[500], 0.1),
+                    borderRadius: '4px',
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    backgroundColor: (theme) => alpha(theme.palette.grey[500], 0.3),
+                    borderRadius: '4px',
+                    '&:hover': {
+                      backgroundColor: (theme) => alpha(theme.palette.grey[500], 0.5),
+                    },
+                  },
+                }}
+              >
+                <Stack spacing={1}>
+                  {Object.entries(groupedPermissions).map(([subject, list]) => {
+                    const ids = list.map((p) => p.id);
+                    const allSelected = ids.every((id) => selectedPermissionIds.includes(id));
+                    const someSelected =
+                      !allSelected && ids.some((id) => selectedPermissionIds.includes(id));
+                    const isExpanded = expandedGroups.has(subject);
+                    return (
+                      <Paper
+                        key={subject}
+                        variant="outlined"
+                        sx={{
+                          borderRadius: 1.5,
+                          overflow: 'hidden',
+                          borderColor: allSelected ? 'primary.main' : 'divider',
+                          bgcolor: allSelected
+                            ? (theme) => alpha(theme.palette.primary.main, 0.04)
+                            : 'transparent',
+                        }}
+                      >
+                        <Stack
+                          direction="row"
+                          alignItems="center"
+                          spacing={1}
+                          sx={{
+                            p: 1,
+                            cursor: 'pointer',
+                            '&:hover': {
+                              bgcolor: (theme) => alpha(theme.palette.grey[500], 0.05),
+                            },
+                          }}
+                          onClick={() => toggleGroupExpanded(subject)}
+                        >
+                          <IconButton size="small" sx={{ p: 0.5 }}>
+                            <Iconify
+                              icon={
+                                isExpanded
+                                  ? 'eva:arrow-ios-downward-fill'
+                                  : 'eva:arrow-ios-forward-fill'
+                              }
+                              width={20}
+                            />
+                          </IconButton>
+                          <Checkbox
+                            checked={allSelected}
+                            indeterminate={someSelected}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              onTogglePermissionGroup(subject, ids);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            sx={{ p: 0 }}
+                          />
+                          <Typography variant="subtitle2" sx={{ flexGrow: 1 }}>
+                            {subject}
+                          </Typography>
+                          <Chip
+                            size="small"
+                            label={`${ids.filter((id) => selectedPermissionIds.includes(id)).length}/${list.length}`}
+                            color={allSelected ? 'primary' : 'default'}
+                            sx={{ height: 20, minWidth: 45 }}
+                          />
+                          {allSelected ? (
+                            <Tooltip title="Desmarcar grupo">
+                              <IconButton
+                                size="small"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onTogglePermissionGroup(subject, ids);
+                                }}
+                                sx={{ p: 0.5 }}
+                              >
+                                <Iconify icon="solar:close-circle-bold" width={18} />
+                              </IconButton>
+                            </Tooltip>
+                          ) : (
+                            <Tooltip title="Selecionar grupo">
+                              <IconButton
+                                size="small"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onTogglePermissionGroup(subject, ids);
+                                }}
+                                sx={{ p: 0.5 }}
+                              >
+                                <Iconify icon="solar:check-circle-bold" width={18} />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                        </Stack>
+                        <Collapse in={isExpanded}>
+                          <Divider />
+                          <Box sx={{ p: 1, pt: 0.5 }}>
+                            <Grid container spacing={0.5}>
+                              {list.map((p) => (
+                                <Grid key={p.id} size={{ xs: 12, sm: 6 }}>
+                                  <Stack
+                                    direction="row"
+                                    alignItems="center"
+                                    spacing={0.5}
+                                    sx={{
+                                      py: 0.25,
+                                      px: 0.5,
+                                      borderRadius: 1,
+                                      '&:hover': {
+                                        bgcolor: (theme) => alpha(theme.palette.grey[500], 0.05),
+                                      },
+                                    }}
+                                  >
+                                    <Checkbox
+                                      size="small"
+                                      checked={selectedPermissionIds.includes(p.id)}
+                                      onChange={() => onTogglePermission(p.id)}
+                                      sx={{ p: 0 }}
+                                    />
+                                    <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
+                                      {getActionLabel(p.action)}
+                                    </Typography>
+                                  </Stack>
+                                </Grid>
+                              ))}
+                            </Grid>
+                          </Box>
+                        </Collapse>
+                      </Paper>
+                    );
+                  })}
+                </Stack>
+              </Box>
             </CardContent>
             <Divider />
             <CardActions sx={{ p: 2 }}>
               <Button
                 variant="contained"
-                onClick={() => createRoleMutation.mutate()}
+                onClick={() =>
+                  selectedRole ? updateRoleMutation.mutate() : createRoleMutation.mutate()
+                }
                 disabled={!roleName || !roleDesc || selectedPermissionIds.length === 0}
               >
-                Criar grupo de permissões
+                {selectedRole ? 'Atualizar grupo de permissões' : 'Criar grupo de permissões'}
               </Button>
               <Button
                 variant="text"
                 onClick={() => {
+                  setSelectedRole(null);
                   setRoleName('');
                   setRoleDesc('');
                   setSelectedPermissionIds([]);
@@ -416,6 +647,38 @@ export default function PermissionsPage() {
           </Card>
         </Grid>
       </Grid>
+
+      {/* Modal de confirmação para deletar role */}
+      <Dialog open={!!roleToDelete} onClose={() => setRoleToDelete(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>Confirmar exclusão</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Tem certeza que deseja deletar o grupo <strong>&quot;{roleToDelete?.nome}&quot;</strong>
+            ?
+            <br />
+            <br />
+            Esta ação não pode ser desfeita e todos os usuários que possuem este grupo perderão
+            essas permissões.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRoleToDelete(null)} color="inherit">
+            Cancelar
+          </Button>
+          <Button
+            onClick={() => {
+              if (roleToDelete?.id) {
+                deleteRoleMutation.mutate(roleToDelete.id);
+                setRoleToDelete(null);
+              }
+            }}
+            color="error"
+            variant="contained"
+          >
+            Deletar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </DashboardContent>
   );
 }
