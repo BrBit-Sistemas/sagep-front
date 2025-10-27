@@ -68,7 +68,7 @@ export const createDetentoFichaCadastralSchema = z.object({
   fez_curso_sistema_prisional: z.string().optional(),
   ja_trabalhou_funap: z.boolean().default(false),
   ano_trabalho_anterior: z.string().optional(),
-  profissao_01: z.string().optional(),
+  profissao_01: z.string().min(1, 'Profissão 01 é obrigatória'),
   profissao_02: z.string().optional(),
   // Declarações e responsáveis
   responsavel_preenchimento: z.string().optional(),

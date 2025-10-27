@@ -943,14 +943,14 @@ export const DetentoFichaCadastralDialogForm = ({
                     }}
                   />
                 </Grid>
-                <Grid size={{ md: 6, sm: 12 }}>
-                  <ProfissaoField
-                    name="profissao_01"
-                    label="Profissão 01"
-                    excludeValue={methods.watch('profissao_02')}
-                    onLabelUpdate={handleLabelUpdate}
-                  />
-                </Grid>
+                  <Grid size={{ md: 6, sm: 12 }}>
+                    <ProfissaoField
+                      name="profissao_01"
+                      label="Profissão 01*"
+                      excludeValue={methods.watch('profissao_02')}
+                      onLabelUpdate={handleLabelUpdate}
+                    />
+                  </Grid>
                 <Grid size={{ md: 6, sm: 12 }}>
                   <ProfissaoField
                     name="profissao_02"

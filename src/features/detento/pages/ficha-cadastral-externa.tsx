@@ -145,7 +145,7 @@ const externalSchema = createDetentoFichaCadastralSchema
       .min(1, { message: 'Unidade prisional é obrigatória' })
       .uuid('ID da unidade prisional inválido'),
     // Permitir null vindo do Autocomplete e normalizar para string vazia
-    profissao_01: z.preprocess((v) => (v === null ? '' : v), z.string().optional()),
+    profissao_01: z.preprocess((v) => (v === null ? '' : v), z.string().min(1, 'Profissão 01 é obrigatória')),
     profissao_02: z.preprocess((v) => (v === null ? '' : v), z.string().optional()),
     // Campos separados para RG
     rg_orgao: z.string().min(1, 'Órgão expedidor é obrigatório'),
@@ -1357,7 +1357,7 @@ export default function FichaCadastralExternaPage() {
                   <Grid size={{ md: 6, sm: 12 }}>
                     <ProfissaoField
                       name="profissao_01"
-                      label="Profissão 01"
+                      label="Profissão 01*"
                       excludeValue={methods.watch('profissao_02')}
                       onLabelUpdate={handleLabelUpdate}
                     />
