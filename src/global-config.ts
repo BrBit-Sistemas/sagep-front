@@ -7,6 +7,7 @@ export type ConfigValue = {
   appVersion: string;
   serverUrl: string;
   assetsDir: string;
+  publicFichaCadastralUrl: string;
   auth: {
     method: 'jwt' | 'amplify' | 'firebase' | 'supabase' | 'auth0';
     skip: boolean;
@@ -34,6 +35,7 @@ export const CONFIG: ConfigValue = {
   appVersion: packageJson.version,
   serverUrl: import.meta.env.VITE_SERVER_URL ?? 'http://localhost:3000',
   assetsDir: import.meta.env.VITE_ASSETS_DIR ?? '',
+  publicFichaCadastralUrl: import.meta.env.VITE_PUBLIC_FICHA_CADASTRAL_URL ?? 'https://df.sagep.com.br',
   /**
    * Auth
    * @method jwt | amplify | firebase | supabase | auth0

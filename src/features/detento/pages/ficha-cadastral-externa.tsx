@@ -24,6 +24,7 @@ import {
 import { isValidCpf } from 'src/utils/validate-cpf';
 import { formatDateToYYYYMMDD } from 'src/utils/format-date';
 
+import { CONFIG } from 'src/global-config';
 import { getProfissoes } from 'src/api/profissoes/profissoes';
 import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/use-unidade-prisional-list';
 
@@ -838,6 +839,171 @@ export default function FichaCadastralExternaPage() {
                   </Button>
                 </Grid>
               </Grid>
+
+              {/* Informações sobre a Ficha Cadastral */}
+              <Box
+                sx={{
+                  p: 3,
+                  backgroundColor: 'primary.lighter',
+                  borderRadius: 2,
+                  border: '2px solid',
+                  borderColor: 'primary.light',
+                }}
+              >
+                <Stack spacing={3}>
+                  {/* Destinação */}
+                  <Box>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        mb: 1.5,
+                        color: 'primary.dark',
+                        fontWeight: 600,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                      }}
+                    >
+                      <Iconify icon="solar:users-group-rounded-bold" width={24} />
+                      Destinação
+                    </Typography>
+                    <Typography variant="body2" color="text.primary" sx={{ lineHeight: 1.7 }}>
+                      Essa ficha online é destinada à sentenciados que cumprem pena nos
+                      estabelecimentos penais do Distrito Federal, nos regimes semiaberto ou
+                      sentenciados que cumprem pena no regime aberto ou livramento condicional.
+                    </Typography>
+                  </Box>
+
+                  {/* Custos */}
+                  <Box>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        mb: 1.5,
+                        color: 'primary.dark',
+                        fontWeight: 600,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                      }}
+                    >
+                      <Iconify icon="solar:check-circle-bold" width={24} />
+                      Custos do serviço prestado
+                    </Typography>
+                    <Typography variant="body2" color="text.primary" sx={{ lineHeight: 1.7 }}>
+                      <strong>Gratuito.</strong> A FUNAP não cobra qualquer valor pelo serviço
+                      prestado.
+                    </Typography>
+                  </Box>
+
+                  {/* Forma de prestação */}
+                  <Box>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        mb: 1.5,
+                        color: 'primary.dark',
+                        fontWeight: 600,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                      }}
+                    >
+                      <Iconify icon="solar:settings-bold" width={24} />
+                      Forma de prestação dos serviços
+                    </Typography>
+                    <Typography variant="body2" color="text.primary" sx={{ lineHeight: 1.7 }}>
+                      Presencial ou on-line.
+                    </Typography>
+                  </Box>
+
+                  {/* Locais e formas de acesso */}
+                  <Box>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        mb: 1.5,
+                        color: 'primary.dark',
+                        fontWeight: 600,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                      }}
+                    >
+                      <Iconify icon="solar:flag-bold" width={24} />
+                      Locais e formas de acesso ao serviço
+                    </Typography>
+                    <Stack spacing={2}>
+                      <Box>
+                        <Typography
+                          variant="body2"
+                          sx={{ fontWeight: 600, color: 'text.primary', mb: 0.5 }}
+                        >
+                          Presencial:
+                        </Typography>
+                        <Typography variant="body2" color="text.primary" sx={{ lineHeight: 1.7 }}>
+                          Na sede da FUNAP, localizada no endereço: SIA Trecho 02, Lotes
+                          1835/1845 – 1º andar – Guará – Brasília DF – CEP: 72200-020
+                        </Typography>
+                      </Box>
+                      <Box>
+                        <Typography
+                          variant="body2"
+                          sx={{ fontWeight: 600, color: 'text.primary', mb: 0.5 }}
+                        >
+                          Internet:
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          color="text.primary"
+                          sx={{ lineHeight: 1.7, mb: 1 }}
+                        >
+                          No site da FUNAP, na página inicial ou na seção &ldquo;Carta de Serviços&rdquo; →
+                          &ldquo;Serviços para os reeducandos&rdquo; → &ldquo;Ficha de cadastro para o serviço
+                          externo&rdquo;, ou pelo link:
+                        </Typography>
+                        <Box
+                          component="a"
+                          href={CONFIG.publicFichaCadastralUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          sx={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            px: 2,
+                            py: 1,
+                            backgroundColor: 'common.white',
+                            borderRadius: 1,
+                            border: '1px solid',
+                            borderColor: 'primary.main',
+                            textDecoration: 'none',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            '&:hover': {
+                              backgroundColor: 'primary.main',
+                              '& .MuiTypography-root': {
+                                color: 'common.white',
+                              },
+                              '& .iconify': {
+                                color: 'common.white',
+                              },
+                            },
+                          }}
+                        >
+                          <Iconify icon="solar:eye-bold" width={20} color="primary.main" />
+                          <Typography
+                            variant="body2"
+                            sx={{ fontWeight: 600, color: 'primary.main' }}
+                          >
+                            {CONFIG.publicFichaCadastralUrl}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Stack>
+                  </Box>
+                </Stack>
+              </Box>
             </Stack>
           </Card>
         )}
