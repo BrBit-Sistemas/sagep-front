@@ -996,7 +996,7 @@ export default function FichaCadastralExternaPage() {
                             variant="body2"
                             sx={{ fontWeight: 600, color: 'primary.main' }}
                           >
-                            {CONFIG.publicFichaCadastralUrl}
+                            {CONFIG.publicFichaCadastralUrl.replace(/^https?:\/\//, '')}
                           </Typography>
                         </Box>
                       </Box>

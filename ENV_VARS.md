@@ -21,10 +21,13 @@ VITE_ASSETS_DIR=
 ```env
 # URL pública para acesso externo à ficha cadastral
 # Esta URL será exibida na página de informações da ficha cadastral
-# IMPORTANTE: Não inclua o protocolo (http:// ou https://) - será adicionado automaticamente
-VITE_PUBLIC_FICHA_CADASTRAL_URL=df.sagep.com.br
-# Exemplo para desenvolvimento local:
-# VITE_PUBLIC_FICHA_CADASTRAL_URL=localhost:3030
+# IMPORTANTE: Inclua a URL completa com protocolo (http:// ou https://)
+
+# Para desenvolvimento local (use http):
+VITE_PUBLIC_FICHA_CADASTRAL_URL=http://localhost:3030
+
+# Para produção (use https):
+# VITE_PUBLIC_FICHA_CADASTRAL_URL=https://df.sagep.com.br
 ```
 
 ### Mapbox (Opcional)
