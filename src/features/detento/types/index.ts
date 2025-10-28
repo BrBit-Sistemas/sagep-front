@@ -48,10 +48,21 @@ export type DetentoFichaCadastral = {
   unidade_prisional: string;
   prontuario?: string | null;
   sei: string;
-  // Endereço e contato
-  endereco: string;
-  regiao_administrativa: string;
-  telefone: string;
+  // Endereço e contato (campos antigos - compatibilidade)
+  endereco?: string;
+  regiao_administrativa?: string;
+  telefone?: string;
+
+  // Novos campos de endereço estruturados
+  cep?: string;
+  logradouro?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
+  cidade?: string;
+  estado?: string;
+  // Região Administrativa (específico para DF)
+  ra_df?: string;
   // Escolaridade
   escolaridade: string;
   // Saúde

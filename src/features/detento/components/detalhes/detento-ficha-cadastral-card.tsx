@@ -67,10 +67,17 @@ export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadast
     return () => {
       mounted = false;
     };
-  }, [fichaCadastral.fichacadastral_id]);
+  }, [fichaCadastral.fichacadastral_id, fichaCadastral.pdf_path, fichaCadastral.updatedAt]);
 
   const handleEdit = () => {
+    // Abrir dialog imediatamente com dados do cache
     openFichaCadastralEditDialog(fichaCadastral);
+    
+    // Refetch em background para garantir dados sempre atualizados
+    // (não bloqueia a abertura do dialog)
+    queryClient.invalidateQueries({
+      queryKey: detentoKeys.fichasCadastrais(fichaCadastral.detento_id),
+    });
   };
 
   const handleView = (e: React.MouseEvent) => {
@@ -160,7 +167,10 @@ export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadast
             <>
               {canRead && (
                 <IconButton
-                  onClick={handleView}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleView(e);
+                  }}
                   sx={{
                     position: 'absolute',
                     top: 8,
@@ -179,7 +189,10 @@ export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadast
               )}
               {canDelete && (
                 <IconButton
-                  onClick={handleDelete}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(e);
+                  }}
                   sx={{
                     position: 'absolute',
                     top: 8,

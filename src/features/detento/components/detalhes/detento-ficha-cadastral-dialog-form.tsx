@@ -28,6 +28,7 @@ import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/
 
 import { toast } from 'src/components/snackbar';
 import { Form, Field } from 'src/components/hook-form';
+import { EnderecoForm } from 'src/components/forms/endereco-form';
 
 import { getRegimeOptions, getEscolaridadeOptions } from 'src/types/prisional';
 
@@ -446,7 +447,13 @@ export const DetentoFichaCadastralDialogForm = ({
           await detentoService.createFichaCadastral({ ...data, detento_id: detentoId });
           toast.success('Ficha cadastral criada com sucesso!');
         }
+        
+        // Invalidar cache das fichas cadastrais E das URLs dos PDFs
         await queryClient.invalidateQueries({ queryKey: detentoKeys.fichasCadastrais(detentoId) });
+        
+        // Forçar refetch para garantir que o PDF atualizado seja carregado
+        await queryClient.refetchQueries({ queryKey: detentoKeys.fichasCadastrais(detentoId) });
+        
         methods.reset();
         onClose();
         // Keep user on ficha cadastral tab after submit
@@ -770,45 +777,12 @@ export const DetentoFichaCadastralDialogForm = ({
                 3. Endereço e Contato
               </Typography>
               <Grid container spacing={2}>
-                <Grid size={{ md: 12, sm: 12 }}>
-                  <Field.Text
-                    required
-                    name="endereco"
-                    label="Endereço completo"
-                    placeholder="Ex: Rua das Flores, 123, Apt 45, Bairro Centro"
-                    helperText="Digite o endereço completo em uma linha (rua, número, complemento, bairro)"
-                  />
+                {/* Novo formulário de endereço estruturado */}
+                <Grid size={{ xs: 12 }}>
+                  <EnderecoForm disabled={loading} />
                 </Grid>
-                <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Select
-                    required
-                    name="regiao_administrativa"
-                    label="Região Administrativa (RA)"
-                    fullWidth
-                    helperText="Selecione a Região Administrativa do DF onde o detento reside"
-                    onChange={(e: any) => {
-                      // Se uma região foi selecionada aqui e ela estava selecionada no campo bloqueado, limpar o campo bloqueado
-                      const selectedValue = e.target.value;
-                      const regiaoBloqueada = methods.watch('regiao_bloqueada');
-                      if (selectedValue && regiaoBloqueada === selectedValue) {
-                        methods.setValue('regiao_bloqueada', '');
-                      }
-                      methods.setValue('regiao_administrativa', selectedValue);
-                    }}
-                  >
-                    <MenuItem value="">
-                      <em>Selecione uma RA</em>
-                    </MenuItem>
-                    {REGIOES_ADMINISTRATIVAS_DF.filter((ra) => {
-                      const regiaoBloqueada = methods.watch('regiao_bloqueada');
-                      return !regiaoBloqueada || ra.value !== regiaoBloqueada;
-                    }).map((ra) => (
-                      <MenuItem key={ra.value} value={ra.value}>
-                        {ra.label}
-                      </MenuItem>
-                    ))}
-                  </Field.Select>
-                </Grid>
+
+                {/* Telefone */}
                 <Grid size={{ md: 6, sm: 12 }}>
                   <Field.Text
                     name="telefone"

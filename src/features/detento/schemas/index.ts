@@ -52,10 +52,21 @@ export const createDetentoFichaCadastralSchema = z.object({
   unidade_prisional: z.string().min(1, 'Unidade prisional é obrigatória'),
   prontuario: z.string().optional(),
   sei: z.string().optional(),
-  // Endereço e contato
-  endereco: z.string().min(1, 'Endereço é obrigatório'),
-  regiao_administrativa: z.string().min(1, 'Região Administrativa é obrigatória'),
+  // Endereço e contato (campos antigos - compatibilidade)
+  endereco: z.string().optional(),
+  regiao_administrativa: z.string().optional(),
   telefone: z.string().optional(),
+
+  // Novos campos de endereço estruturados
+  cep: z.string().optional(),
+  logradouro: z.string().optional(),
+  numero: z.string().optional(),
+  complemento: z.string().optional(),
+  bairro: z.string().optional(),
+  cidade: z.string().optional(),
+  estado: z.string().optional(),
+  // Região Administrativa (específico para DF)
+  ra_df: z.string().optional(),
   // Escolaridade
   escolaridade: z.string().min(1, 'Escolaridade é obrigatória'),
   // Saúde
