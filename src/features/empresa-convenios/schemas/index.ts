@@ -29,10 +29,14 @@ const localExecucaoSchema = z.object({
     .transform((val) => val.toUpperCase()),
   cep: z
     .string()
-    .regex(/^\d{8}$/u, 'CEP deve conter 8 dígitos')
+    .regex(/^\d{5}-?\d{3}$/u, 'CEP deve conter 8 dígitos')
     .optional()
     .or(z.literal(''))
-    .transform((val) => (val ? val : undefined)),
+    .transform((val) => {
+      if (!val) return undefined;
+      // Remove o traço para salvar apenas números
+      return val.replace(/\D/g, '');
+    }),
   referencia: z.string().optional().nullable(),
 });
 

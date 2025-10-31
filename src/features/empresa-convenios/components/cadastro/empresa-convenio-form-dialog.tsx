@@ -1,25 +1,34 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Icon as SearchIconify } from '@iconify/react';
 import { useRef, useMemo, useState, useEffect } from 'react';
-import { useForm, useFieldArray, useFormContext } from 'react-hook-form';
+import { useForm, useWatch, useFieldArray, useFormContext } from 'react-hook-form';
 
-import MenuItem from '@mui/material/MenuItem';
 import {
+  Box,
   Grid,
-  Dialog,
+  Alert,
   Button,
+  Dialog,
   Divider,
+  Tooltip,
+  MenuItem,
+  IconButton,
   Typography,
   DialogTitle,
   DialogActions,
   DialogContent,
+  InputAdornment,
+  CircularProgress,
 } from '@mui/material';
 
 import { formatDateToYYYYMMDD } from 'src/utils/format-date';
 
 import { getProfissoes } from 'src/api/profissoes/profissoes';
+import { enderecoApiService } from 'src/services/endereco-api.service';
 import { ArticlesSelector } from 'src/features/artigos-penais/components/articles-selector';
 
 import { Form, Field } from 'src/components/hook-form';
+import { EnderecoSearchDialog } from 'src/components/forms/endereco-search-dialog';
 
 import { convenioTipos, regimesOptions } from '../../data';
 import { useEmpresasOptions } from '../../hooks/use-empresas-options';
@@ -201,6 +210,161 @@ const ProfissaoFieldRow = ({ index, onRemove }: ProfissaoFieldRowProps) => {
   );
 };
 
+// Campos do local de execução com busca de CEP (direta e reversa)
+const LocalExecucaoRow = ({ idx, onRemove }: { idx: number; onRemove: () => void }) => {
+  const { setValue, control } = useFormContext();
+  const [loadingCep, setLoadingCep] = useState(false);
+  const [errorCep, setErrorCep] = useState<string | null>(null);
+  const [openBusca, setOpenBusca] = useState(false);
+
+  const cep: string = useWatch({ control, name: `locais_execucao.${idx}.cep` as const }) as any;
+
+  // Formatar CEP automaticamente ao digitar
+  const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, ''); // Remove tudo que não é dígito
+    if (value.length > 8) value = value.slice(0, 8); // Limita a 8 dígitos
+    if (value.length > 5) {
+      value = `${value.slice(0, 5)}-${value.slice(5)}`; // Adiciona o traço
+    }
+    
+    // Limpa os campos de endereço quando o CEP é alterado
+    if (value.length < 8) {
+      setValue(`locais_execucao.${idx}.logradouro`, '');
+      setValue(`locais_execucao.${idx}.numero`, '');
+      setValue(`locais_execucao.${idx}.complemento`, '');
+      setValue(`locais_execucao.${idx}.bairro`, '');
+      setValue(`locais_execucao.${idx}.cidade`, '');
+      setValue(`locais_execucao.${idx}.estado`, '');
+    }
+    
+    setValue(`locais_execucao.${idx}.cep`, value);
+  };
+
+  // Formatar CEP ao carregar (para edição)
+  useEffect(() => {
+    const onlyDigits = (cep || '').replace(/\D/g, '');
+    if (onlyDigits.length === 8 && cep && !cep.includes('-')) {
+      // Se o CEP tem 8 dígitos mas não tem traço, formata
+      const formatted = `${onlyDigits.slice(0, 5)}-${onlyDigits.slice(5)}`;
+      setValue(`locais_execucao.${idx}.cep`, formatted, { shouldValidate: false });
+    }
+  }, [cep, idx, setValue]);
+
+  useEffect(() => {
+    const onlyDigits = (cep || '').replace(/\D/g, '');
+    
+    if (onlyDigits.length === 8) {
+      (async () => {
+        try {
+          setLoadingCep(true);
+          setErrorCep(null);
+          const dados = await enderecoApiService.buscarCep(onlyDigits);
+          setValue(`locais_execucao.${idx}.logradouro`, dados.logradouro || '');
+          setValue(`locais_execucao.${idx}.bairro`, dados.bairro || '');
+          setValue(`locais_execucao.${idx}.cidade`, dados.cidade || '');
+          setValue(`locais_execucao.${idx}.estado`, dados.estado || '');
+        } catch {
+          const formattedCep = `${onlyDigits.slice(0, 5)}-${onlyDigits.slice(5)}`;
+          setErrorCep(`CEP ${formattedCep} não encontrado`);
+        } finally {
+          setLoadingCep(false);
+        }
+      })();
+    } else if (onlyDigits.length > 0 && onlyDigits.length < 8) {
+      setErrorCep('CEP incompleto');
+      setLoadingCep(false);
+    } else if (onlyDigits.length === 0) {
+      setErrorCep(null);
+      setLoadingCep(false);
+    }
+  }, [cep, idx, setValue]);
+
+  const handleSelecionarCep = (cepSel: string) => {
+    setValue(`locais_execucao.${idx}.cep`, cepSel);
+    setOpenBusca(false);
+  };
+
+  return (
+    <Box>
+      <Grid
+        container
+        spacing={1}
+        sx={{ border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 1, p: 2, mb: 2 }}
+      >
+        {/* CEP primeiro com busca reversa */}
+        <Grid size={{ md: 3, sm: 6 }}>
+          <Field.Text
+            name={`locais_execucao.${idx}.cep`}
+            label="CEP"
+            placeholder="00000-000"
+            onChange={handleCepChange}
+            inputProps={{ maxLength: 9 }}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  {loadingCep ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    <Tooltip title="Buscar CEP por endereço">
+                      <span>
+                        <IconButton size="small" onClick={() => setOpenBusca(true)}>
+                          <SearchIconify icon="solar:magnifer-linear" width={16} height={16} />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                  )}
+                </InputAdornment>
+              ),
+            }}
+            helperText={!errorCep && 'Ou busque pelo endereço'}
+          />
+        </Grid>
+      <Grid size={{ md: 5, sm: 12 }}>
+        <Field.Text name={`locais_execucao.${idx}.logradouro`} label="Logradouro" placeholder="Av. Brasil" />
+      </Grid>
+      <Grid size={{ md: 2, sm: 6 }}>
+        <Field.Text name={`locais_execucao.${idx}.numero`} label="Número" placeholder="123" />
+      </Grid>
+      <Grid size={{ md: 2, sm: 6 }}>
+        <Field.Text name={`locais_execucao.${idx}.complemento`} label="Complemento" placeholder="Galpão, sala..." />
+      </Grid>
+
+      <Grid size={{ md: 4, sm: 12 }}>
+        <Field.Text name={`locais_execucao.${idx}.bairro`} label="Bairro" />
+      </Grid>
+      <Grid size={{ md: 4, sm: 12 }}>
+        <Field.Text name={`locais_execucao.${idx}.cidade`} label="Cidade" placeholder="Boa Vista" />
+      </Grid>
+      <Grid size={{ md: 2, sm: 6 }}>
+        <Field.Text name={`locais_execucao.${idx}.estado`} label="UF" placeholder="RR" inputProps={{ maxLength: 2 }} />
+      </Grid>
+      <Grid size={{ md: 10, sm: 12 }}>
+        <Field.Text name={`locais_execucao.${idx}.referencia`} label="Referência" placeholder="Ponto de referência" />
+      </Grid>
+      <Grid size={{ md: 2, sm: 12 }} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <Button color="error" variant="outlined" onClick={onRemove}>
+          Remover local
+        </Button>
+      </Grid>
+      </Grid>
+
+      {/* Mensagem de erro do CEP */}
+      {errorCep && (
+        <Alert severity="error" sx={{ mt: 1, mb: 1 }}>
+          {errorCep}
+        </Alert>
+      )}
+
+      {/* Dialog de busca reversa */}
+      <EnderecoSearchDialog
+        open={openBusca}
+        onClose={() => setOpenBusca(false)}
+        onSelectCep={handleSelecionarCep}
+      />
+    </Box>
+  );
+};
+
 export const EmpresaConvenioFormDialog = ({
   defaultValues,
   convenioId,
@@ -355,80 +519,7 @@ export const EmpresaConvenioFormDialog = ({
             <Grid size={{ md: 12, sm: 12 }}>
               <Grid container spacing={1}>
                 {locaisFields.map((field, idx) => (
-                  <Grid
-                    key={field.id}
-                    container
-                    spacing={1}
-                    sx={{
-                      border: (theme) => `1px solid ${theme.palette.divider}`,
-                      borderRadius: 1,
-                      p: 2,
-                      mb: 2,
-                    }}
-                  >
-                    <Grid size={{ md: 6, sm: 12 }}>
-                      <Field.Text
-                        name={`locais_execucao.${idx}.logradouro`}
-                        label="Logradouro"
-                        placeholder="Av. Brasil"
-                      />
-                    </Grid>
-                    <Grid size={{ md: 2, sm: 6 }}>
-                      <Field.Text
-                        name={`locais_execucao.${idx}.numero`}
-                        label="Número"
-                        placeholder="123"
-                      />
-                    </Grid>
-                    <Grid size={{ md: 4, sm: 6 }}>
-                      <Field.Text
-                        name={`locais_execucao.${idx}.complemento`}
-                        label="Complemento"
-                        placeholder="Galpão, sala..."
-                      />
-                    </Grid>
-                    <Grid size={{ md: 4, sm: 12 }}>
-                      <Field.Text name={`locais_execucao.${idx}.bairro`} label="Bairro" />
-                    </Grid>
-                    <Grid size={{ md: 4, sm: 12 }}>
-                      <Field.Text
-                        name={`locais_execucao.${idx}.cidade`}
-                        label="Cidade"
-                        placeholder="Boa Vista"
-                      />
-                    </Grid>
-                    <Grid size={{ md: 2, sm: 6 }}>
-                      <Field.Text
-                        name={`locais_execucao.${idx}.estado`}
-                        label="UF"
-                        placeholder="RR"
-                        inputProps={{ maxLength: 2 }}
-                      />
-                    </Grid>
-                    <Grid size={{ md: 2, sm: 6 }}>
-                      <Field.Text
-                        name={`locais_execucao.${idx}.cep`}
-                        label="CEP"
-                        placeholder="69300000"
-                        inputProps={{ maxLength: 8 }}
-                      />
-                    </Grid>
-                    <Grid size={{ md: 10, sm: 12 }}>
-                      <Field.Text
-                        name={`locais_execucao.${idx}.referencia`}
-                        label="Referência"
-                        placeholder="Ponto de referência"
-                      />
-                    </Grid>
-                    <Grid
-                      size={{ md: 2, sm: 12 }}
-                      sx={{ display: 'flex', justifyContent: 'flex-end' }}
-                    >
-                      <Button color="error" variant="outlined" onClick={() => removeLocal(idx)}>
-                        Remover local
-                      </Button>
-                    </Grid>
-                  </Grid>
+                  <LocalExecucaoRow key={field.id} idx={idx} onRemove={() => removeLocal(idx)} />
                 ))}
                 <Grid size={{ md: 12, sm: 12 }} sx={{ mt: 2 }}>
                   <Button
