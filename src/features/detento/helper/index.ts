@@ -54,10 +54,13 @@ export const fichaCadastralToFormValues = (
     ano_trabalho_anterior: fichaCadastral.ano_trabalho_anterior ?? '',
     profissao_01: fichaCadastral.profissao_01 ?? '',
     profissao_02: fichaCadastral.profissao_02 ?? '',
+    artigos_penais: fichaCadastral.artigos_penais ?? [],
     responsavel_preenchimento: fichaCadastral.responsavel_preenchimento ?? '',
     assinatura: fichaCadastral.assinatura ?? '',
     data_assinatura: fichaCadastral.data_assinatura ?? '',
     pdf_path: fichaCadastral.pdf_path ?? '',
+    status_validacao: fichaCadastral.status_validacao ?? 'AGUARDANDO_VALIDACAO',
+    substatus_operacional: fichaCadastral.substatus_operacional ?? null,
     documentos:
       fichaCadastral.documentos?.map((doc) => ({
         id: doc.id,

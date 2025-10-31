@@ -4,6 +4,7 @@ import type { Detento } from '../types';
 import { useMemo, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
 import Avatar from '@mui/material/Avatar';
 import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
@@ -103,6 +104,49 @@ export const useDetentoListTable = () => {
     }
 
     if (canReadFichaInterno) {
+      // Coluna: Status da Ficha (badge)
+      cols.push({
+        field: 'status_validacao',
+        headerName: 'Status da Ficha',
+        flex: 1,
+        minWidth: 160,
+        sortable: false,
+        renderCell: ({ row }) => {
+          const raw =
+            (row as any).status_validacao ||
+            (row as any).ficha_status_validacao ||
+            (row as any).ficha_status ||
+            '';
+          const status = String(raw).toUpperCase();
+          const map: Record<
+            string,
+            { label: string; color: 'default' | 'success' | 'warning' | 'error' | 'info' }
+          > = {
+            VALIDADO: { label: 'Validada', color: 'success' },
+            AGUARDANDO_VALIDACAO: { label: 'Aguardando validação', color: 'info' },
+            REQUER_CORRECAO: { label: 'Requer correção', color: 'warning' },
+            REJEITADA: { label: 'Rejeitada', color: 'error' },
+            FILA_DISPONIVEL: { label: 'Na fila', color: 'info' },
+          };
+          const conf = map[status] || { label: '-', color: 'default' as const };
+          return (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Chip
+                size="small"
+                label={conf.label}
+                color={conf.color}
+                variant="soft"
+              />
+              {status === 'FILA_DISPONIVEL' && (row as any)?.posicao_fila ? (
+                <Typography variant="caption" color="text.secondary">
+                  #{(row as any).posicao_fila}
+                </Typography>
+              ) : null}
+            </Box>
+          );
+        },
+      });
+
       cols.push({
         field: 'ficha_cadastral_created_at',
         headerName: 'Criação da Ficha',

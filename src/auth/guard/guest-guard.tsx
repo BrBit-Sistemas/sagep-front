@@ -1,3 +1,4 @@
+import { useLocation } from 'react-router';
 import { useState, useEffect } from 'react';
 
 import { CONFIG } from 'src/global-config';
@@ -14,6 +15,7 @@ type GuestGuardProps = {
 
 export function GuestGuard({ children }: GuestGuardProps) {
   const { loading, authenticated } = useAuthContext();
+  const location = useLocation();
 
   const [isChecking, setIsChecking] = useState(true);
 
@@ -23,7 +25,10 @@ export function GuestGuard({ children }: GuestGuardProps) {
     }
 
     if (authenticated) {
-      window.location.href = CONFIG.auth.redirectPath;
+      const params = new URLSearchParams(location.search);
+      const returnTo = params.get('returnTo');
+      const target = returnTo && returnTo.startsWith('/') ? returnTo : CONFIG.auth.redirectPath;
+      window.location.href = target;
       return;
     }
 

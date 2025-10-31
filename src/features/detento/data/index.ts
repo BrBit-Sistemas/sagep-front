@@ -36,6 +36,7 @@ function toDetento(dto: ReadDetentoDto): Detento {
     created_by: dto.created_by,
     updated_by: dto.updated_by,
     ficha_cadastral_created_at: dto.ficha_cadastral_created_at ?? null,
+    status_validacao: (dto as any).status_validacao ?? null,
   };
 }
 
@@ -83,11 +84,14 @@ export const detentoService: DetentoService = {
       ano_trabalho_anterior: f.ano_trabalho_anterior,
       profissao_01: f.profissao_01,
       profissao_02: f.profissao_02,
+      artigos_penais: (f as any).artigos_penais ?? [],
       responsavel_preenchimento: f.responsavel_preenchimento,
       assinatura: f.assinatura,
       data_assinatura: f.data_assinatura,
       pdf_path: f.pdf_path,
       status: f.status,
+      status_validacao: f.status_validacao,
+      substatus_operacional: f.substatus_operacional,
       createdAt: f.createdAt,
       updatedAt: f.updatedAt,
       created_by: f.created_by,

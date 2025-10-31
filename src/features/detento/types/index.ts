@@ -20,6 +20,7 @@ export type Detento = {
   escolaridade: Escolaridade;
   unidade_id: string;
   ficha_cadastral_created_at?: string | null;
+  status_validacao?: string | null;
 } & AuditableEntity;
 
 export type DetentoListParams = {
@@ -77,6 +78,7 @@ export type DetentoFichaCadastral = {
   ano_trabalho_anterior: string;
   profissao_01: string;
   profissao_02: string;
+  artigos_penais?: (string | number)[];
   // Declarações e responsáveis
   responsavel_preenchimento: string;
   assinatura: string;
@@ -84,6 +86,8 @@ export type DetentoFichaCadastral = {
   // PDF gerado
   pdf_path: string;
   status?: 'ativa' | 'inativa';
+  status_validacao?: string;
+  substatus_operacional?: string | null;
   documentos?: DetentoFichaDocumento[];
 } & AuditableEntity;
 

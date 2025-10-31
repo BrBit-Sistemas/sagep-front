@@ -1,5 +1,12 @@
 import { CONFIG } from 'src/global-config';
 
+const DEBUG_CEP = import.meta.env.VITE_DEBUG_CEP === 'true';
+const debugLog = (...args: unknown[]) => {
+  if (DEBUG_CEP) {
+    console.log('[CEP][FRONT]', ...args);
+  }
+};
+
 export interface CepResponse {
   cep: string;
   logradouro: string;
@@ -36,45 +43,60 @@ class EnderecoApiService {
       throw new Error('CEP inválido. Deve conter 8 dígitos.');
     }
 
-    const response = await fetch(`${this.baseUrl}/cep/${cepLimpo}`);
+    const url = `${this.baseUrl}/cep/${cepLimpo}`;
+    debugLog('GET', url);
+    const response = await fetch(url);
     
     if (!response.ok) {
+      debugLog('RESP ERROR', response.status, response.statusText);
       if (response.status === 404) {
         throw new Error(`CEP ${cepLimpo} não encontrado`);
       }
       throw new Error('Erro ao consultar CEP');
     }
 
-    return response.json();
+    const data = await response.json();
+    debugLog('RESP OK', { cep: data?.cep, cidade: data?.cidade, estado: data?.estado });
+    return data;
   }
 
   /**
    * Lista todos os estados brasileiros
    */
   async listarEstados(): Promise<Estado[]> {
-    const response = await fetch(`${this.baseUrl}/estados`);
+    const url = `${this.baseUrl}/estados`;
+    debugLog('GET', url);
+    const response = await fetch(url);
     
     if (!response.ok) {
+      debugLog('RESP ERROR', response.status, response.statusText);
       throw new Error('Erro ao listar estados');
     }
 
-    return response.json();
+    const data = await response.json();
+    debugLog('RESP OK', `estados=${Array.isArray(data) ? data.length : 0}`);
+    return data;
   }
 
   /**
    * Lista municípios de um estado específico
    */
   async listarMunicipiosPorEstado(estadoId: string): Promise<Municipio[]> {
-    const response = await fetch(`${this.baseUrl}/municipios/${estadoId}`);
+    const url = `${this.baseUrl}/municipios/${estadoId}`;
+    debugLog('GET', url);
+    const response = await fetch(url);
     
     if (!response.ok) {
+      debugLog('RESP ERROR', response.status, response.statusText);
       if (response.status === 404) {
         throw new Error(`Estado ${estadoId} não encontrado`);
       }
       throw new Error('Erro ao listar municípios');
     }
 
-    return response.json();
+    const data = await response.json();
+    debugLog('RESP OK', `municipios=${Array.isArray(data) ? data.length : 0}`, `uf=${estadoId}`);
+    return data;
   }
 
   /**
@@ -91,9 +113,12 @@ class EnderecoApiService {
       ...(params.logradouro && { logradouro: params.logradouro }),
     });
 
-    const response = await fetch(`${this.baseUrl}/cep/buscar?${queryParams}`);
+    const url = `${this.baseUrl}/cep/buscar?${queryParams}`;
+    debugLog('GET', url);
+    const response = await fetch(url);
     
     if (!response.ok) {
+      debugLog('RESP ERROR', response.status, response.statusText);
       if (response.status === 404) {
         return []; // Nenhum resultado encontrado
       }
@@ -101,7 +126,11 @@ class EnderecoApiService {
     }
 
     const data = await response.json();
-    return Array.isArray(data) ? data : [];
+    const list = Array.isArray(data) ? data : [];
+    debugLog('RESP OK', `count=${list.length}`, {
+      sample: list[0] ? { cep: list[0].cep, logradouro: list[0].logradouro } : null,
+    });
+    return list;
   }
 }
 

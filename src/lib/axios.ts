@@ -34,8 +34,10 @@ axiosInstance.interceptors.response.use(
       sessionStorage.removeItem('accessToken');
       
       // Redirect to login if not already there
-      if (window.location.pathname !== '/auth/jwt/sign-in') {
-        window.location.href = '/auth/jwt/sign-in';
+      const isOnSignIn = window.location.pathname.startsWith('/auth/jwt/sign-in');
+      if (!isOnSignIn) {
+        const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
+        window.location.href = `/auth/jwt/sign-in?returnTo=${returnTo}`;
       }
     }
     

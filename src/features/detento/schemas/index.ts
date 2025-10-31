@@ -81,10 +81,15 @@ export const createDetentoFichaCadastralSchema = z.object({
   ano_trabalho_anterior: z.string().optional(),
   profissao_01: z.string().min(1, 'Profissão 01 é obrigatória'),
   profissao_02: z.string().optional(),
+  // Artigos penais (códigos)
+  artigos_penais: z.array(z.union([z.string(), z.number()])).optional(),
   // Declarações e responsáveis
   responsavel_preenchimento: z.string().optional(),
   assinatura: z.string().optional(),
   data_assinatura: z.string().optional(),
+  // Status de validação (Fase 1)
+  status_validacao: z.string().optional(),
+  substatus_operacional: z.string().nullable().optional(),
   // PDF gerado
   pdf_path: z.string().optional(),
   // Documentos anexados

@@ -1,6 +1,6 @@
 import type { Estado, Municipio } from 'src/services/endereco-api.service';
 
-import { useState, useEffect, useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
 import {
