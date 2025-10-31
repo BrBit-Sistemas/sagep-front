@@ -49,6 +49,12 @@ export const createEmpresaConvenioSchema = z.object({
       z.object({
         profissao_id: z.string().min(1, 'Profissão é obrigatória'),
         quantidade: z.number().int().positive('Quantidade deve ser positiva'),
+        // Campo opcional: aceitar null/'' e normalizar para undefined
+        escolaridade_minima: z
+          .string()
+          .optional()
+          .nullable()
+          .transform((v) => (v ? v : undefined)),
       })
     )
     .optional()

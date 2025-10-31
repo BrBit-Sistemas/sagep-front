@@ -17,15 +17,16 @@ import {
 import { formatDateToYYYYMMDD } from 'src/utils/format-date';
 
 import { getProfissoes } from 'src/api/profissoes/profissoes';
+import { ArticlesSelector } from 'src/features/artigos-penais/components/articles-selector';
 
 import { Form, Field } from 'src/components/hook-form';
 
+import { convenioTipos, regimesOptions } from '../../data';
 import { useEmpresasOptions } from '../../hooks/use-empresas-options';
 import { useProfissoesAutocomplete } from '../../hooks/use-profissoes-options';
 import { useCreateEmpresaConvenio } from '../../hooks/use-create-empresa-convenio';
 import { useUpdateEmpresaConvenio } from '../../hooks/use-update-empresa-convenio';
 import { createEmpresaConvenioSchema, type CreateEmpresaConvenioSchema } from '../../schemas';
-import { convenioTipos, regimesOptions, artigosOptions, artigosCodigoIndex } from '../../data';
 
 type Props = {
   onSuccess: () => void;
@@ -74,20 +75,31 @@ const ProfissaoFieldRow = ({ index, onRemove }: ProfissaoFieldRowProps) => {
   useEffect(() => {
     if (currentProfissaoId && !labelCache.current.has(String(currentProfissaoId))) {
       const api = getProfissoes();
-      // Buscar todas as profissões para encontrar a atual
+      // Primeiro, tentar buscar diretamente pelo ID para garantir o label correto
       api
-        .findAll({ page: 0, limit: 100 })
-        .then((response) => {
-          if (response.items) {
-            setInitialProfissoes(response.items);
-            // Adicionar todas as profissões ao cache
-            response.items.forEach((p: any) => {
-              labelCache.current.set(String(p.id), p.nome);
+        .findOne(String(currentProfissaoId))
+        .then((prof) => {
+          if (prof?.id && prof?.nome) {
+            labelCache.current.set(String(prof.id), prof.nome);
+            setInitialProfissoes((prev) => {
+              const exists = prev.some((p: any) => String(p.id) === String(prof.id));
+              return exists ? prev : [...prev, prof];
             });
           }
         })
         .catch(() => {
-          // Se falhar, manter o ID como fallback
+          // Como fallback, carregar um lote inicial
+          api
+            .findAll({ page: 0, limit: 100 })
+            .then((response) => {
+              if (response.items) {
+                setInitialProfissoes(response.items);
+                response.items.forEach((p: any) => {
+                  labelCache.current.set(String(p.id), p.nome);
+                });
+              }
+            })
+            .catch(() => void 0);
         });
     }
   }, [currentProfissaoId]);
@@ -116,7 +128,7 @@ const ProfissaoFieldRow = ({ index, onRemove }: ProfissaoFieldRowProps) => {
 
   return (
     <Grid container spacing={1} alignItems="center">
-      <Grid size={{ md: 6, sm: 12 }}>
+      <Grid size={{ md: 5, sm: 12 }}>
         <Field.Autocomplete
           name={`quantitativos_profissoes.${index}.profissao_id`}
           label="Profissão"
@@ -137,7 +149,7 @@ const ProfissaoFieldRow = ({ index, onRemove }: ProfissaoFieldRowProps) => {
           }}
         />
       </Grid>
-      <Grid size={{ md: 4, sm: 8 }}>
+      <Grid size={{ md: 2, sm: 4 }}>
         <Field.Text
           type="number"
           name={`quantitativos_profissoes.${index}.quantidade`}
@@ -145,10 +157,45 @@ const ProfissaoFieldRow = ({ index, onRemove }: ProfissaoFieldRowProps) => {
           placeholder="Ex.: 10"
         />
       </Grid>
-      <Grid size={{ md: 2, sm: 4 }}>
-        <Button color="error" variant="outlined" onClick={onRemove}>
-          Remover
-        </Button>
+      <Grid size={{ md: 5, sm: 12 }}>
+        <Grid container spacing={1} alignItems="center">
+          <Grid size={{ md: 9, sm: 8 }}>
+            <Field.Autocomplete
+              sx={{ height: 56, width: 270 }}
+              name={`quantitativos_profissoes.${index}.escolaridade_minima`}
+              label="Escolaridade mínima"
+              options={[
+                'NÃO ALFABETIZADO',
+                'FUNDAMENTAL I INCOMPLETO',
+                'FUNDAMENTAL I COMPLETO',
+                'FUNDAMENTAL II INCOMPLETO',
+                'FUNDAMENTAL II COMPLETO',
+                'ENSINO MÉDIO INCOMPLETO',
+                'ENSINO MÉDIO COMPLETO',
+                'SUPERIOR INCOMPLETO',
+                'SUPERIOR COMPLETO',
+                'PÓS-GRADUAÇÃO',
+                'MESTRADO',
+                'DOUTORADO',
+                'PÓS-DOUTORADO',
+              ]}
+              getOptionLabel={(v) => String(v)}
+              isOptionEqualToValue={(a, b) => String(a) === String(b)}
+              placeholder="Selecione..."
+            />
+          </Grid>
+          <Grid size={{ md: 3, sm: 4 }}>
+            <Button
+              color="error"
+              variant="outlined"
+              onClick={onRemove}
+              fullWidth
+              sx={{ height: 56, width: 115, ml: 5 }}
+            >
+              Remover
+            </Button>
+          </Grid>
+        </Grid>
       </Grid>
     </Grid>
   );
@@ -275,30 +322,8 @@ export const EmpresaConvenioFormDialog = ({
                 slotProps={{ inputLabel: { shrink: true } }}
               />
             </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Autocomplete
-                multiple
-                name="artigos_vedados"
-                label="Artigos Vedados"
-                placeholder="Digite para buscar..."
-                options={artigosOptions.map((a) => Number(a.value))}
-                groupBy={(option) =>
-                  artigosCodigoIndex[typeof option === 'number' ? option : Number(option)] || 'CP'
-                }
-                getOptionLabel={(option) => {
-                  const num = typeof option === 'number' ? option : Number(option);
-                  const found = artigosOptions.find((a) => Number(a.value) === num);
-                  return found?.label ?? String(option);
-                }}
-                isOptionEqualToValue={(option, value) => Number(option) === Number(value)}
-                filterSelectedOptions
-                slotProps={{
-                  textField: {
-                    size: 'medium',
-                    slotProps: { inputLabel: { shrink: true } },
-                  },
-                }}
-              />
+            <Grid size={{ md: 12, sm: 12 }}>
+              <ArticlesSelector name="artigos_vedados" label="Artigos Vedados" />
             </Grid>
             <Grid size={{ md: 12, sm: 12 }}>
               <Divider sx={{ mt: 2, mb: 1 }} />

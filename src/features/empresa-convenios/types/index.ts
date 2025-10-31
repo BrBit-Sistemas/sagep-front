@@ -23,7 +23,7 @@ export type EmpresaConvenio = {
   modalidade_execucao: ModalidadeExecucao;
   regimes_permitidos: number[];
   artigos_vedados: number[];
-  quantitativos_profissoes?: { profissao_id: string; quantidade: number }[];
+  quantitativos_profissoes?: { profissao_id: string; quantidade: number; escolaridade_minima?: string }[];
   data_inicio: string; // YYYY-MM-DD
   data_fim?: string | null; // YYYY-MM-DD
   status: StatusConvenio;

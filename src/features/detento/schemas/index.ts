@@ -82,7 +82,9 @@ export const createDetentoFichaCadastralSchema = z.object({
   profissao_01: z.string().min(1, 'Profissão 01 é obrigatória'),
   profissao_02: z.string().optional(),
   // Artigos penais (códigos)
-  artigos_penais: z.array(z.union([z.string(), z.number()])).optional(),
+  artigos_penais: z
+    .array(z.union([z.string(), z.number()]))
+    .min(1, 'Selecione ao menos um artigo penal'),
   // Declarações e responsáveis
   responsavel_preenchimento: z.string().optional(),
   assinatura: z.string().optional(),

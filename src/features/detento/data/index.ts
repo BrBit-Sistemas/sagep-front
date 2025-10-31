@@ -115,6 +115,15 @@ export const detentoService: DetentoService = {
     const fichasApi = getFichasCadastrais();
     const ficha = await fichasApi.create({
       ...data,
+      // Campos exigidos pelo schema gerado (legado)
+      declaracao_veracidade: true,
+      pdf_path: (data as any)?.pdf_path ?? '',
+      endereco: (data as any)?.endereco ?? '',
+      regiao_administrativa: (data as any)?.regiao_administrativa ?? '',
+      rg: (data as any)?.rg ?? '',
+      rg_expedicao: (data as any)?.rg_expedicao ?? '',
+      rg_orgao_uf: (data as any)?.rg_orgao_uf ?? '',
+      prontuario: (data as any)?.prontuario ?? '',
       documentos: mapDocumentosPayload((data as any)?.documentos),
     } as CreateFichaCadastralDto);
     return ficha;
