@@ -7,6 +7,7 @@ export type ArtigoPenal = {
   tipo: string;
   legislacao: string;
   legislacaoNome: string;
+  idUnico: string;
 };
 
 export async function listarArtigosPenais(): Promise<ArtigoPenal[]> {

@@ -47,7 +47,7 @@ export const createEmpresaConvenioSchema = z.object({
   regimes_permitidos: z
     .preprocess(toNumberArray, z.array(z.number()))
     .pipe(z.array(z.number()).min(1, 'Selecione ao menos um regime')),
-  artigos_vedados: z.preprocess(toNumberArray, z.array(z.number())).default([]),
+  artigos_vedados: z.array(z.string()).default([]),
   quantitativos_profissoes: z
     .array(
       z.object({

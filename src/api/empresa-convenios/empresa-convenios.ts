@@ -18,7 +18,7 @@ export type CreateEmpresaConvenioDto = {
   tipo_codigo: string;
   modalidade_execucao: 'INTRAMUROS' | 'EXTRAMUROS';
   regimes_permitidos: number[];
-  artigos_vedados?: number[];
+  artigos_vedados?: string[]; // idUnicos da ThereTech (ex: "DRG:33", "CP:157")
   quantitativos_profissoes?: { profissao_id: string; quantidade: number }[];
   data_inicio: string; // YYYY-MM-DD
   data_fim?: string | null;

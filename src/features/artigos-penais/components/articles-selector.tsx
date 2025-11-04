@@ -29,10 +29,10 @@ export function ArticlesSelector({ name, label = 'Artigos Penais' }: ArticlesSel
     return () => { mounted = false; };
   }, []);
 
-  const options = useMemo(() => artigos.map((a) => a.codigo), [artigos]);
-  const getOptionLabel = (codigo: unknown) => {
-    const art = artigos.find((a) => String(a.codigo) === String(codigo));
-    return art ? `${art.codigoFormatado} — ${art.descricao}` : String(codigo ?? '');
+  const options = useMemo(() => artigos.map((a) => a.idUnico), [artigos]);
+  const getOptionLabel = (idUnico: unknown) => {
+    const art = artigos.find((a) => String(a.idUnico) === String(idUnico));
+    return art ? `${art.codigoFormatado} — ${art.descricao}` : String(idUnico ?? '');
   };
 
   return (

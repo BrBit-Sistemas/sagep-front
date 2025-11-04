@@ -6,7 +6,7 @@ export const empresaConvenioToFormValues = (x: EmpresaConvenio): CreateEmpresaCo
   tipo_codigo: x.tipo_codigo,
   modalidade_execucao: x.modalidade_execucao,
   regimes_permitidos: (x.regimes_permitidos ?? []).map(String) as unknown as number[],
-  artigos_vedados: (x.artigos_vedados ?? []).map(String) as unknown as number[],
+  artigos_vedados: (x.artigos_vedados ?? []),
   quantitativos_profissoes:
     (x.quantitativos_profissoes ?? []).map((q) => ({
       profissao_id: q.profissao_id,

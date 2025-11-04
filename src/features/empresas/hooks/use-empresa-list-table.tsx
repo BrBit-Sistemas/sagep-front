@@ -7,6 +7,7 @@ import { useMemo, useCallback } from 'react';
 import { useTheme } from '@mui/material/styles';
 
 import { formatCnpj } from 'src/utils/format-string';
+import { formatDateToDDMMYYYY } from 'src/utils/format-date';
 
 import { Iconify } from 'src/components/iconify';
 import { CustomGridActionsCellItem } from 'src/components/custom-data-grid';
@@ -51,7 +52,7 @@ export const useEmpresaListTable = () => {
         field: 'createdAt',
         headerName: 'Criado em',
         flex: 1,
-        valueFormatter: (value) => new Date(value).toLocaleDateString('pt-BR'),
+        valueFormatter: (value) => formatDateToDDMMYYYY(value as string),
       },
       {
         type: 'actions',
