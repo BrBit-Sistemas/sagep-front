@@ -12,6 +12,8 @@ const FichaCadastralExternaPage = lazy(
   () => import('src/features/detento/pages/ficha-cadastral-externa')
 );
 
+const SagepDocsPage = lazy(() => import('src/pages/sagep-docs'));
+
 // ----------------------------------------------------------------------
 
 const Page404 = lazy(() => import('src/pages/error/404'));
@@ -26,6 +28,10 @@ export const routesSection: RouteObject[] = [
   {
     path: '/como-criar-ficha-cadastral',
     element: <HowToPage />,
+  },
+  {
+    path: '/sagep-docs',
+    element: <SagepDocsPage />,
   },
 
   // Auth
