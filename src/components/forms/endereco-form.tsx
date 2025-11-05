@@ -310,10 +310,24 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
                 isOptionEqualToValue={(option, value) => option.sigla === value?.sigla}
                 loading={loadingEstados}
                 disabled={disabled}
+                disablePortal={false}
                 onChange={(_, value) => {
                   field.onChange(value?.sigla || '');
                   // Limpar cidade quando estado mudar
                   setValue('cidade', '');
+                }}
+                slotProps={{
+                  popper: {
+                    placement: 'bottom-start',
+                    modifiers: [
+                      {
+                        name: 'preventOverflow',
+                        options: {
+                          boundary: 'viewport',
+                        },
+                      },
+                    ],
+                  },
                 }}
                 renderInput={(params) => (
                   <TextField
@@ -365,7 +379,21 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
                 isOptionEqualToValue={(option, value) => option.nome === value?.nome}
                 loading={loadingMunicipios}
                 disabled={disabled || !estadoSelecionado}
+                disablePortal={false}
                 onChange={(_, value) => field.onChange(value?.nome || '')}
+                slotProps={{
+                  popper: {
+                    placement: 'bottom-start',
+                    modifiers: [
+                      {
+                        name: 'preventOverflow',
+                        options: {
+                          boundary: 'viewport',
+                        },
+                      },
+                    ],
+                  },
+                }}
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -482,7 +510,21 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
                   getOptionLabel={(option) => option.label}
                   isOptionEqualToValue={(option, value) => option.value === value?.value}
                   disabled={disabled}
+                  disablePortal={false}
                   onChange={(_, value) => field.onChange(value?.value || '')}
+                  slotProps={{
+                    popper: {
+                      placement: 'bottom-start',
+                      modifiers: [
+                        {
+                          name: 'preventOverflow',
+                          options: {
+                            boundary: 'viewport',
+                          },
+                        },
+                      ],
+                    },
+                  }}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -520,6 +562,8 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
         onClose={() => setOpenBuscaEndereco(false)}
         maxWidth="md"
         fullWidth
+        disablePortal={false}
+        keepMounted={false}
         PaperProps={{
           sx: {
             borderRadius: 2,
@@ -572,10 +616,24 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
                     getOptionLabel={(option) => `${option.nome} (${option.sigla})`}
                     isOptionEqualToValue={(option, value) => option.sigla === value?.sigla}
                     loading={loadingEstados}
+                    disablePortal={false}
                     onChange={(_, value) => {
                       setEstadoBusca(value?.sigla || '');
                       setCidadeBusca('');
                       setResultadosBusca([]);
+                    }}
+                    slotProps={{
+                      popper: {
+                        placement: 'bottom-start',
+                        modifiers: [
+                          {
+                            name: 'preventOverflow',
+                            options: {
+                              boundary: 'viewport',
+                            },
+                          },
+                        ],
+                      },
                     }}
                     renderInput={(params) => (
                       <TextField
@@ -604,9 +662,23 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
                     getOptionLabel={(option) => option.nome}
                     isOptionEqualToValue={(option, value) => option.nome === value?.nome}
                     disabled={!estadoBusca}
+                    disablePortal={false}
                     onChange={(_, value) => {
                       setCidadeBusca(value?.nome || '');
                       setResultadosBusca([]);
+                    }}
+                    slotProps={{
+                      popper: {
+                        placement: 'bottom-start',
+                        modifiers: [
+                          {
+                            name: 'preventOverflow',
+                            options: {
+                              boundary: 'viewport',
+                            },
+                          },
+                        ],
+                      },
                     }}
                     renderInput={(params) => (
                       <TextField

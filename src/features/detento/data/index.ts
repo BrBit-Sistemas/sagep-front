@@ -113,10 +113,11 @@ export const detentoService: DetentoService = {
   createFichaCadastral: async (data) => {
     // Chama a API real para criar a ficha cadastral
     const fichasApi = getFichasCadastrais();
-    const ficha = await fichasApi.create({
+    
+    // Preparar payload removendo campos obsoletos
+    const payload: any = {
       ...data,
-      // Campos exigidos pelo schema gerado (legado)
-      declaracao_veracidade: true,
+      // Campos com fallback para compatibilidade
       pdf_path: (data as any)?.pdf_path ?? '',
       endereco: (data as any)?.endereco ?? '',
       regiao_administrativa: (data as any)?.regiao_administrativa ?? '',
@@ -125,15 +126,27 @@ export const detentoService: DetentoService = {
       rg_orgao_uf: (data as any)?.rg_orgao_uf ?? '',
       prontuario: (data as any)?.prontuario ?? '',
       documentos: mapDocumentosPayload((data as any)?.documentos),
-    } as CreateFichaCadastralDto);
+    };
+    
+    // Remover campo obsoleto que o backend rejeita
+    delete payload.declaracao_veracidade;
+    
+    const ficha = await fichasApi.create(payload as CreateFichaCadastralDto);
     return ficha;
   },
   updateFichaCadastral: async (fichacadastral_id, data) => {
     const fichasApi = getFichasCadastrais();
-    return fichasApi.update(fichacadastral_id, {
+    
+    // Preparar payload removendo campos obsoletos
+    const payload: any = {
       ...data,
       documentos: mapDocumentosPayload((data as any)?.documentos),
-    });
+    };
+    
+    // Remover campo obsoleto que o backend rejeita
+    delete payload.declaracao_veracidade;
+    
+    return fichasApi.update(fichacadastral_id, payload);
   },
   paginate: async ({ page, limit, search, cpf, nome, sort, order }: any) => {
     // Converter página de 1-based (frontend) para 0-based (backend)

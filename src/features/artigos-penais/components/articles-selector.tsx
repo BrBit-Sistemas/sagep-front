@@ -45,9 +45,21 @@ export function ArticlesSelector({ name, label = 'Artigos Penais' }: ArticlesSel
       getOptionLabel={getOptionLabel as any}
       isOptionEqualToValue={(opt, val) => String(opt) === String(val)}
       loading={loading}
+      disablePortal={false}
       noOptionsText={loading ? 'Carregando...' : 'Nenhum artigo encontrado'}
       slotProps={{
         endAdornment: loading ? <CircularProgress size={16} /> : undefined,
+        popper: {
+          placement: 'bottom-start',
+          modifiers: [
+            {
+              name: 'preventOverflow',
+              options: {
+                boundary: 'viewport',
+              },
+            },
+          ],
+        },
       } as any}
     />
   );

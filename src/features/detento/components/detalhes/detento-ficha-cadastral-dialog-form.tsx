@@ -296,6 +296,7 @@ const ProfissaoField = ({ name, label, excludeValue, onLabelUpdate }: ProfissaoF
       isOptionEqualToValue={(opt, val) => String(opt) === String(val)}
       filterSelectedOptions
       loading={loadingProf}
+      disablePortal={false}
       onInputChange={(_e: any, value: string) => setProfissaoInput(value)}
       noOptionsText="Procure uma profissão"
       slotProps={{
@@ -304,6 +305,17 @@ const ProfissaoField = ({ name, label, excludeValue, onLabelUpdate }: ProfissaoF
             !hasMin && (profissaoInput?.length || 0) > 0
               ? 'Digite ao menos 3 caracteres'
               : undefined,
+        },
+        popper: {
+          placement: 'bottom-start',
+          modifiers: [
+            {
+              name: 'preventOverflow',
+              options: {
+                boundary: 'viewport',
+              },
+            },
+          ],
         },
       }}
     />

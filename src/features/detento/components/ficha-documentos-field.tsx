@@ -349,8 +349,9 @@ export function FichaDocumentosField({
           {fields.map((field, index) => {
             const doc = (documentos[index] ?? field) as DocumentoFormValue;
             const preview = doc.previewUrl || (doc.id && signedUrls[doc.id]) || doc.url;
+            // Use field.id (provided by useFieldArray) as key - it's always stable and unique
             return (
-              <Box key={field.id ?? `${doc.s3_key}-${index}`}>
+              <Box key={field.id}>
                 <Card
                   variant="outlined"
                   sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
