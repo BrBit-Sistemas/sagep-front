@@ -22,6 +22,8 @@ const Page404 = lazy(() => import('src/pages/error/404'));
 
 const HowToPage = lazy(() => import('src/pages/how-to-ficha-cadastral'));
 
+const NovoSuperSagepBrPage = lazy(() => import('src/pages/novo-super-sagep-br'));
+
 export const routesSection: RouteObject[] = [
   {
     path: '/',
@@ -38,6 +40,10 @@ export const routesSection: RouteObject[] = [
   {
     path: '/sagep-docs/documentacao',
     element: <SagepDocumentacaoPage />,
+  },
+  {
+    path: '/novo-super-sagep-br',
+    element: <NovoSuperSagepBrPage />,
   },
 
   // Auth
