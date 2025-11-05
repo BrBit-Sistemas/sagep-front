@@ -14,6 +14,8 @@ const FichaCadastralExternaPage = lazy(
 
 const SagepDocsPage = lazy(() => import('src/pages/sagep-docs'));
 
+const SagepDocumentacaoPage = lazy(() => import('src/pages/sagep-documentacao'));
+
 // ----------------------------------------------------------------------
 
 const Page404 = lazy(() => import('src/pages/error/404'));
@@ -32,6 +34,10 @@ export const routesSection: RouteObject[] = [
   {
     path: '/sagep-docs',
     element: <SagepDocsPage />,
+  },
+  {
+    path: '/sagep-docs/documentacao',
+    element: <SagepDocumentacaoPage />,
   },
 
   // Auth

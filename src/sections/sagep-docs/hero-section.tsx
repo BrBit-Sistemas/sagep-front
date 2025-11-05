@@ -51,8 +51,8 @@ export function HeroSection() {
             
             {/* Subtítulo */}
             <Typography variant="h5" sx={{ mb: 4, color: 'grey.400', fontWeight: 400 }}>
-              Matching inteligente entre reeducandos e vagas de trabalho
-              com algoritmo de compatibilidade baseado em IA
+              Case de sucesso da FUNAP-DF: Matching inteligente que reduziu
+              o tempo de alocação de 2 horas para 5 minutos
             </Typography>
             
             {/* Estatísticas rápidas */}
@@ -189,7 +189,7 @@ export function HeroSection() {
                     lineHeight: 1.2
                   }}
                 >
-                  IA
+                  Inteligência Artificial
                   <Typography component="span" sx={{ display: 'block', fontSize: '0.75rem', fontWeight: 400, color: 'grey.400' }}>
                     Matching
                   </Typography>

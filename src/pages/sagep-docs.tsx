@@ -9,7 +9,7 @@ import { OverviewSection } from 'src/sections/sagep-docs/overview-section';
 import { UseCasesSection } from 'src/sections/sagep-docs/use-cases-section';
 import { TechStackSection } from 'src/sections/sagep-docs/tech-stack-section';
 import { HowItWorksSection } from 'src/sections/sagep-docs/how-it-works-section';
-import { MatchingDemoSection } from 'src/sections/sagep-docs/matching-demo-section';
+import { MatchingDemoSectionInteractive } from 'src/sections/sagep-docs/matching-demo-section-interactive';
 
 // ----------------------------------------------------------------------
 
@@ -19,7 +19,7 @@ export default function SagepDocsPage() {
       <HeroSection />
       <OverviewSection />
       <HowItWorksSection />
-      <MatchingDemoSection />
+      <MatchingDemoSectionInteractive />
       <UseCasesSection />
       <MetricsSection />
       <TechStackSection />

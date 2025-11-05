@@ -67,8 +67,9 @@ export function TechStackSection() {
         <Box sx={{ mt: 6 }}>
           <Typography variant="h5" align="center" gutterBottom>🔌 Integrações</Typography>
           <Stack direction="row" spacing={2} justifyContent="center" flexWrap="wrap" sx={{ mt: 3 }}>
-            <Chip label="ThereTech API - Artigos Penais" icon={<Iconify icon="solar:file-text-bold" />} color="primary" />
-            <Chip label="ThereTech API - CEP" icon={<Iconify icon="solar:map-point-wave-bold" {...({} as any)} />} color="primary" />
+            <Chip label="TheRetech API - CNPJ" icon={<Iconify icon="solar:file-text-bold" />} color="primary" />
+            <Chip label="TheRetech API - Artigos Penais" icon={<Iconify icon="solar:file-text-bold" />} color="primary" />
+            <Chip label="TheRetech API - CEP" icon={<Iconify icon="solar:map-point-wave-bold" {...({} as any)} />} color="primary" />
             <Chip label="AWS S3" icon={<Iconify icon="solar:upload-minimalistic-bold" {...({} as any)} />} color="success" />
             <Chip label="WhatsApp Business" icon={<Iconify icon="solar:chat-round-dots-bold" />} color="success" />
           </Stack>

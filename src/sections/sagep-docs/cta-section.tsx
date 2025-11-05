@@ -26,12 +26,12 @@ export function CtaSection() {
       >
         <Container maxWidth="md">
           <Typography variant="h2" sx={{ color: 'white', mb: 2 }}>
-            Pronto para Começar?
+            Case de Sucesso: FUNAP-DF
           </Typography>
           
           <Typography variant="h5" sx={{ color: 'grey.300', mb: 4, fontWeight: 400 }}>
-            Automatize a alocação de reeducandos com inteligência artificial
-            e melhore a eficiência da FUNAP
+            Sistema em produção alocando reeducandos com 96% mais agilidade.
+            Conheça a solução que está transformando a ressocialização no Brasil.
           </Typography>
           
           <Stack 
@@ -44,10 +44,11 @@ export function CtaSection() {
               size="large"
               variant="contained"
               color="warning"
-              startIcon={<Iconify icon="solar:users-group-rounded-bold" />}
-              sx={{ minWidth: 200 }}
+              href="/sagep-docs/documentacao"
+              startIcon={<Iconify icon="solar:document-text-bold" {...({} as any)} />}
+              sx={{ minWidth: 220 }}
             >
-              Solicitar Demonstração
+              Ver Documentação Técnica
             </Button>
             
             <Button
@@ -57,7 +58,7 @@ export function CtaSection() {
               sx={{ 
                 color: 'white', 
                 borderColor: 'white',
-                minWidth: 200,
+                minWidth: 220,
                 '&:hover': {
                   borderColor: 'white',
                   bgcolor: alpha(theme.palette.common.white, 0.1),
@@ -72,11 +73,11 @@ export function CtaSection() {
           <Stack direction="row" spacing={4} justifyContent="center" sx={{ mt: 6 }}>
             <Box>
               <Typography variant="caption" sx={{ color: 'grey.500' }}>E-mail</Typography>
-              <Typography variant="body2" sx={{ color: 'white' }}>funap@funap.df.gov.br</Typography>
+              <Typography variant="body2" sx={{ color: 'white' }}>funap@sejus.df.gov.br</Typography>
             </Box>
             <Box>
               <Typography variant="caption" sx={{ color: 'grey.500' }}>Telefone</Typography>
-              <Typography variant="body2" sx={{ color: 'white' }}>(61) 3443-4900</Typography>
+              <Typography variant="body2" sx={{ color: 'white' }}>(61) 3686-5000</Typography>
             </Box>
             <Box>
               <Typography variant="caption" sx={{ color: 'grey.500' }}>Horário</Typography>

@@ -11,24 +11,24 @@ import { Iconify } from 'src/components/iconify';
 
 const FAQS = [
   {
-    question: 'Como funciona o algoritmo de matching?',
-    answer: 'O SAGEP usa um algoritmo de pontuação com 4 critérios: (1) Tempo na fila (50 pts) - FIFO rigoroso, quem espera mais tem prioridade absoluta; (2) Distância geográfica (30 pts) - calculada via CEP usando coordenadas, favorece proximidade ao local de trabalho; (3) Escolaridade (10 pts) - níveis acima do mínimo exigido ganham pontos extras; (4) Experiência (10 pts) - trabalhou na FUNAP, tem experiência na área ou fez cursos no sistema prisional. Score total: 0-100%.',
+    question: 'Como funciona o novo algoritmo simplificado?',
+    answer: 'O SAGEP v3.0 usa apenas 2 critérios essenciais: (1) Tempo na Fila (70 pts) - FIFO RIGOROSO, quem espera mais tem prioridade absoluta; (2) Proximidade Geográfica (30 pts) - distância CEP entre reeducando e local de trabalho. Score total: 0-100%. Essa simplificação foca no que realmente importa: tempo de espera e logística. Antes de pontuar, o sistema aplica filtros eliminatórios: artigos vedados, regime incompatível e escolaridade insuficiente. Obs: Blacklist não precisa filtro no matching pois já impede Ficha Cadastral ativa.',
   },
   {
-    question: 'O servidor pode escolher manualmente um candidato?',
-    answer: 'Sim, total liberdade! O servidor pode: (a) Aceitar o Top 1 recomendado; (b) Escolher qualquer dos Top 5 sugeridos; (c) Buscar manualmente qualquer candidato fora da lista. Quando escolhe fora do Top 5, o sistema solicita justificativa em lista pré-definida (ex: "Indicação da Unidade Prisional", "Experiência prévia na FUNAP", "Recomendação da empresa"). Todas as decisões alimentam o modelo de Machine Learning futuro.',
+    question: 'O que é a Blacklist e como funciona?',
+    answer: 'Sistema automático de controle de reeducandos com desligamentos graves. Quando um contrato é encerrado por motivos como "Desligamento por Comportamento", "Desligamento por Performance" ou "Pedido da Empresa", o reeducando é automaticamente colocado na blacklist. Consequências: (1) Ficha Cadastral atual inativada imediatamente; (2) Sistema IMPEDE criação de nova Ficha Cadastral; (3) Histórico completo preservado para auditoria. Sem Ficha Cadastral ativa, não concorre a vagas automaticamente. REMOÇÃO: Servidor pode remover da blacklist informando ocorrência com justificativa (ex: "Recurso administrativo aprovado"). Tipos que NÃO geram blacklist: "Fim de Contrato" natural, "Pedido do Reeducando", "Progressão de Regime".',
   },
   {
-    question: 'Como são verificados os artigos penais vedados?',
-    answer: 'Sistema integrado com API ThereTech de Artigos Penais: 108 artigos de 5 legislações (CP, LCP, Lei de Drogas, Estatuto do Desarmamento, Lei de Lavagem). Cada artigo tem identificador único (idUnico) no formato "LEGISLACAO:CODIGO" (ex: CP:157, DRG:33, LCP:28) que diferencia artigos com mesmo número mas de leis diferentes. Verificação automática: se reeducando possui qualquer artigo vedado pelo convênio, é ELIMINADO automaticamente e não aparece nas recomendações. Zero risco de compliance.',
+    question: 'Como funciona a gestão granular de vagas?',
+    answer: 'Cada vaga de um convênio é controlada individualmente com status próprio: DISPONIVEL, OCUPADA, INDISPONIBILIZADA ou SUSPENSA. Você pode indisponibilizar vagas específicas a qualquer momento (ex: empresa solicitou redução temporária) sem perder histórico. Cada vaga mantém registro completo: quem ocupou, período, motivo de saída, avaliações. Exemplo: Convênio 50 pedreiros → 50 vagas individuais → Vaga #3 suspensa → 49 disponíveis → histórico preservado.',
   },
   {
-    question: 'Quanto tempo um reeducando fica na fila?',
-    answer: 'Permanência VITALÍCIA até alocação ou eventos específicos: (1) Alocação em vaga; (2) Progressão/regressão de regime prisional; (3) Cumprimento total da pena; (4) Falecimento; (5) Solicitação de correção da ficha. O sistema garante prioridade FIFO: quanto mais tempo esperando, maior a pontuação relativa (até 50 pontos). Exemplo: candidato com 180 dias sempre terá mais pontos que candidato com 90 dias, mesmo em rodadas diferentes de matching.',
+    question: 'Como a Inteligência Artificial ajuda a criar ocorrências?',
+    answer: 'Sistema de assistente inteligente para criar justificativas padronizadas. Quando servidor precisa registrar um desligamento, advertência ou outro evento: (1) Digita descrição livre: "Reeducando faltou 3 dias seguidos sem justificar"; (2) Inteligência Artificial sugere automaticamente: Nome="Falta Injustificada Recorrente", Tipo=DESLIGAMENTO, Gera Blacklist=true, Descrição completa formatada; (3) Servidor revisa e confirma. Ocorrências criadas manualmente também disponíveis. Objetivo: padronizar linguagem, agilizar processo, garantir consistência dos registros.',
   },
   {
-    question: 'Como funciona o Machine Learning e melhoria contínua?',
-    answer: 'Sistema registra TODAS as decisões em tabela específica para ML: (1) Top 5 candidatos sugeridos com scores; (2) Candidato efetivamente escolhido; (3) Posição da escolha (1-5 ou manual); (4) Justificativa se manual; (5) Resultado posterior: contrato finalizado, motivo desligamento, avaliação empresa (1-5 estrelas), tempo trabalhado. Após 6-12 meses acumulando dados (~500+ decisões), microserviço Python + FastAPI será treinado para ajustar dinamicamente os pesos do algoritmo baseado em padrões de sucesso.',
+    question: 'O servidor pode escolher candidatos fora do Top 5?',
+    answer: 'Sim, 100% de liberdade! O servidor pode: (a) Aceitar Top 1 recomendado; (b) Escolher qualquer dos Top 5; (c) Buscar MANUALMENTE qualquer candidato na base. Quando escolhe fora do Top 5, sistema solicita justificativa obrigatória em lista de ocorrências pré-cadastradas (ex: "Indicação da Unidade Prisional", "Experiência prévia comprovada", "Solicitação da empresa"). Todas as decisões são registradas para futuro treinamento de Machine Learning. Sistema aprende com escolhas humanas.',
   },
 ];
 
