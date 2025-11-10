@@ -24,24 +24,38 @@ axiosInstance.interceptors.request.use((config) => {
   return AxiosLogger.requestLogger(config);
 }, AxiosLogger.errorLogger);
 
-axiosInstance.interceptors.response.use(
-  AxiosLogger.responseLogger,
-  (error) => {
-    // Handle 401 errors globally
-    if (error.response?.status === 401) {
-      // Clear any stored tokens
-      localStorage.removeItem('accessToken');
-      sessionStorage.removeItem('accessToken');
-      
-      // Redirect to login if not already there
-      if (window.location.pathname !== '/auth/jwt/sign-in') {
-        window.location.href = '/auth/jwt/sign-in';
-      }
+axiosInstance.interceptors.response.use(AxiosLogger.responseLogger, (error) => {
+  // Handle 401 errors globally (not authenticated)
+  if (error.response?.status === 401) {
+    // Clear any stored tokens
+    localStorage.removeItem('accessToken');
+    sessionStorage.removeItem('accessToken');
+
+    // Redirect to login if not already there
+    if (window.location.pathname !== '/auth/jwt/sign-in') {
+      window.location.href = '/auth/jwt/sign-in';
     }
-    
-    return AxiosLogger.errorLogger(error);
   }
-);
+
+  // Handle 403 errors globally (authenticated but not authorized)
+  // Only redirect to 401 for main page requests, not for data fetching
+  if (error.response?.status === 403) {
+    // Don't redirect for data fetching requests (APIs with query params or specific endpoints)
+    const isDataFetching =
+      error.config?.url?.includes('?') ||
+      error.config?.url?.includes('/regionais') ||
+      error.config?.url?.includes('/secretarias') ||
+      error.config?.url?.includes('/unidades-prisionais') ||
+      error.config?.url?.includes('/profissoes') ||
+      error.config?.url?.includes('/empresas');
+
+    if (!isDataFetching && window.location.pathname !== '/401') {
+      window.location.href = '/401';
+    }
+  }
+
+  return AxiosLogger.errorLogger(error);
+});
 
 export const customInstance = <T>(
   config: AxiosRequestConfig,
