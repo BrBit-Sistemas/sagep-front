@@ -56,6 +56,38 @@ const ACTION_LABELS: Record<string, string> = {
 
 const getActionLabel = (action?: string) => ACTION_LABELS[action ?? ''] ?? action ?? '';
 
+const summarizeRolePermissions = (role?: RoleDto) => {
+  if (!role) return '';
+
+  const description = role.descricao?.trim();
+  if (description) return description;
+
+  const permissions = role.permissions ?? [];
+  if (!permissions.length) return 'Nenhuma permissão atribuída.';
+
+  const grouped = permissions.reduce<Record<string, string[]>>((acc, permission) => {
+    const subject = permission.subject ?? 'Geral';
+    const actionLabel = getActionLabel(permission.action);
+    acc[subject] = acc[subject] ?? [];
+    if (!acc[subject].includes(actionLabel)) {
+      acc[subject].push(actionLabel);
+    }
+    return acc;
+  }, {});
+
+  return Object.entries(grouped)
+    .map(([subject, actions]) => `${subject}: ${actions.join(', ')}`)
+    .join('\n');
+};
+
+const renderRoleTooltipContent = (summary: string) => (
+  <Box sx={{ maxWidth: 360, whiteSpace: 'pre-line' }}>
+    <Typography variant="caption" component="span">
+      {summary}
+    </Typography>
+  </Box>
+);
+
 export default function PermissionsPage() {
   const queryClient = useQueryClient();
   const [selectedUser, setSelectedUser] = useState<ReadUsuarioDto | null>(null);
@@ -339,21 +371,30 @@ export default function PermissionsPage() {
                                   : []
                               );
                               const has = currentIds.has(r.id);
+                              const summary = summarizeRolePermissions(r) || 'Sem descrição disponível.';
+                              const ariaSummary = summary.replace(/\n/g, '; ');
                               return (
-                                <Chip
+                                <Tooltip
                                   key={r.id}
-                                  size="small"
-                                  color={has ? 'primary' : 'default'}
-                                  variant={has ? 'filled' : 'outlined'}
-                                  label={r.nome}
-                                  onClick={async (e) => {
-                                    e.stopPropagation();
-                                    const current = new Set(currentIds);
-                                    if (has) current.delete(r.id);
-                                    else current.add(r.id);
-                                    await onAssignRolesToUser(u, Array.from(current) as string[]);
-                                  }}
-                                />
+                                  arrow
+                                  placement="top"
+                                  title={renderRoleTooltipContent(summary)}
+                                >
+                                  <Chip
+                                    size="small"
+                                    color={has ? 'primary' : 'default'}
+                                    variant={has ? 'filled' : 'outlined'}
+                                    label={r.nome}
+                                    aria-label={`Grupo ${r.nome}: ${ariaSummary}`}
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      const current = new Set(currentIds);
+                                      if (has) current.delete(r.id);
+                                      else current.add(r.id);
+                                      await onAssignRolesToUser(u, Array.from(current) as string[]);
+                                    }}
+                                  />
+                                </Tooltip>
                               );
                             })}
                           </Stack>
@@ -386,34 +427,43 @@ export default function PermissionsPage() {
                   <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mb: 2 }}>
                     {roles.map((r) => {
                       const isSelected = selectedRole?.id === r.id;
+                      const summary = summarizeRolePermissions(r) || 'Sem descrição disponível.';
+                      const ariaSummary = summary.replace(/\n/g, '; ');
                       return (
-                        <Chip
+                        <Tooltip
                           key={r.id}
-                          label={r.nome}
-                          color={isSelected ? 'primary' : 'default'}
-                          variant={isSelected ? 'filled' : 'outlined'}
-                          onClick={() => {
-                            if (isSelected) {
-                              setSelectedRole(null);
-                              setRoleName('');
-                              setRoleDesc('');
-                              setSelectedPermissionIds([]);
-                            } else {
-                              setSelectedRole(r);
-                              setRoleName(r.nome);
-                              setRoleDesc(r.descricao);
-                              setSelectedPermissionIds(r.permissions?.map((p) => p.id) ?? []);
+                          arrow
+                          placement="top"
+                          title={renderRoleTooltipContent(summary)}
+                        >
+                          <Chip
+                            label={r.nome}
+                            color={isSelected ? 'primary' : 'default'}
+                            variant={isSelected ? 'filled' : 'outlined'}
+                            aria-label={`Grupo ${r.nome}: ${ariaSummary}`}
+                            onClick={() => {
+                              if (isSelected) {
+                                setSelectedRole(null);
+                                setRoleName('');
+                                setRoleDesc('');
+                                setSelectedPermissionIds([]);
+                              } else {
+                                setSelectedRole(r);
+                                setRoleName(r.nome);
+                                setRoleDesc(r.descricao);
+                                setSelectedPermissionIds(r.permissions?.map((p) => p.id) ?? []);
+                              }
+                            }}
+                            onDelete={() => {
+                              setRoleToDelete(r);
+                            }}
+                            deleteIcon={
+                              <Tooltip title="Deletar grupo">
+                                <Iconify icon="solar:trash-bin-trash-bold" width={18} />
+                              </Tooltip>
                             }
-                          }}
-                          onDelete={() => {
-                            setRoleToDelete(r);
-                          }}
-                          deleteIcon={
-                            <Tooltip title="Deletar grupo">
-                              <Iconify icon="solar:trash-bin-trash-bold" width={18} />
-                            </Tooltip>
-                          }
-                        />
+                          />
+                        </Tooltip>
                       );
                     })}
                   </Stack>
