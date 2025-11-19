@@ -6,6 +6,8 @@ import { useMemo, useCallback } from 'react';
 
 import { useTheme } from '@mui/material/styles';
 
+import { formatDateToDDMMYYYY } from 'src/utils/format-date';
+
 import { Iconify } from 'src/components/iconify';
 import { CustomGridActionsCellItem } from 'src/components/custom-data-grid';
 
@@ -64,13 +66,13 @@ export const useEmpresaConvenioListTable = () => {
         field: 'data_inicio',
         headerName: 'Início',
         flex: 1,
-        valueFormatter: (value) => new Date(value).toLocaleDateString('pt-BR'),
+        valueFormatter: (value) => formatDateToDDMMYYYY(value as string),
       },
       {
         field: 'data_fim',
         headerName: 'Fim',
         flex: 1,
-        valueFormatter: (value) => (value ? new Date(value).toLocaleDateString('pt-BR') : '-'),
+        valueFormatter: (value) => (value ? formatDateToDDMMYYYY(value as string) : '-'),
       },
       { field: 'status', headerName: 'Status', flex: 1 },
       {

@@ -12,12 +12,18 @@ const FichaCadastralExternaPage = lazy(
   () => import('src/features/detento/pages/ficha-cadastral-externa')
 );
 
+const SagepDocsPage = lazy(() => import('src/pages/sagep-docs'));
+
+const SagepDocumentacaoPage = lazy(() => import('src/pages/sagep-documentacao'));
+
 // ----------------------------------------------------------------------
 
 const Page404 = lazy(() => import('src/pages/error/404'));
 const Page401 = lazy(() => import('src/pages/error/401'));
 
 const HowToPage = lazy(() => import('src/pages/how-to-ficha-cadastral'));
+
+const NovoSuperSagepBrPage = lazy(() => import('src/pages/novo-super-sagep-br'));
 
 export const routesSection: RouteObject[] = [
   {
@@ -27,6 +33,18 @@ export const routesSection: RouteObject[] = [
   {
     path: '/como-criar-ficha-cadastral',
     element: <HowToPage />,
+  },
+  {
+    path: '/sagep-docs',
+    element: <SagepDocsPage />,
+  },
+  {
+    path: '/sagep-docs/documentacao',
+    element: <SagepDocumentacaoPage />,
+  },
+  {
+    path: '/novo-super-sagep-br',
+    element: <NovoSuperSagepBrPage />,
   },
 
   // Auth

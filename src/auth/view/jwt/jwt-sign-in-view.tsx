@@ -86,6 +86,19 @@ export function JwtSignInView() {
       await signInWithPassword({ cpf: data.cpf, password: data.password });
       await checkUserSession?.();
 
+      // Se houver returnTo, respeitar prioridade
+      try {
+        const params = new URLSearchParams(location.search);
+        const returnTo = params.get('returnTo');
+        if (returnTo && returnTo.startsWith('/')) {
+          router.replace(returnTo);
+          return;
+        }
+      } catch {
+        // Safely ignore malformed query params
+        void 0;
+      }
+
       // After session is set, fetch current user to decide redirect
       try {
         const authApi = getAutenticação();

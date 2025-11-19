@@ -29,10 +29,14 @@ const localExecucaoSchema = z.object({
     .transform((val) => val.toUpperCase()),
   cep: z
     .string()
-    .regex(/^\d{8}$/u, 'CEP deve conter 8 dígitos')
+    .regex(/^\d{5}-?\d{3}$/u, 'CEP deve conter 8 dígitos')
     .optional()
     .or(z.literal(''))
-    .transform((val) => (val ? val : undefined)),
+    .transform((val) => {
+      if (!val) return undefined;
+      // Remove o traço para salvar apenas números
+      return val.replace(/\D/g, '');
+    }),
   referencia: z.string().optional().nullable(),
 });
 
@@ -43,12 +47,18 @@ export const createEmpresaConvenioSchema = z.object({
   regimes_permitidos: z
     .preprocess(toNumberArray, z.array(z.number()))
     .pipe(z.array(z.number()).min(1, 'Selecione ao menos um regime')),
-  artigos_vedados: z.preprocess(toNumberArray, z.array(z.number())).default([]),
+  artigos_vedados: z.array(z.string()).default([]),
   quantitativos_profissoes: z
     .array(
       z.object({
         profissao_id: z.string().min(1, 'Profissão é obrigatória'),
         quantidade: z.number().int().positive('Quantidade deve ser positiva'),
+        // Campo opcional: aceitar null/'' e normalizar para undefined
+        escolaridade_minima: z
+          .string()
+          .optional()
+          .nullable()
+          .transform((v) => (v ? v : undefined)),
       })
     )
     .optional()

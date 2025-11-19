@@ -17,6 +17,7 @@ const ROOTS = {
 
 export const paths = {
   faqs: '/faqs',
+  sagepDocs: '/sagep-docs',
   minimalStore: 'https://mui.com/store/items/minimal-dashboard/',
   auth: {
     jwt: {

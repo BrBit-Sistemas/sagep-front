@@ -52,10 +52,21 @@ export const createDetentoFichaCadastralSchema = z.object({
   unidade_prisional: z.string().min(1, 'Unidade prisional é obrigatória'),
   prontuario: z.string().optional(),
   sei: z.string().optional(),
-  // Endereço e contato
-  endereco: z.string().min(1, 'Endereço é obrigatório'),
-  regiao_administrativa: z.string().min(1, 'Região Administrativa é obrigatória'),
+  // Endereço e contato (campos antigos - compatibilidade)
+  endereco: z.string().optional(),
+  regiao_administrativa: z.string().optional(),
   telefone: z.string().optional(),
+
+  // Novos campos de endereço estruturados
+  cep: z.string().optional(),
+  logradouro: z.string().optional(),
+  numero: z.string().optional(),
+  complemento: z.string().optional(),
+  bairro: z.string().optional(),
+  cidade: z.string().optional(),
+  estado: z.string().optional(),
+  // Região Administrativa (específico para DF)
+  ra_df: z.string().optional(),
   // Escolaridade
   escolaridade: z.string().min(1, 'Escolaridade é obrigatória'),
   // Saúde
@@ -70,10 +81,17 @@ export const createDetentoFichaCadastralSchema = z.object({
   ano_trabalho_anterior: z.string().optional(),
   profissao_01: z.string().min(1, 'Profissão 01 é obrigatória'),
   profissao_02: z.string().optional(),
+  // Artigos penais (códigos)
+  artigos_penais: z
+    .array(z.union([z.string(), z.number()]))
+    .min(1, 'Selecione ao menos um artigo penal'),
   // Declarações e responsáveis
   responsavel_preenchimento: z.string().optional(),
   assinatura: z.string().optional(),
   data_assinatura: z.string().optional(),
+  // Status de validação (Fase 1)
+  status_validacao: z.string().optional(),
+  substatus_operacional: z.string().nullable().optional(),
   // PDF gerado
   pdf_path: z.string().optional(),
   // Documentos anexados

@@ -8,6 +8,7 @@ import { useForm, useFormContext } from 'react-hook-form';
 import { useRef, useMemo, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
@@ -20,14 +21,17 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import CircularProgress from '@mui/material/CircularProgress';
 
+import { formatCpf } from 'src/utils/format-string';
 import { formatDateToDDMMYYYY, formatDateToYYYYMMDD } from 'src/utils/format-date';
 
 import { getProfissoes } from 'src/api/profissoes/profissoes';
+import { ArticlesSelector } from 'src/features/artigos-penais/components/articles-selector';
 import { useProfissoesAutocomplete } from 'src/features/empresa-convenios/hooks/use-profissoes-options';
 import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/use-unidade-prisional-list';
 
 import { toast } from 'src/components/snackbar';
 import { Form, Field } from 'src/components/hook-form';
+import { EnderecoForm } from 'src/components/forms/endereco-form';
 
 import { getRegimeOptions, getEscolaridadeOptions } from 'src/types/prisional';
 
@@ -202,6 +206,8 @@ const INITIAL_VALUES: CreateDetentoFichaCadastralSchema & { rg_orgao?: string; r
   ano_trabalho_anterior: '',
   profissao_01: '',
   profissao_02: '',
+  // Artigos penais
+  artigos_penais: [],
   // Declarações e responsáveis
   responsavel_preenchimento: '',
   assinatura: '',
@@ -290,6 +296,7 @@ const ProfissaoField = ({ name, label, excludeValue, onLabelUpdate }: ProfissaoF
       isOptionEqualToValue={(opt, val) => String(opt) === String(val)}
       filterSelectedOptions
       loading={loadingProf}
+      disablePortal={false}
       onInputChange={(_e: any, value: string) => setProfissaoInput(value)}
       noOptionsText="Procure uma profissão"
       slotProps={{
@@ -298,6 +305,17 @@ const ProfissaoField = ({ name, label, excludeValue, onLabelUpdate }: ProfissaoF
             !hasMin && (profissaoInput?.length || 0) > 0
               ? 'Digite ao menos 3 caracteres'
               : undefined,
+        },
+        popper: {
+          placement: 'bottom-start',
+          modifiers: [
+            {
+              name: 'preventOverflow',
+              options: {
+                boundary: 'viewport',
+              },
+            },
+          ],
         },
       }}
     />
@@ -352,6 +370,14 @@ export const DetentoFichaCadastralDialogForm = ({
     defaultValues: initialValues,
   });
 
+  // Normaliza CPF para o componente de máscara não quebrar
+  useEffect(() => {
+    const cpfRaw = (initialValues as any)?.cpf;
+    if (cpfRaw) {
+      methods.setValue('cpf', formatCpf(cpfRaw));
+    }
+  }, []);
+
   // Cache compartilhado de ID -> Nome para profissões (alimentado pelos campos)
   const globalProfissaoLabelCache = useRef<Map<string, string>>(new Map());
   const handleLabelUpdate = (id: string, nome: string) => {
@@ -389,11 +415,13 @@ export const DetentoFichaCadastralDialogForm = ({
         const rawProfissao01 = (data as any).profissao_01 || '';
         const rawProfissao02 = (data as any).profissao_02 || '';
 
+        const isUuid = (v: string) => /^[0-9a-fA-F-]{36}$/.test(String(v));
         const [resolvedProfissao01, resolvedProfissao02] = await Promise.all([
           rawProfissao01
             ? (() => {
                 const cached = globalProfissaoLabelCache.current.get(String(rawProfissao01));
                 if (cached) return Promise.resolve(cached);
+                if (!isUuid(String(rawProfissao01))) return Promise.resolve(String(rawProfissao01));
                 return apiProfissoes
                   .findOne(String(rawProfissao01))
                   .then((res) => res?.nome || String(rawProfissao01))
@@ -404,6 +432,7 @@ export const DetentoFichaCadastralDialogForm = ({
             ? (() => {
                 const cached = globalProfissaoLabelCache.current.get(String(rawProfissao02));
                 if (cached) return Promise.resolve(cached);
+                if (!isUuid(String(rawProfissao02))) return Promise.resolve(String(rawProfissao02));
                 return apiProfissoes
                   .findOne(String(rawProfissao02))
                   .then((res) => res?.nome || String(rawProfissao02))
@@ -446,7 +475,13 @@ export const DetentoFichaCadastralDialogForm = ({
           await detentoService.createFichaCadastral({ ...data, detento_id: detentoId });
           toast.success('Ficha cadastral criada com sucesso!');
         }
+        
+        // Invalidar cache das fichas cadastrais E das URLs dos PDFs
         await queryClient.invalidateQueries({ queryKey: detentoKeys.fichasCadastrais(detentoId) });
+        
+        // Forçar refetch para garantir que o PDF atualizado seja carregado
+        await queryClient.refetchQueries({ queryKey: detentoKeys.fichasCadastrais(detentoId) });
+        
         methods.reset();
         onClose();
         // Keep user on ficha cadastral tab after submit
@@ -567,9 +602,38 @@ export const DetentoFichaCadastralDialogForm = ({
             )}
             {/* 1. Identificação Pessoal */}
             <Box sx={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }}>
-              <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
-                1. Identificação Pessoal
-              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 600 }}>
+                  1. Identificação Pessoal
+                </Typography>
+                {/* Status da Ficha (readonly, alinhado à direita) */}
+                {(() => {
+                  const status = (methods.getValues() as any)?.status_validacao ?? (defaultValues as any)?.status_validacao;
+                  console.log('[DEBUG] Status da Ficha no modal:', status, 'defaultValues:', (defaultValues as any)?.status_validacao);
+                  const map: Record<string, { label: string; color: 'default' | 'success' | 'warning' | 'error' | 'info' }> = {
+                    VALIDADO: { label: 'Validada', color: 'success' },
+                    AGUARDANDO_VALIDACAO: { label: 'Aguardando validação', color: 'info' },
+                    REQUER_CORRECAO: { label: 'Requer correção', color: 'warning' },
+                    REJEITADA: { label: 'Rejeitada', color: 'error' },
+                    FILA_DISPONIVEL: { label: 'Na fila', color: 'info' },
+                  };
+                  const conf = map[status] || { label: status || '-', color: 'default' as const };
+                  return (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Status da Ficha:
+                      </Typography>
+                      <Chip
+                        size="medium"
+                        label={conf.label}
+                        color={conf.color}
+                        variant="soft"
+                        sx={{ fontWeight: 600 }}
+                      />
+                    </Box>
+                  );
+                })()}
+              </Box>
               <Grid container spacing={2}>
                 <Grid size={{ md: 6, sm: 12 }}>
                   <Field.Text
@@ -727,6 +791,9 @@ export const DetentoFichaCadastralDialogForm = ({
                     helperText="Campo preenchido automaticamente com os dados do cadastro do detento"
                   />
                 </Grid>
+                <Grid size={{ md: 12, sm: 12 }}>
+                  <ArticlesSelector name="artigos_penais" label="Artigos Penais" />
+                </Grid>
                 <Grid size={{ md: 6, sm: 12 }}>
                   <Field.Text
                     name="sei"
@@ -770,45 +837,12 @@ export const DetentoFichaCadastralDialogForm = ({
                 3. Endereço e Contato
               </Typography>
               <Grid container spacing={2}>
-                <Grid size={{ md: 12, sm: 12 }}>
-                  <Field.Text
-                    required
-                    name="endereco"
-                    label="Endereço completo"
-                    placeholder="Ex: Rua das Flores, 123, Apt 45, Bairro Centro"
-                    helperText="Digite o endereço completo em uma linha (rua, número, complemento, bairro)"
-                  />
+                {/* Novo formulário de endereço estruturado */}
+                <Grid size={{ xs: 12 }}>
+                  <EnderecoForm disabled={loading} />
                 </Grid>
-                <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Select
-                    required
-                    name="regiao_administrativa"
-                    label="Região Administrativa (RA)"
-                    fullWidth
-                    helperText="Selecione a Região Administrativa do DF onde o detento reside"
-                    onChange={(e: any) => {
-                      // Se uma região foi selecionada aqui e ela estava selecionada no campo bloqueado, limpar o campo bloqueado
-                      const selectedValue = e.target.value;
-                      const regiaoBloqueada = methods.watch('regiao_bloqueada');
-                      if (selectedValue && regiaoBloqueada === selectedValue) {
-                        methods.setValue('regiao_bloqueada', '');
-                      }
-                      methods.setValue('regiao_administrativa', selectedValue);
-                    }}
-                  >
-                    <MenuItem value="">
-                      <em>Selecione uma RA</em>
-                    </MenuItem>
-                    {REGIOES_ADMINISTRATIVAS_DF.filter((ra) => {
-                      const regiaoBloqueada = methods.watch('regiao_bloqueada');
-                      return !regiaoBloqueada || ra.value !== regiaoBloqueada;
-                    }).map((ra) => (
-                      <MenuItem key={ra.value} value={ra.value}>
-                        {ra.label}
-                      </MenuItem>
-                    ))}
-                  </Field.Select>
-                </Grid>
+
+                {/* Telefone */}
                 <Grid size={{ md: 6, sm: 12 }}>
                   <Field.Text
                     name="telefone"

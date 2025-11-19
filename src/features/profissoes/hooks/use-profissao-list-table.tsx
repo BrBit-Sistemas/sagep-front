@@ -4,6 +4,8 @@ import { useMemo } from 'react';
 
 import { useTheme } from '@mui/material/styles';
 
+import { formatDateToDDMMYYYY } from 'src/utils/format-date';
+
 import { Iconify } from 'src/components/iconify';
 import { CustomGridActionsCellItem } from 'src/components/custom-data-grid';
 
@@ -43,7 +45,7 @@ export const useProfissaoListTable = () => {
         field: 'createdAt',
         headerName: 'Data de Criação',
         width: 150,
-        valueFormatter: (params) => new Date(params).toLocaleDateString('pt-BR'),
+        valueFormatter: (params) => formatDateToDDMMYYYY(params as string),
       },
       {
         type: 'actions',

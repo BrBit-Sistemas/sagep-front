@@ -20,6 +20,7 @@ export type Detento = {
   escolaridade: Escolaridade;
   unidade_id: string;
   ficha_cadastral_created_at?: string | null;
+  status_validacao?: string | null;
 } & AuditableEntity;
 
 export type DetentoListParams = {
@@ -48,10 +49,21 @@ export type DetentoFichaCadastral = {
   unidade_prisional: string;
   prontuario?: string | null;
   sei: string;
-  // Endereço e contato
-  endereco: string;
-  regiao_administrativa: string;
-  telefone: string;
+  // Endereço e contato (campos antigos - compatibilidade)
+  endereco?: string;
+  regiao_administrativa?: string;
+  telefone?: string;
+
+  // Novos campos de endereço estruturados
+  cep?: string;
+  logradouro?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
+  cidade?: string;
+  estado?: string;
+  // Região Administrativa (específico para DF)
+  ra_df?: string;
   // Escolaridade
   escolaridade: string;
   // Saúde
@@ -66,6 +78,7 @@ export type DetentoFichaCadastral = {
   ano_trabalho_anterior: string;
   profissao_01: string;
   profissao_02: string;
+  artigos_penais?: (string | number)[];
   // Declarações e responsáveis
   responsavel_preenchimento: string;
   assinatura: string;
@@ -73,6 +86,8 @@ export type DetentoFichaCadastral = {
   // PDF gerado
   pdf_path: string;
   status?: 'ativa' | 'inativa';
+  status_validacao?: string;
+  substatus_operacional?: string | null;
   documentos?: DetentoFichaDocumento[];
 } & AuditableEntity;
 

@@ -30,6 +30,7 @@ import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/
 
 import { Iconify } from 'src/components/iconify';
 import { Form, Field } from 'src/components/hook-form';
+import { EnderecoForm } from 'src/components/forms/endereco-form';
 
 import { usePermissionCheck } from 'src/auth/guard/permission-guard';
 
@@ -1233,34 +1234,12 @@ export default function FichaCadastralExternaPage() {
 
                 <Typography variant="h6">3. Endereço e Contato</Typography>
                 <Grid container spacing={2}>
-                  <Grid size={{ md: 12, sm: 12 }}>
-                    <Field.Text
-                      required
-                      name="endereco"
-                      label="Endereço completo"
-                      placeholder="Ex: Rua das Flores, 123, Apt 45, Bairro Centro"
-                      helperText="Digite o endereço completo em uma linha (rua, número, complemento, bairro)"
-                    />
+                  {/* Novo formulário de endereço estruturado */}
+                  <Grid size={{ xs: 12 }}>
+                    <EnderecoForm disabled={loading} />
                   </Grid>
-                  <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Select
-                      required
-                      name="regiao_administrativa"
-                      label="Região Administrativa onde pode trabalhar"
-                      fullWidth
-                    >
-                      <MenuItem value="">
-                        <em>Selecione uma região</em>
-                      </MenuItem>
-                      {REGIOES_ADMINISTRATIVAS_DF.filter(
-                        (regiao) => regiao.value !== methods.watch('regiao_bloqueada')
-                      ).map((regiao) => (
-                        <MenuItem key={regiao.value} value={regiao.value}>
-                          {regiao.label}
-                        </MenuItem>
-                      ))}
-                    </Field.Select>
-                  </Grid>
+
+                  {/* Telefone */}
                   <Grid size={{ md: 6, sm: 12 }}>
                     <Field.Text
                       name="telefone"

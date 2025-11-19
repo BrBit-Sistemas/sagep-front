@@ -8,16 +8,20 @@ import {
   type PaginateEmpresaConvenioDto,
 } from 'src/api/empresa-convenios/empresa-convenios';
 
-import { CONVENIO_TIPOS, getRegimeOptions } from 'src/types/prisional';
+import { CONVENIO_TIPOS } from 'src/types/prisional';
 
 // Tipos de convênio - usando constantes centralizadas
 export const convenioTipos = CONVENIO_TIPOS;
 
-// Regimes permitidos - usando enum centralizado
-export const regimesOptions = getRegimeOptions().map((option) => ({
-  value: option.value,
-  label: option.label,
-}));
+// Regimes permitidos - mapeamento numérico (compatível com backend)
+// 1: Fechado, 2: Semiaberto, 3: Aberto, 4: Livramento Condicional, 5: CIME
+export const regimesOptions = [
+  { value: '1', label: 'Fechado' },
+  { value: '2', label: 'Semiaberto' },
+  { value: '3', label: 'Aberto' },
+  { value: '4', label: 'Livramento Condicional' },
+  { value: '5', label: 'CIME' },
+];
 
 // Artigos vedados (Código Penal - Parte Especial)
 // Mantemos apenas artigos da Parte Especial do CP (faixas com tipos penais),
@@ -117,10 +121,11 @@ export const empresaConvenioService: CrudService<
 > = {
   paginate: async ({ page, limit, search }) => {
     const api = getEmpresaConvenios();
-    const res: PaginateEmpresaConvenioDto = await api.findAll({ page, limit, search });
+    const backendPage = typeof page === 'number' ? Math.max(0, page - 1) : 0; // backend 0-based
+    const res: PaginateEmpresaConvenioDto = await api.findAll({ page: backendPage, limit, search });
     return {
       totalPages: res.totalPages,
-      page: res.page,
+      page: (res.page ?? 0) + 1, // converter de volta para 1-based
       limit: res.limit,
       total: res.total,
       hasNextPage: res.hasNextPage,
@@ -180,5 +185,10 @@ const serializeDto = (data: CreateEmpresaConvenioSchema | UpdateEmpresaConvenioS
     referencia: local.referencia || undefined,
     cep: local.cep ? local.cep.replace(/\D/g, '') : undefined,
     estado: local.estado?.toUpperCase(),
+  })),
+  quantitativos_profissoes: (data.quantitativos_profissoes || []).map((q) => ({
+    profissao_id: q.profissao_id,
+    quantidade: q.quantidade,
+    escolaridade_minima: q.escolaridade_minima || undefined,
   })),
 });
