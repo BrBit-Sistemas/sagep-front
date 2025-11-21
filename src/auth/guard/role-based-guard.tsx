@@ -1,16 +1,11 @@
 import type { Theme, SxProps } from '@mui/material/styles';
 
-import { useMemo } from 'react';
-import { m } from 'framer-motion';
+import { useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
-import Container from '@mui/material/Container';
-import Typography from '@mui/material/Typography';
+import { useRouter } from 'src/routes/hooks';
 
-import { ForbiddenIllustration } from 'src/assets/illustrations';
 import { getAutenticação } from 'src/api/autenticação/autenticação';
-
-import { varBounce, MotionContainer } from 'src/components/animate';
 
 // ----------------------------------------------------------------------
 
@@ -29,6 +24,7 @@ export function RoleBasedGuard({
   hasContent = true,
   sx,
 }: RoleBasedGuardProps) {
+  const router = useRouter();
   const tokens = useMemo(() => {
     if (!allowedRoles) return [] as string[];
     return Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
@@ -42,15 +38,7 @@ export function RoleBasedGuard({
     enabled: shouldCheckPermissions,
   });
 
-  if (!shouldCheckPermissions) {
-    return <>{children}</>;
-  }
-
-  if (isLoading) {
-    return null;
-  }
-
-  const isAdmin = Boolean((me as any)?.isAdmin);
+  const isAdmin = Boolean(me?.isAdmin);
 
   const hasPermission = (token: string) => {
     if (isAdmin) return true;
@@ -59,38 +47,33 @@ export function RoleBasedGuard({
 
     if (!action || !subject) return false;
 
+    if (!me || !me.roles) return false;
+
     return Boolean(
-      (me as any)?.roles?.some((role: any) =>
+      me.roles.some((role: any) =>
         role?.permissions?.some((perm: any) => perm?.action === action && perm?.subject === subject)
       )
     );
   };
 
-  const canAccess = tokens.some((token) => hasPermission(token));
+  const canAccess = shouldCheckPermissions ? tokens.some((token) => hasPermission(token)) : true;
+
+  useEffect(() => {
+    if (shouldCheckPermissions && !isLoading && !canAccess && hasContent) {
+      router.replace('/401');
+    }
+  }, [shouldCheckPermissions, isLoading, canAccess, hasContent, router]);
+
+  if (!shouldCheckPermissions) {
+    return <>{children}</>;
+  }
+
+  if (isLoading) {
+    return null;
+  }
 
   if (!canAccess) {
-    return hasContent ? (
-      <Container
-        component={MotionContainer}
-        sx={[{ textAlign: 'center' }, ...(Array.isArray(sx) ? sx : [sx])]}
-      >
-        <m.div variants={varBounce('in')}>
-          <Typography variant="h3" sx={{ mb: 2 }}>
-            Acesso negado
-          </Typography>
-        </m.div>
-
-        <m.div variants={varBounce('in')}>
-          <Typography sx={{ color: 'text.secondary' }}>
-            Você não possui permissão para acessar esta página.
-          </Typography>
-        </m.div>
-
-        <m.div variants={varBounce('in')}>
-          <ForbiddenIllustration sx={{ my: { xs: 5, sm: 10 } }} />
-        </m.div>
-      </Container>
-    ) : null;
+    return null;
   }
 
   return <>{children}</>;

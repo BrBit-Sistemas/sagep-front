@@ -64,4 +64,5 @@ export const paths = {
   fichaCadastral: {
     root: '/ficha-cadastral',
   },
+  unauthorized: '/401',
 };
