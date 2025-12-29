@@ -20,6 +20,11 @@ export const useCreateDetento = () => {
         // Return field errors to be handled by the form
         throw { fieldErrors, originalError: error };
       }
+      // Para erros 409 (Conflict), não mostrar toast, deixar o form tratar
+      const status = (error as any)?.response?.status;
+      if (status === 409) {
+        throw error; // Relança o erro para o form tratar
+      }
       toast.error(handleError(error));
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: detentoKeys.all }),

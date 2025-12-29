@@ -116,11 +116,38 @@ export const DetentoFormDialog = ({
       methods.reset(INITIAL_VALUES);
       onSuccess();
     } catch (err: any) {
-      const status = err?.response?.status;
-      let message: any = err?.response?.data?.message ?? err?.message;
+      // Verifica se o erro foi lançado pelo hook com fieldErrors
+      if (err?.fieldErrors && Array.isArray(err.fieldErrors)) {
+        err.fieldErrors.forEach((fieldError: any) => {
+          if (fieldError.field === 'cpf') {
+            methods.setError('cpf' as any, { 
+              type: 'manual', 
+              message: fieldError.message 
+            });
+          } else if (fieldError.field === 'prontuario') {
+            methods.setError('prontuario' as any, { 
+              type: 'manual', 
+              message: fieldError.message 
+            });
+          }
+        });
+        return;
+      }
+      
+      // Extrai informações do erro original
+      const originalError = err?.originalError || err;
+      const status = originalError?.response?.status;
+      
+      // Tenta extrair a mensagem de várias formas possíveis
+      let message: any = 
+        originalError?.response?.data?.message || 
+        originalError?.response?.data?.userMessage ||
+        originalError?.message || 
+        err?.message;
+      
       if (Array.isArray(message)) message = message.join(' ');
       if (!message || typeof message !== 'string') {
-        message = err?.response?.data?.detail || 'Erro inesperado.';
+        message = originalError?.response?.data?.detail || 'Erro inesperado.';
       }
       
       const msg = String(message || '').toLowerCase();

@@ -77,12 +77,13 @@ export const extractFieldErrors = (error: unknown): FieldError[] => {
 
     // Handle single error message
     if (responseData?.message && typeof responseData.message === 'string') {
-      // Try to map common error messages to specific fields
+      // Try to map common error messages to specific fields (case-insensitive)
       const message = responseData.message;
-      if (message.includes('CPF')) {
+      const msgLower = message.toLowerCase();
+      if (msgLower.includes('cpf')) {
         return [{ field: 'cpf', message }];
       }
-      if (message.includes('Prontuário') || message.includes('prontuário')) {
+      if (msgLower.includes('prontuário') || msgLower.includes('prontuario')) {
         return [{ field: 'prontuario', message }];
       }
       if (message.includes('nome')) {
