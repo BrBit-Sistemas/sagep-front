@@ -122,25 +122,52 @@ export const DetentoFormDialog = ({
       if (!message || typeof message !== 'string') {
         message = err?.response?.data?.detail || 'Erro inesperado.';
       }
+      
+      const msg = String(message || '').toLowerCase();
+      
+      // Tratamento específico para erro 409 (Conflict)
       if (status === 409) {
-        const msg = String(message || '');
-        if (msg.toLowerCase().includes('prontuário') || msg.toLowerCase().includes('prontuario')) {
-          methods.setError('prontuario' as any, { type: 'manual', message: msg });
+        // Verifica se é erro de CPF duplicado (prioridade)
+        if (msg.includes('cpf')) {
+          const errorMessage = message || 'CPF já cadastrado.';
+          methods.setError('cpf' as any, { 
+            type: 'manual', 
+            message: errorMessage 
+          });
           return;
         }
-        if (msg.toLowerCase().includes('cpf')) {
-          methods.setError('cpf' as any, { type: 'manual', message: msg });
+        
+        // Verifica se é erro de Prontuário duplicado
+        if (msg.includes('prontuário') || msg.includes('prontuario')) {
+          const errorMessage = message || 'Prontuário já cadastrado.';
+          methods.setError('prontuario' as any, { 
+            type: 'manual', 
+            message: errorMessage 
+          });
           return;
         }
-        // fallback específico para 409
-        methods.setError('prontuario' as any, {
+        
+        // Fallback para outros conflitos 409
+        methods.setError('cpf' as any, {
           type: 'manual',
-          message: 'Prontuário não está disponível.',
+          message: message || 'Dados já cadastrados no sistema.',
         });
         return;
       }
-      // Fallback: surface generic error next to prontuário if that field is likely cause
-      methods.setError('prontuario' as any, { type: 'manual', message: String(message) });
+      
+      // Para outros erros, tentar identificar o campo pelo conteúdo da mensagem
+      if (msg.includes('cpf')) {
+        methods.setError('cpf' as any, { type: 'manual', message: String(message) });
+        return;
+      }
+      
+      if (msg.includes('prontuário') || msg.includes('prontuario')) {
+        methods.setError('prontuario' as any, { type: 'manual', message: String(message) });
+        return;
+      }
+      
+      // Se não conseguir identificar o campo, apenas logar o erro
+      console.error('Erro ao salvar detento:', err);
     }
   });
 
