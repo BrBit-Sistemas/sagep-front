@@ -30,6 +30,7 @@ import { detentoService } from '../../data';
 import { useCreateDetento } from '../../hooks/use-create-detento';
 import { useUpdateDetento } from '../../hooks/use-update-detento';
 import { createDetentoSchema, type CreateDetentoSchema } from '../../schemas';
+import LoadingButton from '@mui/lab/LoadingButton';
 
 type DetentoFormDialogProps = {
   onSuccess: () => void;
@@ -286,9 +287,9 @@ export const DetentoFormDialog = ({
         <Button onClick={onClose} variant="outlined">
           Cancelar
         </Button>
-        <Button onClick={handleSubmit} variant="contained" loading={isLoading} disabled={isLoading}>
+        <LoadingButton onClick={handleSubmit} variant="contained" loading={isLoading} disabled={isLoading}>
           {isEditing ? 'Atualizar' : 'Adicionar'}
-        </Button>
+        </LoadingButton>
       </DialogActions>
     </Dialog>
   );
