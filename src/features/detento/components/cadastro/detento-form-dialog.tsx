@@ -287,7 +287,7 @@ export const DetentoFormDialog = ({
         <Button onClick={onClose} variant="outlined">
           Cancelar
         </Button>
-        <LoadingButton onClick={handleSubmit} variant="contained" loading={isLoading} disabled={isLoading}>
+        <LoadingButton onClick={handleSubmit} variant="contained" loading={isLoading}>
           {isEditing ? 'Atualizar' : 'Adicionar'}
         </LoadingButton>
       </DialogActions>
