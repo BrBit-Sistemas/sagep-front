@@ -36,6 +36,7 @@ function toDetento(dto: ReadDetentoDto): Detento {
     created_by: dto.created_by,
     updated_by: dto.updated_by,
     ficha_cadastral_created_at: dto.ficha_cadastral_created_at ?? null,
+    ficha_cadastral_created_by_name: dto.ficha_cadastral_created_by_name ?? null,
     status_validacao: (dto as any).status_validacao ?? null,
   };
 }

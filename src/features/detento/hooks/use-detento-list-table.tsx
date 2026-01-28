@@ -131,12 +131,7 @@ export const useDetentoListTable = () => {
           const conf = map[status] || { label: '-', color: 'default' as const };
           return (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Chip
-                size="small"
-                label={conf.label}
-                color={conf.color}
-                variant="soft"
-              />
+              <Chip size="small" label={conf.label} color={conf.color} variant="soft" />
               {status === 'FILA_DISPONIVEL' && (row as any)?.posicao_fila ? (
                 <Typography variant="caption" color="text.secondary">
                   #{(row as any).posicao_fila}
@@ -153,9 +148,16 @@ export const useDetentoListTable = () => {
         flex: 1,
         minWidth: 160,
         renderCell: ({ row }) => (
-          <Typography component="span" variant="body2" noWrap>
-            {row.ficha_cadastral_created_at ? fDateTime(row.ficha_cadastral_created_at) : '-'}
-          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography component="span" variant="body2" noWrap>
+              {row.ficha_cadastral_created_at ? fDateTime(row.ficha_cadastral_created_at) : '-'}
+            </Typography>
+            {row.ficha_cadastral_created_by_name && (
+              <Typography component="span" variant="caption" color="text.secondary" noWrap>
+                Por: {row.ficha_cadastral_created_by_name}
+              </Typography>
+            )}
+          </Box>
         ),
       });
     }
