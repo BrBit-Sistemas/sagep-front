@@ -20,6 +20,7 @@ export type Detento = {
   escolaridade: Escolaridade;
   unidade_id: string;
   ficha_cadastral_created_at?: string | null;
+  ficha_cadastral_created_by_name?: string | null;
   status_validacao?: string | null;
 } & AuditableEntity;
 

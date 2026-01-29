@@ -20,6 +20,7 @@ export interface ReadDetentoDto {
   created_by: string;
   updated_by: string;
   ficha_cadastral_created_at?: string | null;
+  ficha_cadastral_created_by_name?: string | null;
 }
 
 export interface CreateDetentoDto {
