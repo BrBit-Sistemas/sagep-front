@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
+import LoadingButton from '@mui/lab/LoadingButton';
 import {
   Grid,
   Button,
@@ -30,7 +31,6 @@ import { detentoService } from '../../data';
 import { useCreateDetento } from '../../hooks/use-create-detento';
 import { useUpdateDetento } from '../../hooks/use-update-detento';
 import { createDetentoSchema, type CreateDetentoSchema } from '../../schemas';
-import LoadingButton from '@mui/lab/LoadingButton';
 
 type DetentoFormDialogProps = {
   onSuccess: () => void;
@@ -74,10 +74,10 @@ export const DetentoFormDialog = ({
   // Format default values for display - keep date in YYYY-MM-DD format for DatePicker
   const formattedDefaultValues = defaultValues
     ? {
-      ...defaultValues,
-      // Keep the date in YYYY-MM-DD format for the DatePicker component
-      data_nascimento: formatDateToYYYYMMDD(defaultValues.data_nascimento) || '',
-    }
+        ...defaultValues,
+        // Keep the date in YYYY-MM-DD format for the DatePicker component
+        data_nascimento: formatDateToYYYYMMDD(defaultValues.data_nascimento) || '',
+      }
     : undefined;
 
   const methods = useForm({
@@ -123,12 +123,12 @@ export const DetentoFormDialog = ({
           if (fieldError.field === 'cpf') {
             methods.setError('cpf' as any, {
               type: 'manual',
-              message: fieldError.message
+              message: fieldError.message,
             });
           } else if (fieldError.field === 'prontuario') {
             methods.setError('prontuario' as any, {
               type: 'manual',
-              message: fieldError.message
+              message: fieldError.message,
             });
           }
         });
@@ -160,7 +160,7 @@ export const DetentoFormDialog = ({
           const errorMessage = message || 'CPF já cadastrado.';
           methods.setError('cpf' as any, {
             type: 'manual',
-            message: errorMessage
+            message: errorMessage,
           });
           return;
         }
@@ -170,7 +170,7 @@ export const DetentoFormDialog = ({
           const errorMessage = message || 'Prontuário já cadastrado.';
           methods.setError('prontuario' as any, {
             type: 'manual',
-            message: errorMessage
+            message: errorMessage,
           });
           return;
         }
