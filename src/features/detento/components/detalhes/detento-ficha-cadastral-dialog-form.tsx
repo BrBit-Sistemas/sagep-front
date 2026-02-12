@@ -355,10 +355,13 @@ export const DetentoFichaCadastralDialogForm = ({
   });
 
   // Find the unit name for display
-  const getUnidadeName = (unidadeId: string) => {
-    const unidade = unidades.find((u) => u.id === unidadeId);
-    return unidade?.nome || unidadeId;
-  };
+  const getUnidadeName = useCallback(
+    (unidadeId: string) => {
+      const unidade = unidades.find((u) => u.id === unidadeId);
+      return unidade?.nome || unidadeId;
+    },
+    [unidades]
+  );
 
   // Preenche valores iniciais com dados do detento se não for edição
   const initialValues = isEditing
@@ -671,12 +674,6 @@ export const DetentoFichaCadastralDialogForm = ({
                       const status =
                         (methods.getValues() as any)?.status_validacao ??
                         (defaultValues as any)?.status_validacao;
-                      console.log(
-                        '[DEBUG] Status da Ficha no modal:',
-                        status,
-                        'defaultValues:',
-                        (defaultValues as any)?.status_validacao
-                      );
                       const map: Record<
                         string,
                         {

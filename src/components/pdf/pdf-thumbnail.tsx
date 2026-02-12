@@ -24,9 +24,19 @@ export const PdfThumbnail: React.FC<PdfThumbnailProps> = ({
     let isMounted = true;
     let renderTask: { cancel: () => void; promise: Promise<void> } | null = null;
     let loadingTask: ReturnType<typeof getDocument> | null = null;
+    let loadingTaskDestroyed = false;
     const canvas = canvasRef.current;
 
     if (!canvas) return undefined;
+
+    const destroyLoadingTask = async () => {
+      if (!loadingTask || loadingTaskDestroyed) return;
+
+      loadingTaskDestroyed = true;
+      const task = loadingTask;
+      loadingTask = null;
+      await task.destroy().catch(() => undefined);
+    };
 
     const renderThumbnail = async () => {
       try {
@@ -69,10 +79,7 @@ export const PdfThumbnail: React.FC<PdfThumbnailProps> = ({
           setIsLoading(false);
         }
       } finally {
-        if (loadingTask) {
-          await loadingTask.destroy().catch(() => undefined);
-          loadingTask = null;
-        }
+        await destroyLoadingTask();
       }
     };
 
@@ -81,10 +88,7 @@ export const PdfThumbnail: React.FC<PdfThumbnailProps> = ({
     return () => {
       isMounted = false;
       renderTask?.cancel();
-      if (loadingTask) {
-        void loadingTask.destroy().catch(() => undefined);
-        loadingTask = null;
-      }
+      void destroyLoadingTask();
     };
   }, [fileUrl, pageIndex, width, withCredentials]);
 
