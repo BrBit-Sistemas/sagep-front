@@ -1,37 +1,121 @@
-import '@react-pdf-viewer/core/lib/styles/index.css';
-
-import type { ViewerProps } from '@react-pdf-viewer/core';
-
 import * as React from 'react';
-import { Viewer } from '@react-pdf-viewer/core';
-import { thumbnailPlugin } from '@react-pdf-viewer/thumbnail';
+import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
+import pdfjsWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.js?url';
 
-import { pageThumbnailPlugin } from './pdf-thumbnail-plugin';
+GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl;
 
-interface PdfThumbnailProps extends Omit<ViewerProps, 'fileUrl'> {
+interface PdfThumbnailProps {
   fileUrl: string;
   pageIndex: number;
   width?: number;
+  withCredentials?: boolean;
 }
 
 export const PdfThumbnail: React.FC<PdfThumbnailProps> = ({
   fileUrl,
   pageIndex,
   width,
-  ...props
+  withCredentials,
 }) => {
-  const thumbnailPluginInstance = thumbnailPlugin();
-  const { Cover } = thumbnailPluginInstance;
+  const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
 
-  const pageThumbnailPluginInstance = pageThumbnailPlugin({
-    PageThumbnail: <Cover width={width} getPageIndex={() => pageIndex} />,
-  });
+  React.useEffect(() => {
+    let isMounted = true;
+    let renderTask: { cancel: () => void; promise: Promise<void> } | null = null;
+    const canvas = canvasRef.current;
+
+    if (!canvas) return undefined;
+
+    const renderThumbnail = async () => {
+      try {
+        setIsLoading(true);
+
+        const loadingTask = getDocument({
+          url: fileUrl,
+          withCredentials,
+        });
+
+        const pdf = await loadingTask.promise;
+        const safePageIndex = Math.max(0, pageIndex) + 1;
+        const page = await pdf.getPage(safePageIndex);
+
+        const unscaledViewport = page.getViewport({ scale: 1 });
+        const scale = width ? width / unscaledViewport.width : 1;
+        const viewport = page.getViewport({ scale });
+
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = Math.floor(viewport.width * dpr);
+        canvas.height = Math.floor(viewport.height * dpr);
+        canvas.style.width = `${Math.floor(viewport.width)}px`;
+        canvas.style.height = `${Math.floor(viewport.height)}px`;
+
+        const context = canvas.getContext('2d');
+        if (!context) {
+          await loadingTask.destroy();
+          return;
+        }
+
+        context.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        renderTask = page.render({ canvasContext: context, viewport });
+        await renderTask.promise;
+
+        await loadingTask.destroy();
+
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      } catch {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    renderThumbnail();
+
+    return () => {
+      isMounted = false;
+      renderTask?.cancel();
+    };
+  }, [fileUrl, pageIndex, width, withCredentials]);
 
   return (
-    <Viewer
-      fileUrl={fileUrl}
-      plugins={[pageThumbnailPluginInstance, thumbnailPluginInstance]}
-      {...props}
-    />
+    <div
+      style={{
+        alignItems: 'center',
+        display: 'flex',
+        justifyContent: 'center',
+        minHeight: 200,
+        width: '100%',
+      }}
+    >
+      <canvas
+        ref={canvasRef}
+        style={{
+          display: isLoading ? 'none' : 'block',
+          maxHeight: 200,
+          objectFit: 'cover',
+          width: '100%',
+        }}
+      />
+
+      {isLoading && (
+        <div
+          style={{
+            alignItems: 'center',
+            color: '#9e9e9e',
+            display: 'flex',
+            fontSize: 14,
+            justifyContent: 'center',
+            minHeight: 200,
+            width: '100%',
+          }}
+        >
+          Carregando pré-visualização...
+        </div>
+      )}
+    </div>
   );
 };
