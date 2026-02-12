@@ -90,6 +90,22 @@ export const getFichasCadastrais = () => {
     );
 
   /**
+   * @summary Listar fichas inativas por detento
+   */
+  const findInativasByDetento = (
+    detentoId: string,
+    options?: SecondParameter<typeof customInstance>
+  ) =>
+    customInstance<ReadFichaCadastralDto[]>(
+      {
+        url: `/fichas-cadastrais/detento/${detentoId}/inativas`,
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      },
+      options
+    );
+
+  /**
    * @summary Remover uma ficha cadastral
    */
   const remove = (id: string, options?: SecondParameter<typeof customInstance>) =>
@@ -137,7 +153,16 @@ export const getFichasCadastrais = () => {
       options
     );
 
-  return { create, update, findOne, paginate, remove, uploadDocumento, getDocumentoUrl };
+  return {
+    create,
+    update,
+    findOne,
+    paginate,
+    findInativasByDetento,
+    remove,
+    uploadDocumento,
+    getDocumentoUrl,
+  };
 };
 
 export type CreateResult = NonNullable<

@@ -107,6 +107,7 @@ export type DetentoFichaDocumento = {
 
 export type DetentoService = {
   getFichasCadastrais: (detentoId: string) => Promise<DetentoFichaCadastral[]>;
+  getFichasCadastraisInativas: (detentoId: string) => Promise<DetentoFichaCadastral[]>;
   createFichaCadastral: (data: CreateDetentoFichaCadastralSchema) => Promise<any>;
   updateFichaCadastral: (
     fichacadastral_id: string,
