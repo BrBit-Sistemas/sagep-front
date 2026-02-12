@@ -41,11 +41,12 @@ import {
   Escolaridade,
   getRegimeOptions,
   getEscolaridadeOptions,
+  getDisponibilidadeTrabalhoOptions,
 } from 'src/types/prisional';
 
 import { detentoService } from '../data';
-import { fichaInativaToCreateFormValues } from '../helper';
 import { createDetentoFichaCadastralSchema } from '../schemas';
+import { parseRgOrgaoUf, fichaInativaToCreateFormValues } from '../helper';
 import { FichaDocumentosField } from '../components/ficha-documentos-field';
 import { useProfissoesAutocomplete } from '../../empresa-convenios/hooks/use-profissoes-options';
 import { DetentoFichaInativaSelector } from '../components/detalhes/detento-ficha-inativa-selector';
@@ -308,6 +309,7 @@ export default function FichaCadastralExternaPage() {
   const [creatingFicha, setCreatingFicha] = useState(false);
   const [errorSummary, setErrorSummary] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const disponibilidadeTrabalhoOptions = getDisponibilidadeTrabalhoOptions();
 
   const methods = useForm<ExternalFichaSchema>({
     // Cast to any to avoid resolver type mismatch from duplicates
@@ -339,6 +341,7 @@ export default function FichaCadastralExternaPage() {
       regiao_bloqueada: '',
       experiencia_profissional: '',
       fez_curso_sistema_prisional: '',
+      disponibilidade_trabalho: '',
       ja_trabalhou_funap: false,
       ano_trabalho_anterior: '',
       profissao_01: '',
@@ -390,19 +393,7 @@ export default function FichaCadastralExternaPage() {
     if (!detentoEncontrado) return;
 
     const values = fichaInativaToCreateFormValues(ficha, detentoEncontrado);
-    const rgOrgaoUf = values.rg_orgao_uf || '';
-    let rgOrgao = '';
-    let rgUf = '';
-
-    if (rgOrgaoUf.includes('/')) {
-      [rgOrgao, rgUf] = rgOrgaoUf.split('/');
-    } else if (rgOrgaoUf) {
-      if (rgOrgaoUf.length === 2 && /^[A-Z]{2}$/.test(rgOrgaoUf)) {
-        rgUf = rgOrgaoUf;
-      } else {
-        rgOrgao = rgOrgaoUf;
-      }
-    }
+    const { rgOrgao, rgUf } = parseRgOrgaoUf(values.rg_orgao_uf);
 
     methods.reset({
       ...(values as any),
@@ -1400,6 +1391,19 @@ export default function FichaCadastralExternaPage() {
                     <Field.Text
                       name="fez_curso_sistema_prisional"
                       label="Fez curso no sistema prisional? Qual?"
+                    />
+                  </Grid>
+                  <Grid size={{ md: 6, sm: 12 }}>
+                    <Field.Autocomplete
+                      name="disponibilidade_trabalho"
+                      label="Disponibilidade de trabalho"
+                      nullToEmptyString
+                      options={disponibilidadeTrabalhoOptions.map((option) => option.value)}
+                      getOptionLabel={(value) =>
+                        disponibilidadeTrabalhoOptions.find((option) => option.value === value)
+                          ?.label || String(value || '')
+                      }
+                      isOptionEqualToValue={(opt, val) => String(opt) === String(val)}
                     />
                   </Grid>
                   <Grid size={{ md: 6, sm: 12 }}>

@@ -77,6 +77,7 @@ const mapFichaFromApi = (f: any) => ({
   regiao_bloqueada: f.regiao_bloqueada,
   experiencia_profissional: f.experiencia_profissional,
   fez_curso_sistema_prisional: f.fez_curso_sistema_prisional,
+  disponibilidade_trabalho: f.disponibilidade_trabalho,
   ja_trabalhou_funap: f.ja_trabalhou_funap,
   ano_trabalho_anterior: f.ano_trabalho_anterior,
   profissao_01: f.profissao_01,

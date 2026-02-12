@@ -84,6 +84,30 @@ export const getEscolaridadeLabel = (escolaridade: Escolaridade): string => {
 };
 
 // ============================================================================
+// DISPONIBILIDADE DE TRABALHO
+// ============================================================================
+
+export enum DisponibilidadeTrabalho {
+  MANHA = 'MANHÃ',
+  TARDE = 'TARDE',
+  MANHA_E_TARDE = 'MANHÃ e TARDE',
+  SOMENTE_NOITE = 'SOMENTE NOITE',
+}
+
+/**
+ * Converte o enum DisponibilidadeTrabalho em opções para formulários
+ */
+export const getDisponibilidadeTrabalhoOptions = (): {
+  value: DisponibilidadeTrabalho;
+  label: string;
+}[] => [
+  { value: DisponibilidadeTrabalho.MANHA, label: 'MANHÃ' },
+  { value: DisponibilidadeTrabalho.TARDE, label: 'TARDE' },
+  { value: DisponibilidadeTrabalho.MANHA_E_TARDE, label: 'MANHÃ e TARDE' },
+  { value: DisponibilidadeTrabalho.SOMENTE_NOITE, label: 'SOMENTE NOITE' },
+];
+
+// ============================================================================
 // TIPOS DE CONVÊNIO
 // ============================================================================
 

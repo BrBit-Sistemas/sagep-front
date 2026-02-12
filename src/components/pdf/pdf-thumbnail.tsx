@@ -23,6 +23,7 @@ export const PdfThumbnail: React.FC<PdfThumbnailProps> = ({
   React.useEffect(() => {
     let isMounted = true;
     let renderTask: { cancel: () => void; promise: Promise<void> } | null = null;
+    let loadingTask: ReturnType<typeof getDocument> | null = null;
     const canvas = canvasRef.current;
 
     if (!canvas) return undefined;
@@ -31,7 +32,7 @@ export const PdfThumbnail: React.FC<PdfThumbnailProps> = ({
       try {
         setIsLoading(true);
 
-        const loadingTask = getDocument({
+        loadingTask = getDocument({
           url: fileUrl,
           withCredentials,
         });
@@ -52,7 +53,6 @@ export const PdfThumbnail: React.FC<PdfThumbnailProps> = ({
 
         const context = canvas.getContext('2d');
         if (!context) {
-          await loadingTask.destroy();
           return;
         }
 
@@ -61,14 +61,17 @@ export const PdfThumbnail: React.FC<PdfThumbnailProps> = ({
         renderTask = page.render({ canvasContext: context, viewport });
         await renderTask.promise;
 
-        await loadingTask.destroy();
-
         if (isMounted) {
           setIsLoading(false);
         }
       } catch {
         if (isMounted) {
           setIsLoading(false);
+        }
+      } finally {
+        if (loadingTask) {
+          await loadingTask.destroy().catch(() => undefined);
+          loadingTask = null;
         }
       }
     };
@@ -78,6 +81,10 @@ export const PdfThumbnail: React.FC<PdfThumbnailProps> = ({
     return () => {
       isMounted = false;
       renderTask?.cancel();
+      if (loadingTask) {
+        void loadingTask.destroy().catch(() => undefined);
+        loadingTask = null;
+      }
     };
   }, [fileUrl, pageIndex, width, withCredentials]);
 

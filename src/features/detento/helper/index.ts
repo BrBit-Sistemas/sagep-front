@@ -12,6 +12,28 @@ export const detentoToFormValues = (detento: Detento): CreateDetentoSchema => ({
   unidade_id: detento?.unidade_id ?? '',
 });
 
+export const parseRgOrgaoUf = (
+  rgOrgaoUfRaw: string | null | undefined
+): { rgOrgao: string; rgUf: string } => {
+  const rgOrgaoUf = (rgOrgaoUfRaw || '').trim();
+  let rgOrgao = '';
+  let rgUf = '';
+
+  if (rgOrgaoUf.includes('/')) {
+    const [orgao, uf] = rgOrgaoUf.split('/');
+    rgOrgao = orgao ?? '';
+    rgUf = uf ?? '';
+  } else if (rgOrgaoUf) {
+    if (rgOrgaoUf.length === 2 && /^[A-Z]{2}$/.test(rgOrgaoUf)) {
+      rgUf = rgOrgaoUf;
+    } else {
+      rgOrgao = rgOrgaoUf;
+    }
+  }
+
+  return { rgOrgao, rgUf };
+};
+
 export const fichaCadastralToFormValues = (
   fichaCadastral: DetentoFichaCadastral
 ): CreateDetentoFichaCadastralSchema => ({
@@ -50,6 +72,7 @@ export const fichaCadastralToFormValues = (
   regiao_bloqueada: fichaCadastral.regiao_bloqueada ?? '',
   experiencia_profissional: fichaCadastral.experiencia_profissional ?? '',
   fez_curso_sistema_prisional: fichaCadastral.fez_curso_sistema_prisional ?? '',
+  disponibilidade_trabalho: fichaCadastral.disponibilidade_trabalho ?? '',
   ja_trabalhou_funap: fichaCadastral.ja_trabalhou_funap ?? false,
   ano_trabalho_anterior: fichaCadastral.ano_trabalho_anterior ?? '',
   profissao_01: fichaCadastral.profissao_01 ?? '',
@@ -75,49 +98,55 @@ export const fichaCadastralToFormValues = (
 export const fichaInativaToCreateFormValues = (
   fichaInativa: DetentoFichaCadastral,
   detento: Detento
-): CreateDetentoFichaCadastralSchema => ({
-  detento_id: detento.id ?? fichaInativa.detento_id ?? '',
-  nome: detento.nome ?? fichaInativa.nome ?? '',
-  cpf: detento.cpf ?? fichaInativa.cpf ?? '',
-  rg: fichaInativa.rg ?? '',
-  rg_expedicao: fichaInativa.rg_expedicao ?? '',
-  rg_orgao_uf: fichaInativa.rg_orgao_uf ?? '',
-  data_nascimento: detento.data_nascimento ?? fichaInativa.data_nascimento ?? '',
-  naturalidade: fichaInativa.naturalidade ?? '',
-  naturalidade_uf: fichaInativa.naturalidade_uf ?? '',
-  filiacao_mae: detento.mae ?? fichaInativa.filiacao_mae ?? '',
-  filiacao_pai: fichaInativa.filiacao_pai ?? '',
-  regime: detento.regime ?? fichaInativa.regime ?? '',
-  unidade_prisional: fichaInativa.unidade_prisional ?? '',
-  prontuario: detento.prontuario ?? fichaInativa.prontuario ?? '',
-  sei: '',
-  endereco: fichaInativa.endereco ?? '',
-  regiao_administrativa: fichaInativa.regiao_administrativa ?? '',
-  telefone: fichaInativa.telefone ?? '',
-  cep: fichaInativa.cep ?? '',
-  logradouro: fichaInativa.logradouro ?? '',
-  numero: fichaInativa.numero ?? '',
-  complemento: fichaInativa.complemento ?? '',
-  bairro: fichaInativa.bairro ?? '',
-  cidade: fichaInativa.cidade ?? '',
-  estado: fichaInativa.estado ?? '',
-  ra_df: fichaInativa.ra_df ?? '',
-  escolaridade: detento.escolaridade ?? fichaInativa.escolaridade ?? '',
-  tem_problema_saude: fichaInativa.tem_problema_saude ?? false,
-  problema_saude: fichaInativa.problema_saude ?? '',
-  regiao_bloqueada: fichaInativa.regiao_bloqueada ?? '',
-  experiencia_profissional: fichaInativa.experiencia_profissional ?? '',
-  fez_curso_sistema_prisional: fichaInativa.fez_curso_sistema_prisional ?? '',
-  ja_trabalhou_funap: fichaInativa.ja_trabalhou_funap ?? false,
-  ano_trabalho_anterior: fichaInativa.ano_trabalho_anterior ?? '',
-  profissao_01: fichaInativa.profissao_01 ?? '',
-  profissao_02: fichaInativa.profissao_02 ?? '',
-  artigos_penais: fichaInativa.artigos_penais ?? [],
-  responsavel_preenchimento: '',
-  assinatura: '',
-  data_assinatura: '',
-  pdf_path: '',
-  status_validacao: 'AGUARDANDO_VALIDACAO',
-  substatus_operacional: null,
-  documentos: [],
-});
+): CreateDetentoFichaCadastralSchema => {
+  const unidadePrisionalAtual = (detento as Detento & { unidade_prisional?: string })
+    .unidade_prisional;
+
+  return {
+    detento_id: detento.id ?? fichaInativa.detento_id ?? '',
+    nome: detento.nome ?? fichaInativa.nome ?? '',
+    cpf: detento.cpf ?? fichaInativa.cpf ?? '',
+    rg: fichaInativa.rg ?? '',
+    rg_expedicao: fichaInativa.rg_expedicao ?? '',
+    rg_orgao_uf: fichaInativa.rg_orgao_uf ?? '',
+    data_nascimento: detento.data_nascimento ?? fichaInativa.data_nascimento ?? '',
+    naturalidade: fichaInativa.naturalidade ?? '',
+    naturalidade_uf: fichaInativa.naturalidade_uf ?? '',
+    filiacao_mae: detento.mae ?? fichaInativa.filiacao_mae ?? '',
+    filiacao_pai: fichaInativa.filiacao_pai ?? '',
+    regime: detento.regime ?? fichaInativa.regime ?? '',
+    unidade_prisional: unidadePrisionalAtual ?? fichaInativa.unidade_prisional ?? '',
+    prontuario: detento.prontuario ?? fichaInativa.prontuario ?? '',
+    sei: '',
+    endereco: fichaInativa.endereco ?? '',
+    regiao_administrativa: fichaInativa.regiao_administrativa ?? '',
+    telefone: fichaInativa.telefone ?? '',
+    cep: fichaInativa.cep ?? '',
+    logradouro: fichaInativa.logradouro ?? '',
+    numero: fichaInativa.numero ?? '',
+    complemento: fichaInativa.complemento ?? '',
+    bairro: fichaInativa.bairro ?? '',
+    cidade: fichaInativa.cidade ?? '',
+    estado: fichaInativa.estado ?? '',
+    ra_df: fichaInativa.ra_df ?? '',
+    escolaridade: detento.escolaridade ?? fichaInativa.escolaridade ?? '',
+    tem_problema_saude: fichaInativa.tem_problema_saude ?? false,
+    problema_saude: fichaInativa.problema_saude ?? '',
+    regiao_bloqueada: fichaInativa.regiao_bloqueada ?? '',
+    experiencia_profissional: fichaInativa.experiencia_profissional ?? '',
+    fez_curso_sistema_prisional: fichaInativa.fez_curso_sistema_prisional ?? '',
+    disponibilidade_trabalho: fichaInativa.disponibilidade_trabalho ?? '',
+    ja_trabalhou_funap: fichaInativa.ja_trabalhou_funap ?? false,
+    ano_trabalho_anterior: fichaInativa.ano_trabalho_anterior ?? '',
+    profissao_01: fichaInativa.profissao_01 ?? '',
+    profissao_02: fichaInativa.profissao_02 ?? '',
+    artigos_penais: fichaInativa.artigos_penais ?? [],
+    responsavel_preenchimento: '',
+    assinatura: '',
+    data_assinatura: '',
+    pdf_path: '',
+    status_validacao: 'AGUARDANDO_VALIDACAO',
+    substatus_operacional: null,
+    documentos: [],
+  };
+};

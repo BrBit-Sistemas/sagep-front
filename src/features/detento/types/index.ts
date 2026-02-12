@@ -75,6 +75,7 @@ export type DetentoFichaCadastral = {
   // Experiência e qualificação
   experiencia_profissional: string;
   fez_curso_sistema_prisional: string;
+  disponibilidade_trabalho?: string;
   ja_trabalhou_funap: boolean;
   ano_trabalho_anterior: string;
   profissao_01: string;

@@ -33,11 +33,15 @@ import { toast } from 'src/components/snackbar';
 import { Form, Field } from 'src/components/hook-form';
 import { EnderecoForm } from 'src/components/forms/endereco-form';
 
-import { getRegimeOptions, getEscolaridadeOptions } from 'src/types/prisional';
+import {
+  getRegimeOptions,
+  getEscolaridadeOptions,
+  getDisponibilidadeTrabalhoOptions,
+} from 'src/types/prisional';
 
 import { detentoService } from '../../data';
 import { detentoKeys } from '../../hooks/keys';
-import { fichaInativaToCreateFormValues } from '../../helper';
+import { fichaInativaToCreateFormValues, parseRgOrgaoUf } from '../../helper';
 import { FichaDocumentosField } from '../ficha-documentos-field';
 import { createDetentoFichaCadastralSchema } from '../../schemas';
 import { DetentoFichaInativaSelector } from './detento-ficha-inativa-selector';
@@ -202,6 +206,7 @@ const INITIAL_VALUES: CreateDetentoFichaCadastralSchema & { rg_orgao?: string; r
   // Experiência e qualificação
   experiencia_profissional: '',
   fez_curso_sistema_prisional: '',
+  disponibilidade_trabalho: '',
   ja_trabalhou_funap: false,
   ano_trabalho_anterior: '',
   profissao_01: '',
@@ -337,6 +342,7 @@ export const DetentoFichaCadastralDialogForm = ({
   const [error, setError] = useState<string | null>(null);
   const [showRecoverySelector, setShowRecoverySelector] = useState(false);
   const [recoveredFromFicha, setRecoveredFromFicha] = useState<DetentoFichaCadastral | null>(null);
+  const disponibilidadeTrabalhoOptions = getDisponibilidadeTrabalhoOptions();
 
   const { data: fichasInativas = [], isLoading: isLoadingFichasInativas } =
     useGetDetentoFichasInativas(detentoId, {
@@ -380,22 +386,11 @@ export const DetentoFichaCadastralDialogForm = ({
   const handleSelectFichaInativa = useCallback(
     (fichaInativa: DetentoFichaCadastral) => {
       const values = fichaInativaToCreateFormValues(fichaInativa, detento);
-      const rgOrgaoUf = values.rg_orgao_uf || '';
-      let rgOrgao = '';
-      let rgUf = '';
-
-      if (rgOrgaoUf.includes('/')) {
-        [rgOrgao, rgUf] = rgOrgaoUf.split('/');
-      } else if (rgOrgaoUf) {
-        if (rgOrgaoUf.length === 2 && /^[A-Z]{2}$/.test(rgOrgaoUf)) {
-          rgUf = rgOrgaoUf;
-        } else {
-          rgOrgao = rgOrgaoUf;
-        }
-      }
+      const { rgOrgao, rgUf } = parseRgOrgaoUf(values.rg_orgao_uf);
 
       methods.reset({
         ...values,
+        unidade_prisional: getUnidadeName(detento.unidade_id),
         data_nascimento: values.data_nascimento ? formatDateToDDMMYYYY(values.data_nascimento) : '',
         rg_orgao: rgOrgao,
         rg_uf: rgUf,
@@ -403,7 +398,7 @@ export const DetentoFichaCadastralDialogForm = ({
       setRecoveredFromFicha(fichaInativa);
       setShowRecoverySelector(false);
     },
-    [detento, methods]
+    [detento, getUnidadeName, methods]
   );
 
   const handleSkipRecovery = useCallback(() => {
@@ -578,21 +573,7 @@ export const DetentoFichaCadastralDialogForm = ({
   useEffect(() => {
     if (isEditing) {
       // Separar o campo combinado rg_orgao_uf nos campos individuais para edição
-      const rgOrgaoUf = defaultValues?.rg_orgao_uf || '';
-      let rgOrgao = '';
-      let rgUf = '';
-
-      if (rgOrgaoUf.includes('/')) {
-        [rgOrgao, rgUf] = rgOrgaoUf.split('/');
-      } else if (rgOrgaoUf) {
-        // Se não tem separador, pode ser só órgão ou só UF
-        // Vamos tentar detectar se é UF (2 letras) ou órgão
-        if (rgOrgaoUf.length === 2 && /^[A-Z]{2}$/.test(rgOrgaoUf)) {
-          rgUf = rgOrgaoUf;
-        } else {
-          rgOrgao = rgOrgaoUf;
-        }
-      }
+      const { rgOrgao, rgUf } = parseRgOrgaoUf(defaultValues?.rg_orgao_uf);
 
       // Garantir que os campos do detento sejam sempre atualizados, mesmo em modo de edição
       methods.reset({
@@ -1049,6 +1030,19 @@ export const DetentoFichaCadastralDialogForm = ({
                       <Field.Text
                         name="fez_curso_sistema_prisional"
                         label="Fez curso no sistema prisional? Qual?"
+                      />
+                    </Grid>
+                    <Grid size={{ md: 6, sm: 12 }}>
+                      <Field.Autocomplete
+                        name="disponibilidade_trabalho"
+                        label="Disponibilidade de trabalho"
+                        nullToEmptyString
+                        options={disponibilidadeTrabalhoOptions.map((option) => option.value)}
+                        getOptionLabel={(value) =>
+                          disponibilidadeTrabalhoOptions.find((option) => option.value === value)
+                            ?.label || String(value || '')
+                        }
+                        isOptionEqualToValue={(opt, val) => String(opt) === String(val)}
                       />
                     </Grid>
                     <Grid size={{ md: 6, sm: 12 }}>
