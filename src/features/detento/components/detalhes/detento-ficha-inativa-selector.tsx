@@ -42,28 +42,33 @@ export const DetentoFichaInativaSelector = ({
       </Typography>
 
       <Grid container spacing={2}>
-        {fichasInativas.map((ficha) => (
-          <Grid size={{ xs: 12, md: 6 }} key={ficha.fichacadastral_id}>
-            <Card variant="outlined">
-              <CardContent>
-                <Stack spacing={1.5}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                    Ficha de {formatDateToDDMMYYYY(ficha.updatedAt || ficha.createdAt)}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Unidade: {ficha.unidade_prisional || 'Não informada'}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Profissão: {ficha.profissao_01 || 'Não informada'}
-                  </Typography>
-                  <Button variant="contained" onClick={() => onSelectFicha(ficha)} size="small">
-                    Usar esta ficha
-                  </Button>
-                </Stack>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
+        {fichasInativas.map((ficha) => {
+          const dataFicha =
+            formatDateToDDMMYYYY(ficha.updatedAt || ficha.createdAt) || 'Data não informada';
+
+          return (
+            <Grid size={{ xs: 12, md: 6 }} key={ficha.fichacadastral_id}>
+              <Card variant="outlined">
+                <CardContent>
+                  <Stack spacing={1.5}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                      Ficha de {dataFicha}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Unidade: {ficha.unidade_prisional || 'Não informada'}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Profissão: {ficha.profissao_01 || 'Não informada'}
+                    </Typography>
+                    <Button variant="contained" onClick={() => onSelectFicha(ficha)} size="small">
+                      Usar esta ficha
+                    </Button>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+          );
+        })}
       </Grid>
 
       <Stack direction="row" justifyContent="flex-end">

@@ -20,14 +20,15 @@ export const parseRgOrgaoUf = (
   let rgUf = '';
 
   if (rgOrgaoUf.includes('/')) {
-    const [orgao, uf] = rgOrgaoUf.split('/');
-    rgOrgao = orgao ?? '';
-    rgUf = uf ?? '';
+    const [orgaoRaw, ufRaw] = rgOrgaoUf.split('/');
+    rgOrgao = (orgaoRaw ?? '').trim();
+    rgUf = (ufRaw ?? '').trim().toUpperCase();
   } else if (rgOrgaoUf) {
-    if (rgOrgaoUf.length === 2 && /^[A-Z]{2}$/.test(rgOrgaoUf)) {
-      rgUf = rgOrgaoUf;
+    const maybeUf = rgOrgaoUf.trim().toUpperCase();
+    if (maybeUf.length === 2 && /^[A-Z]{2}$/.test(maybeUf)) {
+      rgUf = maybeUf;
     } else {
-      rgOrgao = rgOrgaoUf;
+      rgOrgao = rgOrgaoUf.trim();
     }
   }
 

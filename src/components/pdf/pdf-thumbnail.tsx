@@ -19,6 +19,7 @@ export const PdfThumbnail: React.FC<PdfThumbnailProps> = ({
 }) => {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [hasError, setHasError] = React.useState(false);
 
   React.useEffect(() => {
     let isMounted = true;
@@ -41,6 +42,7 @@ export const PdfThumbnail: React.FC<PdfThumbnailProps> = ({
     const renderThumbnail = async () => {
       try {
         setIsLoading(true);
+        setHasError(false);
 
         loadingTask = getDocument({
           url: fileUrl,
@@ -63,6 +65,10 @@ export const PdfThumbnail: React.FC<PdfThumbnailProps> = ({
 
         const context = canvas.getContext('2d');
         if (!context) {
+          if (isMounted) {
+            setHasError(true);
+            setIsLoading(false);
+          }
           return;
         }
 
@@ -76,6 +82,7 @@ export const PdfThumbnail: React.FC<PdfThumbnailProps> = ({
         }
       } catch {
         if (isMounted) {
+          setHasError(true);
           setIsLoading(false);
         }
       } finally {
@@ -105,7 +112,7 @@ export const PdfThumbnail: React.FC<PdfThumbnailProps> = ({
       <canvas
         ref={canvasRef}
         style={{
-          display: isLoading ? 'none' : 'block',
+          display: isLoading || hasError ? 'none' : 'block',
           maxHeight: 200,
           objectFit: 'cover',
           width: '100%',
@@ -125,6 +132,22 @@ export const PdfThumbnail: React.FC<PdfThumbnailProps> = ({
           }}
         >
           Carregando pré-visualização...
+        </div>
+      )}
+
+      {!isLoading && hasError && (
+        <div
+          style={{
+            alignItems: 'center',
+            color: '#9e9e9e',
+            display: 'flex',
+            fontSize: 14,
+            justifyContent: 'center',
+            minHeight: 200,
+            width: '100%',
+          }}
+        >
+          Falha ao carregar pré-visualização.
         </div>
       )}
     </div>

@@ -22,7 +22,7 @@ import DialogContent from '@mui/material/DialogContent';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { formatCpf } from 'src/utils/format-string';
-import { formatDateToDDMMYYYY, formatDateToYYYYMMDD } from 'src/utils/format-date';
+import { formatDateToYYYYMMDD } from 'src/utils/format-date';
 
 import { getProfissoes } from 'src/api/profissoes/profissoes';
 import { ArticlesSelector } from 'src/features/artigos-penais/components/articles-selector';
@@ -373,7 +373,7 @@ export const DetentoFichaCadastralDialogForm = ({
         cpf: detento.cpf,
         prontuario: detento.prontuario ?? '',
         data_nascimento: detento.data_nascimento
-          ? formatDateToDDMMYYYY(detento.data_nascimento)
+          ? formatDateToYYYYMMDD(detento.data_nascimento)
           : '',
         regime: detento.regime,
         escolaridade: detento.escolaridade,
@@ -385,6 +385,7 @@ export const DetentoFichaCadastralDialogForm = ({
     resolver: zodResolver(dialogFormSchema) as any,
     defaultValues: initialValues,
   });
+  const isFormDirty = methods.formState.isDirty;
 
   const handleSelectFichaInativa = useCallback(
     (fichaInativa: DetentoFichaCadastral) => {
@@ -394,7 +395,7 @@ export const DetentoFichaCadastralDialogForm = ({
       methods.reset({
         ...values,
         unidade_prisional: getUnidadeName(detento.unidade_id),
-        data_nascimento: values.data_nascimento ? formatDateToDDMMYYYY(values.data_nascimento) : '',
+        data_nascimento: values.data_nascimento ? formatDateToYYYYMMDD(values.data_nascimento) : '',
         rg_orgao: rgOrgao,
         rg_uf: rgUf,
       } as any);
@@ -569,9 +570,15 @@ export const DetentoFichaCadastralDialogForm = ({
     }
 
     if (!isEditing) {
-      setShowRecoverySelector(fichasInativas.length > 0);
+      if (isLoadingFichasInativas) {
+        return;
+      }
+
+      if (!isFormDirty) {
+        setShowRecoverySelector(fichasInativas.length > 0);
+      }
     }
-  }, [open, isEditing, fichasInativas.length]);
+  }, [open, isEditing, fichasInativas.length, isLoadingFichasInativas, isFormDirty]);
 
   useEffect(() => {
     if (isEditing) {
@@ -587,7 +594,7 @@ export const DetentoFichaCadastralDialogForm = ({
         cpf: detento.cpf,
         prontuario: detento.prontuario ?? '',
         data_nascimento: detento.data_nascimento
-          ? formatDateToDDMMYYYY(detento.data_nascimento)
+          ? formatDateToYYYYMMDD(detento.data_nascimento)
           : '',
         regime: detento.regime,
         escolaridade: detento.escolaridade,
@@ -603,7 +610,7 @@ export const DetentoFichaCadastralDialogForm = ({
         cpf: detento.cpf,
         prontuario: detento.prontuario ?? '',
         data_nascimento: detento.data_nascimento
-          ? formatDateToDDMMYYYY(detento.data_nascimento)
+          ? formatDateToYYYYMMDD(detento.data_nascimento)
           : '',
         regime: detento.regime,
         escolaridade: detento.escolaridade,
