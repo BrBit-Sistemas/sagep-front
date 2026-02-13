@@ -6,4 +6,6 @@ export const detentoKeys = {
   read: (id: string) => [...detentoKeys.all, 'read', id] as const,
   fichasCadastrais: (detentoId: string) =>
     [...detentoKeys.all, 'fichasCadastrais', detentoId] as const,
+  fichasCadastraisInativas: (detentoId: string) =>
+    [...detentoKeys.all, 'fichasCadastraisInativas', detentoId] as const,
 };

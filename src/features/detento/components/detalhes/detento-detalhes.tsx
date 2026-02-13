@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { Suspense, useEffect, useMemo } from 'react';
 
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
@@ -8,6 +8,7 @@ import Tabs from '@mui/material/Tabs';
 import { CONFIG } from 'src/global-config';
 
 import { Iconify } from 'src/components/iconify';
+import { LoadingScreen } from 'src/components/loading-screen';
 
 import { usePermissionCheck } from 'src/auth/guard/permission-guard';
 
@@ -48,21 +49,28 @@ export const DetentoDetalhes = ({ detentoId }: DetentoDetalhesProps) => {
     }
   }, [isFichaCadastralDialogOpen, tab, setSearchParams]);
 
-  const tabs = {
-    detalhes: <DetentoDetailsTab detento={data} />,
-    ficha_cadastral: <DetentoFichaCadastralTab detento={data} />,
-  };
-
   const canSeeDetalhes = hasPermission({ action: 'read', subject: 'detentos' });
   const canSeeFicha = hasAny([
     { action: 'read', subject: 'ficha_cadastral_interno' },
     { action: 'read', subject: 'detentos' },
   ]);
 
-  const allowedNav = NAV_BASE.filter(
-    (n) =>
-      (n.value === 'detalhes' && canSeeDetalhes) || (n.value === 'ficha_cadastral' && canSeeFicha)
+  const allowedNav = useMemo(
+    () =>
+      NAV_BASE.filter(
+        (n) =>
+          (n.value === 'detalhes' && canSeeDetalhes) ||
+          (n.value === 'ficha_cadastral' && canSeeFicha)
+      ),
+    [canSeeDetalhes, canSeeFicha]
   );
+
+  const tabContent =
+    tab === 'ficha_cadastral' ? (
+      <DetentoFichaCadastralTab detento={data} />
+    ) : (
+      <DetentoDetailsTab detento={data} />
+    );
 
   useEffect(() => {
     if (isLoading) return;
@@ -103,7 +111,9 @@ export const DetentoDetalhes = ({ detentoId }: DetentoDetalhesProps) => {
           </Tabs>
         </Box>
       </Card>
-      {tabs[tab as keyof typeof tabs]}
+      <Suspense fallback={<LoadingScreen />}>
+        <Box key={tab}>{tabContent}</Box>
+      </Suspense>
     </>
   );
 };

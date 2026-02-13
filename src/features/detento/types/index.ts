@@ -75,6 +75,7 @@ export type DetentoFichaCadastral = {
   // Experiência e qualificação
   experiencia_profissional: string;
   fez_curso_sistema_prisional: string;
+  disponibilidade_trabalho?: string;
   ja_trabalhou_funap: boolean;
   ano_trabalho_anterior: string;
   profissao_01: string;
@@ -107,6 +108,7 @@ export type DetentoFichaDocumento = {
 
 export type DetentoService = {
   getFichasCadastrais: (detentoId: string) => Promise<DetentoFichaCadastral[]>;
+  getFichasCadastraisInativas: (detentoId: string) => Promise<DetentoFichaCadastral[]>;
   createFichaCadastral: (data: CreateDetentoFichaCadastralSchema) => Promise<any>;
   updateFichaCadastral: (
     fichacadastral_id: string,

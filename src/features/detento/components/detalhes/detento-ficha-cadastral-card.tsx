@@ -1,8 +1,6 @@
-import '@react-pdf-viewer/core/lib/styles/index.css';
-
 import type { DetentoFichaCadastral } from 'src/features/detento/types';
 
-import { useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 import {
@@ -23,7 +21,6 @@ import {
 import { fDateTime } from 'src/utils/format-time';
 
 import { Iconify } from 'src/components/iconify';
-import { PdfWorker } from 'src/components/pdf/pdf-worker';
 import { PdfThumbnail } from 'src/components/pdf/pdf-thumbnail';
 
 import { usePermissionCheck } from 'src/auth/guard/permission-guard';
@@ -31,9 +28,6 @@ import { usePermissionCheck } from 'src/auth/guard/permission-guard';
 import { detentoService } from '../../data';
 import { detentoKeys } from '../../hooks/keys';
 import { useDetentoDetalhesStore } from '../../stores/detento-detalhes-store';
-
-const react_pdf_cover_class = 'rpv-thumbnail__cover-inner';
-const react_pdf_cover_img_class = 'rpv-thumbnail__cover-image';
 
 type DetentoFichaCadastralCardProps = {
   fichaCadastral: DetentoFichaCadastral;
@@ -44,6 +38,7 @@ export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadast
   const { hasPermission } = usePermissionCheck();
   const [hover, setHover] = useState(false);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
+  const lastResolvedSignedUrlRef = useRef<string | null>(null);
   const [confirm, setConfirm] = useState<{
     open: boolean;
     type: 'delete' | 'activate' | 'deactivate' | null;
@@ -61,9 +56,24 @@ export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadast
 
   useEffect(() => {
     let mounted = true;
-    detentoService.getFichaCadastralPdfUrl(fichaCadastral.fichacadastral_id).then((url) => {
-      if (mounted) setSignedUrl(url);
-    });
+    detentoService
+      .getFichaCadastralPdfUrl(fichaCadastral.fichacadastral_id)
+      .then((url) => {
+        if (!mounted) return;
+
+        if (url) {
+          lastResolvedSignedUrlRef.current = url;
+          setSignedUrl(url);
+          return;
+        }
+
+        setSignedUrl(lastResolvedSignedUrlRef.current);
+      })
+      .catch(() => {
+        if (!mounted) return;
+        setSignedUrl(lastResolvedSignedUrlRef.current);
+      });
+
     return () => {
       mounted = false;
     };
@@ -72,7 +82,7 @@ export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadast
   const handleEdit = () => {
     // Abrir dialog imediatamente com dados do cache
     openFichaCadastralEditDialog(fichaCadastral);
-    
+
     // Refetch em background para garantir dados sempre atualizados
     // (não bloqueia a abertura do dialog)
     queryClient.invalidateQueries({
@@ -134,8 +144,6 @@ export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadast
       sx={{
         aspectRatio: 1,
         position: 'relative',
-        [`& .${react_pdf_cover_class}`]: { display: 'flex', justifyContent: 'center' },
-        [`& .${react_pdf_cover_img_class}`]: { objectFit: 'cover', maxHeight: 200 },
         // Borda especial para ficha ativa
         ...(localStatus === 'ativa' && {
           border: '3px solid',
@@ -158,11 +166,9 @@ export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadast
     >
       <CardActionArea onClick={canUpdate ? handleEdit : undefined} sx={{ height: '100%' }}>
         <Box sx={{ position: 'relative', height: '100%' }}>
-          <PdfWorker>
-            {signedUrl && (
-              <PdfThumbnail width={720} pageIndex={0} fileUrl={signedUrl} withCredentials />
-            )}
-          </PdfWorker>
+          {signedUrl && (
+            <PdfThumbnail width={720} pageIndex={0} fileUrl={signedUrl} withCredentials />
+          )}
           {(hover || pending) && (
             <>
               {canRead && (

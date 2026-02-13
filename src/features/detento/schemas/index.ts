@@ -31,15 +31,12 @@ export const createDetentoFichaCadastralSchema = z.object({
     .string()
     .optional()
     .transform((value) => value || '') // Transforma undefined/null em string vazia
-    .refine(
-      (value) => {
-        // Se está vazio ou só espaços, é válido
-        if (!value || value.trim() === '') return true;
-        // Se tem conteúdo, deve ter entre 3 e 15 caracteres
-        return value.length >= 3 && value.length <= 15;
-      },
-      'RG deve ter entre 3 e 15 caracteres'
-    ),
+    .refine((value) => {
+      // Se está vazio ou só espaços, é válido
+      if (!value || value.trim() === '') return true;
+      // Se tem conteúdo, deve ter entre 3 e 15 caracteres
+      return value.length >= 3 && value.length <= 15;
+    }, 'RG deve ter entre 3 e 15 caracteres'),
   rg_expedicao: z.string().optional().or(z.literal('')),
   rg_orgao_uf: z.string().optional().or(z.literal('')),
   data_nascimento: z.string().min(1, 'Data de nascimento é obrigatória'),
@@ -77,6 +74,7 @@ export const createDetentoFichaCadastralSchema = z.object({
   // Experiência e qualificação
   experiencia_profissional: z.string().optional(),
   fez_curso_sistema_prisional: z.string().optional(),
+  disponibilidade_trabalho: z.string().optional(),
   ja_trabalhou_funap: z.boolean().default(false),
   ano_trabalho_anterior: z.string().optional(),
   profissao_01: z.string().min(1, 'Profissão 01 é obrigatória'),

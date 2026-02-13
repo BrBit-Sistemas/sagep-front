@@ -1,3 +1,5 @@
+import type { Detento, DetentoFichaCadastral } from '../types';
+
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useFormContext } from 'react-hook-form';
@@ -39,12 +41,15 @@ import {
   Escolaridade,
   getRegimeOptions,
   getEscolaridadeOptions,
+  getDisponibilidadeTrabalhoOptions,
 } from 'src/types/prisional';
 
 import { detentoService } from '../data';
 import { createDetentoFichaCadastralSchema } from '../schemas';
+import { parseRgOrgaoUf, fichaInativaToCreateFormValues } from '../helper';
 import { FichaDocumentosField } from '../components/ficha-documentos-field';
 import { useProfissoesAutocomplete } from '../../empresa-convenios/hooks/use-profissoes-options';
+import { DetentoFichaInativaSelector } from '../components/detalhes/detento-ficha-inativa-selector';
 
 // Órgãos expedidores de RG
 const ORGAOS_EXPEDIDORES = [
@@ -146,7 +151,10 @@ const externalSchema = createDetentoFichaCadastralSchema
       .min(1, { message: 'Unidade prisional é obrigatória' })
       .uuid('ID da unidade prisional inválido'),
     // Permitir null vindo do Autocomplete e normalizar para string vazia
-    profissao_01: z.preprocess((v) => (v === null ? '' : v), z.string().min(1, 'Profissão 01 é obrigatória')),
+    profissao_01: z.preprocess(
+      (v) => (v === null ? '' : v),
+      z.string().min(1, 'Profissão 01 é obrigatória')
+    ),
     profissao_02: z.preprocess((v) => (v === null ? '' : v), z.string().optional()),
     // Campos separados para RG
     rg_orgao: z.string().min(1, 'Órgão expedidor é obrigatório'),
@@ -165,15 +173,12 @@ const externalSchema = createDetentoFichaCadastralSchema
       .string()
       .optional()
       .transform((value) => value || '') // Transforma undefined/null em string vazia
-      .refine(
-        (value) => {
-          // Se está vazio ou só espaços, é válido
-          if (!value || value.trim() === '') return true;
-          // Se tem conteúdo, deve ter entre 3 e 15 caracteres
-          return value.length >= 3 && value.length <= 15;
-        },
-        'RG deve ter entre 3 e 15 caracteres'
-      ),
+      .refine((value) => {
+        // Se está vazio ou só espaços, é válido
+        if (!value || value.trim() === '') return true;
+        // Se tem conteúdo, deve ter entre 3 e 15 caracteres
+        return value.length >= 3 && value.length <= 15;
+      }, 'RG deve ter entre 3 e 15 caracteres'),
   })
   .refine((data) => /^\d{4}-\d{2}-\d{2}$/.test(data.data_nascimento || ''), {
     path: ['data_nascimento'],
@@ -291,10 +296,12 @@ export default function FichaCadastralExternaPage() {
   };
 
   const [cpf, setCpf] = useState('');
-  const [step, setStep] = useState<'cpf' | 'form'>('cpf');
+  const [step, setStep] = useState<'cpf' | 'recover' | 'form'>('cpf');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeWarning, setActiveWarning] = useState<string | null>(null);
+  const [fichasInativas, setFichasInativas] = useState<DetentoFichaCadastral[]>([]);
+  const [detentoEncontrado, setDetentoEncontrado] = useState<Detento | null>(null);
   const [cpfError, setCpfError] = useState<string | null>(null);
   const [confirmCpfOpen, setConfirmCpfOpen] = useState(false);
   const [creatingDetento, setCreatingDetento] = useState(false);
@@ -302,6 +309,7 @@ export default function FichaCadastralExternaPage() {
   const [creatingFicha, setCreatingFicha] = useState(false);
   const [errorSummary, setErrorSummary] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const disponibilidadeTrabalhoOptions = getDisponibilidadeTrabalhoOptions();
 
   const methods = useForm<ExternalFichaSchema>({
     // Cast to any to avoid resolver type mismatch from duplicates
@@ -333,6 +341,7 @@ export default function FichaCadastralExternaPage() {
       regiao_bloqueada: '',
       experiencia_profissional: '',
       fez_curso_sistema_prisional: '',
+      disponibilidade_trabalho: '',
       ja_trabalhou_funap: false,
       ano_trabalho_anterior: '',
       profissao_01: '',
@@ -362,6 +371,46 @@ export default function FichaCadastralExternaPage() {
   const getUnidadeName = (unidadeId: string) => {
     const unidade = unidades.find((u) => u.id === unidadeId);
     return unidade?.nome || unidadeId;
+  };
+
+  const prefillWithDetento = (detento: Detento) => {
+    methods.reset({
+      ...methods.getValues(),
+      detento_id: detento.id,
+      nome: detento.nome || '',
+      cpf: detento.cpf || '',
+      prontuario: detento.prontuario || '',
+      data_nascimento: detento.data_nascimento ? formatDateToYYYYMMDD(detento.data_nascimento) : '',
+      regime: detento.regime || undefined,
+      escolaridade: detento.escolaridade || undefined,
+      unidade_prisional: getUnidadeName(detento.unidade_id),
+      unidade_id: detento.unidade_id,
+      filiacao_mae: detento.mae || '',
+    });
+  };
+
+  const handleSelectFichaInativa = (ficha: DetentoFichaCadastral) => {
+    if (!detentoEncontrado) return;
+
+    const values = fichaInativaToCreateFormValues(ficha, detentoEncontrado);
+    const { rgOrgao, rgUf } = parseRgOrgaoUf(values.rg_orgao_uf);
+
+    methods.reset({
+      ...(values as any),
+      data_nascimento: values.data_nascimento ? formatDateToYYYYMMDD(values.data_nascimento) : '',
+      unidade_id: detentoEncontrado.unidade_id,
+      rg_orgao: rgOrgao,
+      rg_uf: rgUf,
+    });
+
+    setStep('form');
+  };
+
+  const handleSkipRecovery = () => {
+    if (detentoEncontrado) {
+      prefillWithDetento(detentoEncontrado);
+    }
+    setStep('form');
   };
 
   const getApiErrorMessage = (err: any): string => {
@@ -424,6 +473,7 @@ export default function FichaCadastralExternaPage() {
       // 2) Se não existir, permanecemos no step de formulário, mas sem detento_id
       // 3) Se existir, checar ficha ativa
       if (detento) {
+        setDetentoEncontrado(detento);
         const fichas = await detentoService.getFichasCadastrais(detento.id);
         const ativa = fichas.find((f) => f.status === 'ativa');
         if (ativa) {
@@ -434,25 +484,19 @@ export default function FichaCadastralExternaPage() {
           return;
         }
 
-        // Preenche defaults do formulário com dados do detento (editáveis)
-        methods.reset({
-          ...methods.getValues(),
-          detento_id: detento.id,
-          nome: detento.nome || '',
-          cpf: detento.cpf || '',
-          prontuario: detento.prontuario || '',
-          data_nascimento: detento.data_nascimento
-            ? formatDateToYYYYMMDD(detento.data_nascimento)
-            : '',
-          regime: detento.regime || undefined,
-          escolaridade: detento.escolaridade || undefined,
-          unidade_prisional: getUnidadeName(detento.unidade_id),
-          unidade_id: detento.unidade_id,
-          // Adiciona nome da mãe que existe no detento
-          filiacao_mae: detento.mae || '',
-        });
+        const inativas = fichas.filter((f) => f.status === 'inativa');
+        if (inativas.length > 0) {
+          setFichasInativas(inativas);
+          setStep('recover');
+          return;
+        }
+
+        setFichasInativas([]);
+        prefillWithDetento(detento);
       } else {
         // CPF válido mas não encontrado: confirmar antes de prosseguir
+        setDetentoEncontrado(null);
+        setFichasInativas([]);
         methods.reset({ ...methods.getValues(), cpf });
         setConfirmCpfOpen(true);
         return;
@@ -626,6 +670,8 @@ export default function FichaCadastralExternaPage() {
         methods.reset();
         setStep('cpf');
         setCpf('');
+        setFichasInativas([]);
+        setDetentoEncontrado(null);
         setSuccessMessage('Ficha cadastral criada com sucesso!');
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } catch (err) {
@@ -705,10 +751,10 @@ export default function FichaCadastralExternaPage() {
                   {successMessage}
                 </Alert>
               )}
-              
+
               {/* Requisitos para cadastro - design clean */}
-              <Box 
-                sx={{ 
+              <Box
+                sx={{
                   p: 3,
                   backgroundColor: 'grey.50',
                   borderRadius: 2,
@@ -716,80 +762,82 @@ export default function FichaCadastralExternaPage() {
                   borderColor: 'grey.200',
                 }}
               >
-                <Typography 
-                  variant="subtitle1" 
-                  sx={{ 
-                    mb: 2, 
-                    color: 'text.primary', 
+                <Typography
+                  variant="subtitle1"
+                  sx={{
+                    mb: 2,
+                    color: 'text.primary',
                     fontWeight: 600,
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 1
+                    gap: 1,
                   }}
                 >
                   <Iconify icon="solar:list-bold" sx={{ color: 'primary.main' }} />
                   Requisitos para Cadastro
                 </Typography>
-                
+
                 <Stack spacing={1.5}>
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
-                    <Box 
-                      sx={{ 
-                        width: 6, 
-                        height: 6, 
-                        borderRadius: '50%', 
+                    <Box
+                      sx={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
                         backgroundColor: 'primary.main',
                         mt: 1,
-                        flexShrink: 0
-                      }} 
+                        flexShrink: 0,
+                      }}
                     />
                     <Typography variant="body2" color="text.secondary">
                       Ter a posse os documentos pessoais: carteira de identidade e CPF;
                     </Typography>
                   </Box>
-                  
+
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
-                    <Box 
-                      sx={{ 
-                        width: 6, 
-                        height: 6, 
-                        borderRadius: '50%', 
+                    <Box
+                      sx={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
                         backgroundColor: 'primary.main',
                         mt: 1,
-                        flexShrink: 0
-                      }} 
+                        flexShrink: 0,
+                      }}
                     />
                     <Typography variant="body2" color="text.secondary">
-                      Estar cumprindo pena resultante de processos judiciais conduzidos no Distrito Federal;
+                      Estar cumprindo pena resultante de processos judiciais conduzidos no Distrito
+                      Federal;
                     </Typography>
                   </Box>
-                  
+
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
-                    <Box 
-                      sx={{ 
-                        width: 6, 
-                        height: 6, 
-                        borderRadius: '50%', 
+                    <Box
+                      sx={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
                         backgroundColor: 'primary.main',
                         mt: 1,
-                        flexShrink: 0
-                      }} 
+                        flexShrink: 0,
+                      }}
                     />
                     <Typography variant="body2" color="text.secondary">
-                      Estar cumprindo pena no regime semiaberto com autorização para trabalho externo concedida pela VEP; ou
+                      Estar cumprindo pena no regime semiaberto com autorização para trabalho
+                      externo concedida pela VEP; ou
                     </Typography>
                   </Box>
-                  
+
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
-                    <Box 
-                      sx={{ 
-                        width: 6, 
-                        height: 6, 
-                        borderRadius: '50%', 
+                    <Box
+                      sx={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
                         backgroundColor: 'primary.main',
                         mt: 1,
-                        flexShrink: 0
-                      }} 
+                        flexShrink: 0,
+                      }}
                     />
                     <Typography variant="body2" color="text.secondary">
                       Estar cumprindo pena no regime aberto ou em livramento condicional.
@@ -943,8 +991,8 @@ export default function FichaCadastralExternaPage() {
                           Presencial:
                         </Typography>
                         <Typography variant="body2" color="text.primary" sx={{ lineHeight: 1.7 }}>
-                          Na sede da FUNAP, localizada no endereço: SIA Trecho 02, Lotes
-                          1835/1845 – 1º andar – Guará – Brasília DF – CEP: 72200-020
+                          Na sede da FUNAP, localizada no endereço: SIA Trecho 02, Lotes 1835/1845 –
+                          1º andar – Guará – Brasília DF – CEP: 72200-020
                         </Typography>
                       </Box>
                       <Box>
@@ -959,9 +1007,9 @@ export default function FichaCadastralExternaPage() {
                           color="text.primary"
                           sx={{ lineHeight: 1.7, mb: 1 }}
                         >
-                          No site da FUNAP, na página inicial ou na seção &ldquo;Carta de Serviços&rdquo; →
-                          &ldquo;Serviços para os reeducandos&rdquo; → &ldquo;Ficha de cadastro para o serviço
-                          externo&rdquo;, ou pelo link:
+                          No site da FUNAP, na página inicial ou na seção &ldquo;Carta de
+                          Serviços&rdquo; → &ldquo;Serviços para os reeducandos&rdquo; →
+                          &ldquo;Ficha de cadastro para o serviço externo&rdquo;, ou pelo link:
                         </Typography>
                         <Box
                           component="a"
@@ -1005,6 +1053,36 @@ export default function FichaCadastralExternaPage() {
                   </Box>
                 </Stack>
               </Box>
+            </Stack>
+          </Card>
+        )}
+
+        {step === 'recover' && (
+          <Card sx={{ p: 3 }}>
+            <Stack spacing={3}>
+              <Alert severity="info">
+                O reeducando já possui ficha(s) inativa(s). Você pode reaproveitar os dados de uma
+                ficha anterior.
+              </Alert>
+
+              <DetentoFichaInativaSelector
+                fichasInativas={fichasInativas}
+                onSelectFicha={handleSelectFichaInativa}
+                onSkip={handleSkipRecovery}
+              />
+
+              <Stack direction="row" spacing={2}>
+                <Button
+                  variant="outlined"
+                  onClick={() => {
+                    setStep('cpf');
+                    setFichasInativas([]);
+                    setDetentoEncontrado(null);
+                  }}
+                >
+                  Voltar para busca
+                </Button>
+              </Stack>
             </Stack>
           </Card>
         )}
@@ -1316,6 +1394,19 @@ export default function FichaCadastralExternaPage() {
                     />
                   </Grid>
                   <Grid size={{ md: 6, sm: 12 }}>
+                    <Field.Autocomplete
+                      name="disponibilidade_trabalho"
+                      label="Disponibilidade de trabalho"
+                      nullToEmptyString
+                      options={disponibilidadeTrabalhoOptions.map((option) => option.value)}
+                      getOptionLabel={(value) =>
+                        disponibilidadeTrabalhoOptions.find((option) => option.value === value)
+                          ?.label || String(value || '')
+                      }
+                      isOptionEqualToValue={(opt, val) => String(opt) === String(val)}
+                    />
+                  </Grid>
+                  <Grid size={{ md: 6, sm: 12 }}>
                     <Field.Switch name="ja_trabalhou_funap" label="Já trabalhou pela FUNAP?" />
                   </Grid>
                   <Grid size={{ md: 6, sm: 12 }}>
@@ -1379,7 +1470,14 @@ export default function FichaCadastralExternaPage() {
                 />
 
                 <Stack direction="row" spacing={2}>
-                  <Button onClick={() => setStep('cpf')} variant="outlined">
+                  <Button
+                    onClick={() => {
+                      setStep('cpf');
+                      setFichasInativas([]);
+                      setDetentoEncontrado(null);
+                    }}
+                    variant="outlined"
+                  >
                     Voltar
                   </Button>
                   <Button
@@ -1415,6 +1513,8 @@ export default function FichaCadastralExternaPage() {
             <Button
               onClick={() => {
                 setConfirmCpfOpen(false);
+                setDetentoEncontrado(null);
+                setFichasInativas([]);
                 setStep('form');
               }}
               variant="contained"
