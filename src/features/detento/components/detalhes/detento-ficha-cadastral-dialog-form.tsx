@@ -41,9 +41,9 @@ import {
 
 import { detentoService } from '../../data';
 import { detentoKeys } from '../../hooks/keys';
-import { fichaInativaToCreateFormValues, parseRgOrgaoUf } from '../../helper';
 import { FichaDocumentosField } from '../ficha-documentos-field';
 import { createDetentoFichaCadastralSchema } from '../../schemas';
+import { parseRgOrgaoUf, fichaInativaToCreateFormValues } from '../../helper';
 import { DetentoFichaInativaSelector } from './detento-ficha-inativa-selector';
 import { useGetDetentoFichasInativas } from '../../hooks/use-get-detento-fichas-inativas';
 import { useDetentoDetalhesSearchParams } from '../../hooks/use-dentento-detalhes-search-params';
