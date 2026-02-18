@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo } from 'react';
+import { useMemo, Suspense, useEffect  } from 'react';
 
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
