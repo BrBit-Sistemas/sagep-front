@@ -34,6 +34,7 @@ import { Searchbar } from '../components/searchbar';
 import { MenuButton } from '../components/menu-button';
 import { AccountDrawer } from '../components/account-drawer';
 import { dashboardLayoutVars, dashboardNavColorVars } from './css-vars';
+import { NotificationsDrawer } from '../components/notifications-drawer';
 import { MainSection, layoutClasses, HeaderSection, LayoutSection } from '../core';
 import { navBottomData, navData as dashboardNavData } from '../nav-config-dashboard';
 
@@ -167,6 +168,9 @@ export function DashboardLayout({
         <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0, sm: 0.75 } }}>
           {/** @slot Searchbar */}
           <Searchbar data={navData} />
+
+          {/** @slot Notifications */}
+          <NotificationsDrawer />
 
           {/** @slot Account drawer */}
           <AccountDrawer data={_account} />

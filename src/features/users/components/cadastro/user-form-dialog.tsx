@@ -1,4 +1,3 @@
-import type { z } from 'zod';
 import type { CreateUserSchema, UpdateUserSchema } from 'src/features/users/schemas';
 
 import { useForm } from 'react-hook-form';
@@ -12,14 +11,16 @@ import {
   Button,
   Dialog,
   MenuItem,
-  Typography,
   IconButton,
+  Typography,
   DialogTitle,
   DialogActions,
   DialogContent,
   InputAdornment,
+  CircularProgress,
 } from '@mui/material';
 
+import { validateWhatsappNumero } from 'src/features/users/data';
 import { useCreateUser } from 'src/features/users/hooks/use-create-user';
 import { useUpdateUser } from 'src/features/users/hooks/use-update-user';
 import { createUserSchema, updateUserSchema } from 'src/features/users/schemas';
@@ -44,6 +45,9 @@ const INITIAL_VALUES: CreateUserSchema = {
   nome: '',
   cpf: '',
   email: '',
+  whatsappNumero: '',
+  whatsappNotificacoes: true,
+  emailNotificacoes: true,
   avatarUrl: null,
   senha: '',
   confirmarSenha: '',
@@ -53,6 +57,8 @@ const INITIAL_VALUES: CreateUserSchema = {
 };
 
 const getFormSchema = (isEditing: boolean) => (isEditing ? updateUserSchema : createUserSchema);
+
+type WhatsappValidationStatus = 'idle' | 'validating' | 'valid' | 'invalid';
 
 export const UserFormDialog = ({
   onSuccess,
@@ -72,6 +78,8 @@ export const UserFormDialog = ({
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [isCropOpen, setIsCropOpen] = useState(false);
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [whatsappValidationStatus, setWhatsappValidationStatus] =
+    useState<WhatsappValidationStatus>('idle');
 
   const { data: { items: regionais } = { items: [] } } = useListRegionais({
     page: 1,
@@ -92,11 +100,13 @@ export const UserFormDialog = ({
   const isLoading = isCreating || isUpdating;
 
   const schema = getFormSchema(isEditing);
-  type FormSchema = z.infer<typeof schema>;
+  type FormSchema = CreateUserSchema & Partial<UpdateUserSchema>;
 
   const methods = useForm<FormSchema>({
-    resolver: zodResolver(schema),
-    defaultValues: isEditing ? defaultValues : INITIAL_VALUES,
+    resolver: zodResolver(schema) as any,
+    defaultValues: isEditing
+      ? ({ ...INITIAL_VALUES, ...(defaultValues || {}) } as FormSchema)
+      : (INITIAL_VALUES as FormSchema),
   });
 
   // Avatar handlers
@@ -128,6 +138,8 @@ export const UserFormDialog = ({
 
   const onSubmit = methods.handleSubmit(async (data) => {
     try {
+      const normalizedWhatsapp = (data.whatsappNumero || '').replace(/\D/g, '');
+
       // Convert empty strings to null for optional fields (backend expects null, not undefined)
       const sanitizedData = {
         ...data,
@@ -135,6 +147,7 @@ export const UserFormDialog = ({
         secretariaId:
           data.secretariaId && data.secretariaId.trim() !== '' ? data.secretariaId : null,
         unidadeId: data.unidadeId && data.unidadeId.trim() !== '' ? data.unidadeId : null,
+        whatsappNumero: normalizedWhatsapp !== '' ? normalizedWhatsapp : null,
         avatarFile, // Include the avatar file
       };
 
@@ -178,20 +191,36 @@ export const UserFormDialog = ({
     }
   });
 
-  const [regionalId, secretariaId] = methods.watch(['regionalId', 'secretariaId']);
+  const [regionalId, secretariaId, whatsappNumero] = methods.watch([
+    'regionalId',
+    'secretariaId',
+    'whatsappNumero',
+  ]);
+
+  const checkWhatsappNumber = useCallback(async (value: string) => {
+    try {
+      setWhatsappValidationStatus('validating');
+      const response = await validateWhatsappNumero(value);
+      setWhatsappValidationStatus(response.valido ? 'valid' : 'invalid');
+    } catch {
+      setWhatsappValidationStatus('invalid');
+    }
+  }, []);
 
   useEffect(() => {
     if (isEditing) {
       console.log('Loading user for edit:', defaultValues);
       console.log('Avatar URL:', defaultValues?.avatarUrl);
-      methods.reset(defaultValues);
+      methods.reset({ ...INITIAL_VALUES, ...(defaultValues || {}) } as FormSchema);
       // Load existing avatar if available
       setAvatarPreview((defaultValues?.avatarUrl as string | null) || null);
       setAvatarFile(null);
+      setWhatsappValidationStatus('idle');
     } else {
       methods.reset(INITIAL_VALUES);
       setAvatarPreview(null);
       setAvatarFile(null);
+      setWhatsappValidationStatus('idle');
     }
   }, [isEditing, defaultValues, methods]);
 
@@ -206,6 +235,29 @@ export const UserFormDialog = ({
     methods.setValue('unidadeId', '');
   }, [regionalId, methods]);
 
+  useEffect(() => {
+    if (!open) {
+      return undefined;
+    }
+
+    const normalized = (whatsappNumero || '').replace(/\D/g, '');
+    if (normalized.length === 0) {
+      setWhatsappValidationStatus('idle');
+      return undefined;
+    }
+
+    if (normalized.length < 10 || normalized.length > 15) {
+      setWhatsappValidationStatus('invalid');
+      return undefined;
+    }
+
+    const timeout = window.setTimeout(() => {
+      checkWhatsappNumber(normalized);
+    }, 500);
+
+    return () => window.clearTimeout(timeout);
+  }, [checkWhatsappNumber, open, whatsappNumero]);
+
   // Reset avatar states when dialog closes
   useEffect(() => {
     if (!open) {
@@ -213,8 +265,18 @@ export const UserFormDialog = ({
       setAvatarFile(null);
       setIsCropOpen(false);
       setCropImageSrc(null);
+      setWhatsappValidationStatus('idle');
     }
   }, [open]);
+
+  const whatsappAdornment =
+    whatsappValidationStatus === 'validating' ? (
+      <CircularProgress size={18} />
+    ) : whatsappValidationStatus === 'valid' ? (
+      <Iconify icon="solar:check-circle-bold" sx={{ color: 'success.main' }} />
+    ) : whatsappValidationStatus === 'invalid' ? (
+      <Iconify icon="solar:close-circle-bold" sx={{ color: 'error.main' }} />
+    ) : null;
 
   return (
     <Dialog open={open} onClose={onClose}>
@@ -257,6 +319,44 @@ export const UserFormDialog = ({
 
             <Grid size={{ xs: 12, md: 6 }}>
               <Field.Text required name="email" label="Endereço de Email" />
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Field.Text
+                name="whatsappNumero"
+                label="Número de WhatsApp"
+                placeholder="(61) 99999-8888"
+                mask="(__) _____-____"
+                replacement={{ _: /\d/ }}
+                helperText="Formato: DDD + número (10 a 15 dígitos)"
+                slotProps={{
+                  input: {
+                    endAdornment: whatsappAdornment ? (
+                      <InputAdornment position="end">{whatsappAdornment}</InputAdornment>
+                    ) : undefined,
+                  },
+                }}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <Typography variant="subtitle2" sx={{ color: 'text.secondary' }}>
+                Preferências de Notificação
+              </Typography>
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Field.Switch
+                name="whatsappNotificacoes"
+                label="Receber notificações por WhatsApp"
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Field.Switch
+                name="emailNotificacoes"
+                label="Receber notificações por E-mail"
+              />
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>

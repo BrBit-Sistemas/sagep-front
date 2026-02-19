@@ -8,6 +8,13 @@ import { getUsuários } from 'src/api/usuários/usuários';
 
 const api = getUsuários();
 
+export const validateWhatsappNumero = (whatsappNumero: string) =>
+  customInstance<{ valido: boolean }>({
+    url: '/usuarios/validate-whatsapp',
+    method: 'POST',
+    data: { whatsappNumero },
+  });
+
 // Helper function to invalidate user cache
 async function invalidateUserCache(userId: string) {
   if (typeof window !== 'undefined' && window.queryClient) {
@@ -72,10 +79,14 @@ export const userService: CrudService<
   },
   read: (id: string) => api.findOne(id),
   create: async (data: CreateUserSchema & { avatarFile?: File | null }) => {
+    const whatsappNumero = (data.whatsappNumero || '').replace(/\D/g, '');
     const payload = {
       nome: data.nome,
       cpf: data.cpf,
       email: data.email,
+      whatsappNumero: whatsappNumero || undefined,
+      whatsappNotificacoes: data.whatsappNotificacoes,
+      emailNotificacoes: data.emailNotificacoes,
       senha: data.senha,
       secretariaId: data.secretariaId ?? '',
       regionalId: data.regionalId ?? '',
@@ -96,6 +107,16 @@ export const userService: CrudService<
     if (typeof data.nome !== 'undefined') payload.nome = data.nome;
     if (typeof data.cpf !== 'undefined') payload.cpf = data.cpf;
     if (typeof data.email !== 'undefined') payload.email = data.email;
+    if (typeof data.whatsappNumero !== 'undefined') {
+      const whatsappNumero = (data.whatsappNumero || '').replace(/\D/g, '');
+      payload.whatsappNumero = whatsappNumero || null;
+    }
+    if (typeof data.whatsappNotificacoes !== 'undefined') {
+      payload.whatsappNotificacoes = data.whatsappNotificacoes;
+    }
+    if (typeof data.emailNotificacoes !== 'undefined') {
+      payload.emailNotificacoes = data.emailNotificacoes;
+    }
     if (typeof data.senha !== 'undefined' && data.senha !== '') payload.senha = data.senha;
     if (typeof data.secretariaId !== 'undefined') payload.secretariaId = data.secretariaId;
     if (typeof data.regionalId !== 'undefined') payload.regionalId = data.regionalId;

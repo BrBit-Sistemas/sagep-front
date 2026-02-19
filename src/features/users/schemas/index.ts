@@ -19,6 +19,21 @@ const baseSchema = z.object({
     .string()
     .min(1, { message: 'O email é obrigatório!' })
     .email({ message: 'O email deve ser um endereço de e-mail válido!' }),
+  whatsappNumero: z
+    .string()
+    .optional()
+    .or(z.literal(''))
+    .refine(
+      (value) => {
+        const digits = (value || '').replace(/\D/g, '');
+        return digits.length === 0 || /^[0-9]{10,15}$/.test(digits);
+      },
+      {
+        message: 'O número de WhatsApp deve conter entre 10 e 15 dígitos',
+      }
+    ),
+  whatsappNotificacoes: z.boolean().default(true),
+  emailNotificacoes: z.boolean().default(true),
 });
 
 export const createUserSchema = baseSchema

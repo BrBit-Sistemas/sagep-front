@@ -105,6 +105,9 @@ export const extractFieldErrors = (error: unknown): FieldError[] => {
       if (message.includes('email')) {
         return [{ field: 'email', message }];
       }
+      if (msgLower.includes('whatsapp')) {
+        return [{ field: 'whatsappNumero', message }];
+      }
       if (message.includes('senha') || message.includes('password')) {
         return [{ field: 'senha', message }];
       }

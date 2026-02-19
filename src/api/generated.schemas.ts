@@ -80,6 +80,12 @@ export interface ReadUsuarioDto {
   cpf: string;
   /** Email do usuário */
   email: string;
+  /** Número de WhatsApp do usuário */
+  whatsappNumero?: string | null;
+  /** Indica se recebe notificações por WhatsApp */
+  whatsappNotificacoes: boolean;
+  /** Indica se recebe notificações por e-mail */
+  emailNotificacoes: boolean;
   /** Foto do usuário */
   avatarUrl?: string;
   /** Secretaria do usuário */
@@ -120,6 +126,12 @@ export interface CreateUsuarioDto {
   cpf: string;
   /** Email do usuário */
   email: string;
+  /** Número de WhatsApp do usuário */
+  whatsappNumero?: string;
+  /** Habilita notificações por WhatsApp */
+  whatsappNotificacoes?: boolean;
+  /** Habilita notificações por e-mail */
+  emailNotificacoes?: boolean;
   /**
    * Senha do usuário
    * @minLength 8
@@ -158,6 +170,12 @@ export interface UpdateUsuarioDto {
   cpf?: string;
   /** Email do usuário */
   email?: string;
+  /** Número de WhatsApp do usuário */
+  whatsappNumero?: string;
+  /** Habilita notificações por WhatsApp */
+  whatsappNotificacoes?: boolean;
+  /** Habilita notificações por e-mail */
+  emailNotificacoes?: boolean;
   /**
    * Senha do usuário
    * @minLength 8
