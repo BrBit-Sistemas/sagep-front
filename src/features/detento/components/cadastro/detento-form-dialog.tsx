@@ -208,18 +208,18 @@ export const DetentoFormDialog = ({
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>{isEditing ? 'Editar reeducando' : 'Adicionar reeducando'}</DialogTitle>
 
-      <DialogContent>
-        <Typography sx={{ mb: 1 }}>
-          {isEditing
-            ? 'Edite os campos abaixo para atualizar o reeducando.'
-            : 'Preencha os campos abaixo para adicionar um novo reeducando.'}
-        </Typography>
+      <Form methods={methods} onSubmit={handleSubmit}>
+        <DialogContent>
+          <Typography sx={{ mb: 1 }}>
+            {isEditing
+              ? 'Edite os campos abaixo para atualizar o reeducando.'
+              : 'Preencha os campos abaixo para adicionar um novo reeducando.'}
+          </Typography>
 
-        <Typography variant="caption" sx={{ color: 'text.secondary', mb: 2, display: 'block' }}>
-          * Campos obrigatórios
-        </Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary', mb: 2, display: 'block' }}>
+            * Campos obrigatórios
+          </Typography>
 
-        <Form methods={methods} onSubmit={handleSubmit}>
           <Grid container spacing={2}>
             <Grid size={{ md: 6, sm: 12 }}>
               <Field.Text required name="nome" label="Nome" />
@@ -280,17 +280,17 @@ export const DetentoFormDialog = ({
               </Field.Select>
             </Grid>
           </Grid>
-        </Form>
-      </DialogContent>
+        </DialogContent>
 
-      <DialogActions>
-        <Button onClick={onClose} variant="outlined">
-          Cancelar
-        </Button>
-        <LoadingButton onClick={handleSubmit} variant="contained" loading={isLoading}>
-          {isEditing ? 'Atualizar' : 'Adicionar'}
-        </LoadingButton>
-      </DialogActions>
+        <DialogActions>
+          <Button onClick={onClose} variant="outlined">
+            Cancelar
+          </Button>
+          <LoadingButton type="submit" variant="contained" loading={isLoading}>
+            {isEditing ? 'Atualizar' : 'Adicionar'}
+          </LoadingButton>
+        </DialogActions>
+      </Form>
     </Dialog>
   );
 };

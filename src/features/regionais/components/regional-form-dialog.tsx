@@ -77,11 +77,11 @@ export const RegionalFormDialog = ({
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>{isEditing ? 'Editar' : 'Adicionar'} Regional</DialogTitle>
-      <DialogContent>
-        <Typography variant="caption" sx={{ color: 'text.secondary', mb: 2, display: 'block' }}>
-          * Campos obrigatórios
-        </Typography>
-        <Form methods={methods} onSubmit={handleSubmit}>
+      <Form methods={methods} onSubmit={handleSubmit}>
+        <DialogContent>
+          <Typography variant="caption" sx={{ color: 'text.secondary', mb: 2, display: 'block' }}>
+            * Campos obrigatórios
+          </Typography>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid size={{ md: 6, sm: 12 }}>
               <Field.Text
@@ -109,16 +109,16 @@ export const RegionalFormDialog = ({
               </Field.Select>
             </Grid>
           </Grid>
-        </Form>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} variant="outlined">
-          Cancelar
-        </Button>
-        <Button onClick={handleSubmit} variant="contained" loading={isLoading}>
-          {isEditing ? 'Atualizar' : 'Adicionar'}
-        </Button>
-      </DialogActions>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose} variant="outlined">
+            Cancelar
+          </Button>
+          <Button type="submit" variant="contained" loading={isLoading}>
+            {isEditing ? 'Atualizar' : 'Adicionar'}
+          </Button>
+        </DialogActions>
+      </Form>
     </Dialog>
   );
 };

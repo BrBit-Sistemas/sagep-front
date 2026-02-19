@@ -68,16 +68,15 @@ export const EmpresaFormDialog = ({
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>{isEditing ? 'Editar' : 'Adicionar'} Empresa</DialogTitle>
 
-      <DialogContent>
-        <Typography sx={{ mb: 2 }}>
-          Preencha os campos abaixo para {isEditing ? 'editar' : 'adicionar'} a empresa.
-        </Typography>
+      <Form methods={methods} onSubmit={handleSubmit}>
+        <DialogContent>
+          <Typography sx={{ mb: 2 }}>
+            Preencha os campos abaixo para {isEditing ? 'editar' : 'adicionar'} a empresa.
+          </Typography>
 
-        <Typography variant="caption" sx={{ color: 'text.secondary', mb: 2, display: 'block' }}>
-          * Campos obrigatórios
-        </Typography>
-
-        <Form methods={methods} onSubmit={handleSubmit}>
+          <Typography variant="caption" sx={{ color: 'text.secondary', mb: 2, display: 'block' }}>
+            * Campos obrigatórios
+          </Typography>
           <Grid container spacing={2}>
             <Grid size={{ md: 12, sm: 12 }}>
               <Field.Text required name="razao_social" label="Razão Social" />
@@ -92,23 +91,23 @@ export const EmpresaFormDialog = ({
               />
             </Grid>
           </Grid>
-        </Form>
-      </DialogContent>
+        </DialogContent>
 
-      <DialogActions>
-        <Button onClick={onClose} variant="outlined" color="primary">
-          Cancelar
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          variant="contained"
-          color="primary"
-          loading={isLoading}
-          disabled={isLoading}
-        >
-          {isEditing ? 'Atualizar' : 'Adicionar'}
-        </Button>
-      </DialogActions>
+        <DialogActions>
+          <Button onClick={onClose} variant="outlined" color="primary">
+            Cancelar
+          </Button>
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            loading={isLoading}
+            disabled={isLoading}
+          >
+            {isEditing ? 'Atualizar' : 'Adicionar'}
+          </Button>
+        </DialogActions>
+      </Form>
     </Dialog>
   );
 };

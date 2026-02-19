@@ -78,16 +78,15 @@ export const UnidadePrisionalFormDialog = ({
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>{isEditing ? 'Editar' : 'Adicionar'} Unidade Prisional</DialogTitle>
 
-      <DialogContent>
-        <Typography sx={{ mb: 2 }}>
-          Preencha os campos abaixo para {isEditing ? 'editar' : 'adicionar'} a unidade prisional.
-        </Typography>
+      <Form methods={methods} onSubmit={handleSubmit}>
+        <DialogContent>
+          <Typography sx={{ mb: 2 }}>
+            Preencha os campos abaixo para {isEditing ? 'editar' : 'adicionar'} a unidade prisional.
+          </Typography>
 
-        <Typography variant="caption" sx={{ color: 'text.secondary', mb: 2, display: 'block' }}>
-          * Campos obrigatórios
-        </Typography>
-
-        <Form methods={methods} onSubmit={handleSubmit}>
+          <Typography variant="caption" sx={{ color: 'text.secondary', mb: 2, display: 'block' }}>
+            * Campos obrigatórios
+          </Typography>
           <Grid container spacing={2}>
             <Grid size={{ md: 6, sm: 12 }}>
               <Field.Text required name="nome" label="Nome da Unidade" />
@@ -109,23 +108,23 @@ export const UnidadePrisionalFormDialog = ({
               </Field.Select>
             </Grid>
           </Grid>
-        </Form>
-      </DialogContent>
+        </DialogContent>
 
-      <DialogActions>
-        <Button onClick={onClose} variant="outlined" color="primary">
-          Cancelar
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          variant="contained"
-          color="primary"
-          loading={isLoading}
-          disabled={isLoading}
-        >
-          {isEditing ? 'Atualizar' : 'Adicionar'}
-        </Button>
-      </DialogActions>
+        <DialogActions>
+          <Button onClick={onClose} variant="outlined" color="primary">
+            Cancelar
+          </Button>
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            loading={isLoading}
+            disabled={isLoading}
+          >
+            {isEditing ? 'Atualizar' : 'Adicionar'}
+          </Button>
+        </DialogActions>
+      </Form>
     </Dialog>
   );
 };
