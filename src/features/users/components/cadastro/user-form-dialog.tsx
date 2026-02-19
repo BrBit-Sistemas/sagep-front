@@ -220,16 +220,16 @@ export const UserFormDialog = ({
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>{isEditing ? 'Editar' : 'Adicionar'} Usuário</DialogTitle>
 
-      <DialogContent>
-        <Typography sx={{ mb: 3 }}>
-          Preencha os campos abaixo para {isEditing ? 'editar' : 'adicionar'} um novo usuário.
-        </Typography>
+      <Form methods={methods} onSubmit={onSubmit}>
+        <DialogContent>
+          <Typography sx={{ mb: 3 }}>
+            Preencha os campos abaixo para {isEditing ? 'editar' : 'adicionar'} um novo usuário.
+          </Typography>
 
-        <Typography variant="caption" sx={{ color: 'text.secondary', mb: 2, display: 'block' }}>
-          * Campos obrigatórios
-        </Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary', mb: 2, display: 'block' }}>
+            * Campos obrigatórios
+          </Typography>
 
-        <Form methods={methods} onSubmit={onSubmit}>
           <Grid container spacing={3}>
             <Grid size={{ xs: 12 }}>
               <UploadAvatar
@@ -345,17 +345,17 @@ export const UserFormDialog = ({
               />
             </Grid>
           </Grid>
-        </Form>
-      </DialogContent>
+        </DialogContent>
 
-      <DialogActions>
-        <Button onClick={onClose} variant="outlined">
-          Cancelar
-        </Button>
-        <Button onClick={onSubmit} variant="contained" color="primary" disabled={isLoading}>
-          {isEditing ? 'Atualizar' : 'Adicionar'}
-        </Button>
-      </DialogActions>
+        <DialogActions>
+          <Button onClick={onClose} variant="outlined">
+            Cancelar
+          </Button>
+          <Button type="submit" variant="contained" color="primary" disabled={isLoading}>
+            {isEditing ? 'Atualizar' : 'Adicionar'}
+          </Button>
+        </DialogActions>
+      </Form>
 
       <AvatarCropDialog
         open={isCropOpen}

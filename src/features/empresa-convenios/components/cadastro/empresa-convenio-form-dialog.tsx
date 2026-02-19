@@ -226,7 +226,7 @@ const LocalExecucaoRow = ({ idx, onRemove }: { idx: number; onRemove: () => void
     if (value.length > 5) {
       value = `${value.slice(0, 5)}-${value.slice(5)}`; // Adiciona o traço
     }
-    
+
     // Limpa os campos de endereço quando o CEP é alterado
     if (value.length < 8) {
       setValue(`locais_execucao.${idx}.logradouro`, '');
@@ -236,7 +236,7 @@ const LocalExecucaoRow = ({ idx, onRemove }: { idx: number; onRemove: () => void
       setValue(`locais_execucao.${idx}.cidade`, '');
       setValue(`locais_execucao.${idx}.estado`, '');
     }
-    
+
     setValue(`locais_execucao.${idx}.cep`, value);
   };
 
@@ -252,7 +252,7 @@ const LocalExecucaoRow = ({ idx, onRemove }: { idx: number; onRemove: () => void
 
   useEffect(() => {
     const onlyDigits = (cep || '').replace(/\D/g, '');
-    
+
     if (onlyDigits.length === 8) {
       (async () => {
         try {
@@ -289,7 +289,12 @@ const LocalExecucaoRow = ({ idx, onRemove }: { idx: number; onRemove: () => void
       <Grid
         container
         spacing={1}
-        sx={{ border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 1, p: 2, mb: 2 }}
+        sx={{
+          border: (theme) => `1px solid ${theme.palette.divider}`,
+          borderRadius: 1,
+          p: 2,
+          mb: 2,
+        }}
       >
         {/* CEP primeiro com busca reversa */}
         <Grid size={{ md: 3, sm: 6 }}>
@@ -319,33 +324,54 @@ const LocalExecucaoRow = ({ idx, onRemove }: { idx: number; onRemove: () => void
             helperText={!errorCep && 'Ou busque pelo endereço'}
           />
         </Grid>
-      <Grid size={{ md: 5, sm: 12 }}>
-        <Field.Text name={`locais_execucao.${idx}.logradouro`} label="Logradouro" placeholder="Av. Brasil" />
-      </Grid>
-      <Grid size={{ md: 2, sm: 6 }}>
-        <Field.Text name={`locais_execucao.${idx}.numero`} label="Número" placeholder="123" />
-      </Grid>
-      <Grid size={{ md: 2, sm: 6 }}>
-        <Field.Text name={`locais_execucao.${idx}.complemento`} label="Complemento" placeholder="Galpão, sala..." />
-      </Grid>
+        <Grid size={{ md: 5, sm: 12 }}>
+          <Field.Text
+            name={`locais_execucao.${idx}.logradouro`}
+            label="Logradouro"
+            placeholder="Av. Brasil"
+          />
+        </Grid>
+        <Grid size={{ md: 2, sm: 6 }}>
+          <Field.Text name={`locais_execucao.${idx}.numero`} label="Número" placeholder="123" />
+        </Grid>
+        <Grid size={{ md: 2, sm: 6 }}>
+          <Field.Text
+            name={`locais_execucao.${idx}.complemento`}
+            label="Complemento"
+            placeholder="Galpão, sala..."
+          />
+        </Grid>
 
-      <Grid size={{ md: 4, sm: 12 }}>
-        <Field.Text name={`locais_execucao.${idx}.bairro`} label="Bairro" />
-      </Grid>
-      <Grid size={{ md: 4, sm: 12 }}>
-        <Field.Text name={`locais_execucao.${idx}.cidade`} label="Cidade" placeholder="Boa Vista" />
-      </Grid>
-      <Grid size={{ md: 2, sm: 6 }}>
-        <Field.Text name={`locais_execucao.${idx}.estado`} label="UF" placeholder="RR" inputProps={{ maxLength: 2 }} />
-      </Grid>
-      <Grid size={{ md: 10, sm: 12 }}>
-        <Field.Text name={`locais_execucao.${idx}.referencia`} label="Referência" placeholder="Ponto de referência" />
-      </Grid>
-      <Grid size={{ md: 2, sm: 12 }} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <Button color="error" variant="outlined" onClick={onRemove}>
-          Remover local
-        </Button>
-      </Grid>
+        <Grid size={{ md: 4, sm: 12 }}>
+          <Field.Text name={`locais_execucao.${idx}.bairro`} label="Bairro" />
+        </Grid>
+        <Grid size={{ md: 4, sm: 12 }}>
+          <Field.Text
+            name={`locais_execucao.${idx}.cidade`}
+            label="Cidade"
+            placeholder="Boa Vista"
+          />
+        </Grid>
+        <Grid size={{ md: 2, sm: 6 }}>
+          <Field.Text
+            name={`locais_execucao.${idx}.estado`}
+            label="UF"
+            placeholder="RR"
+            inputProps={{ maxLength: 2 }}
+          />
+        </Grid>
+        <Grid size={{ md: 10, sm: 12 }}>
+          <Field.Text
+            name={`locais_execucao.${idx}.referencia`}
+            label="Referência"
+            placeholder="Ponto de referência"
+          />
+        </Grid>
+        <Grid size={{ md: 2, sm: 12 }} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Button color="error" variant="outlined" onClick={onRemove}>
+            Remover local
+          </Button>
+        </Grid>
       </Grid>
 
       {/* Mensagem de erro do CEP */}
@@ -421,11 +447,11 @@ export const EmpresaConvenioFormDialog = ({
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>{isEditing ? 'Editar' : 'Adicionar'} Convênio</DialogTitle>
-      <DialogContent sx={{ pt: 3 }}>
-        <Typography variant="caption" sx={{ color: 'text.secondary', mb: 2, display: 'block' }}>
-          * Campos obrigatórios
-        </Typography>
-        <Form methods={methods} onSubmit={handleSubmit}>
+      <Form methods={methods} onSubmit={handleSubmit}>
+        <DialogContent sx={{ pt: 3 }}>
+          <Typography variant="caption" sx={{ color: 'text.secondary', mb: 2, display: 'block' }}>
+            * Campos obrigatórios
+          </Typography>
           <Grid container spacing={2}>
             <Grid size={{ md: 6, sm: 12 }} sx={{ mt: 1 }}>
               <Field.Select
@@ -561,17 +587,17 @@ export const EmpresaConvenioFormDialog = ({
               <Field.Text name="observacoes" label="Observações" multiline rows={3} />
             </Grid>
           </Grid>
-        </Form>
-      </DialogContent>
+        </DialogContent>
 
-      <DialogActions>
-        <Button onClick={onClose} variant="outlined" color="primary">
-          Cancelar
-        </Button>
-        <Button onClick={handleSubmit} variant="contained" color="primary" disabled={isLoading}>
-          {isEditing ? 'Atualizar' : 'Adicionar'}
-        </Button>
-      </DialogActions>
+        <DialogActions>
+          <Button onClick={onClose} variant="outlined" color="primary">
+            Cancelar
+          </Button>
+          <Button type="submit" variant="contained" color="primary" disabled={isLoading}>
+            {isEditing ? 'Atualizar' : 'Adicionar'}
+          </Button>
+        </DialogActions>
+      </Form>
     </Dialog>
   );
 };
