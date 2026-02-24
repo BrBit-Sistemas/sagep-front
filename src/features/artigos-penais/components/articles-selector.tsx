@@ -9,9 +9,14 @@ import { type ArtigoPenal, listarArtigosPenais } from '../data';
 type ArticlesSelectorProps = {
   name: string;
   label?: string;
+  disablePortal?: boolean;
 };
 
-export function ArticlesSelector({ name, label = 'Artigos Penais' }: ArticlesSelectorProps) {
+export function ArticlesSelector({
+  name,
+  label = 'Artigos Penais',
+  disablePortal = true,
+}: ArticlesSelectorProps) {
   const [loading, setLoading] = useState(false);
   const [artigos, setArtigos] = useState<ArtigoPenal[]>([]);
 
@@ -45,7 +50,7 @@ export function ArticlesSelector({ name, label = 'Artigos Penais' }: ArticlesSel
       getOptionLabel={getOptionLabel as any}
       isOptionEqualToValue={(opt, val) => String(opt) === String(val)}
       loading={loading}
-      disablePortal={false}
+      disablePortal={disablePortal}
       noOptionsText={loading ? 'Carregando...' : 'Nenhum artigo encontrado'}
       slotProps={{
         endAdornment: loading ? <CircularProgress size={16} /> : undefined,
@@ -64,5 +69,4 @@ export function ArticlesSelector({ name, label = 'Artigos Penais' }: ArticlesSel
     />
   );
 }
-
 
