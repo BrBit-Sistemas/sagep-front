@@ -713,6 +713,8 @@ export default function FichaCadastralExternaPage() {
             message?.toLowerCase().includes('prontuario')
           ) {
             methods.setError('prontuario' as any, { type: 'manual', message });
+          } else if (message?.toLowerCase().includes('disponibilidade_trabalho')) {
+            methods.setError('disponibilidade_trabalho' as any, { type: 'manual', message });
           } else if (message?.toLowerCase().includes('unidade')) {
             methods.setError('unidade_id' as any, { type: 'manual', message });
           } else if (message?.toLowerCase().includes('data') || message?.includes('YYYY-MM-DD')) {
@@ -1459,14 +1461,6 @@ export default function FichaCadastralExternaPage() {
                     <Field.DatePicker
                       name="data_assinatura"
                       label="Data da abertura ficha"
-                      readOnly
-                      slotProps={{
-                        textField: {
-                          InputProps: {
-                            readOnly: true,
-                          },
-                        },
-                      }}
                     />
                   </Grid>
                 </Grid>

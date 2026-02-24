@@ -38,9 +38,11 @@ export function RHFTextField({
         if (mask) {
           return (
             <TextField
-              {...field}
+              name={field.name}
               fullWidth
               value={field.value || ''}
+              onChange={(event) => field.onChange(event.target.value)}
+              onBlur={field.onBlur}
               type={type}
               error={!!error}
               helperText={error?.message ?? helperText}
@@ -65,7 +67,7 @@ export function RHFTextField({
 
         return (
           <TextField
-            {...field}
+            name={field.name}
             fullWidth
             value={isNumberType ? transformValue(field.value) : field.value}
             onChange={(event) => {
@@ -81,6 +83,7 @@ export function RHFTextField({
                 : event.target.value;
 
               field.onChange(transformedValue);
+              field.onBlur();
             }}
             type={isNumberType ? 'text' : type}
             error={!!error}

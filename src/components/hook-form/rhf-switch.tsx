@@ -42,8 +42,10 @@ export function RHFSwitch({ name, helperText, label, slotProps, sx, ...other }: 
             label={label}
             control={
               <Switch
-                {...field}
-                checked={field.value}
+                name={field.name}
+                checked={!!field.value}
+                onChange={(_event, checked) => field.onChange(checked)}
+                onBlur={field.onBlur}
                 {...slotProps?.switch}
                 slotProps={{
                   ...slotProps?.switch?.slotProps,

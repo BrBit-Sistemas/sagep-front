@@ -35,6 +35,11 @@ export default function DetentoFichaCadastralFormPage() {
         : null,
     [fichasCadastrais, fichaCadastralId]
   );
+  const selectedFichaDefaultValues = useMemo(
+    () =>
+      selectedFichaCadastral ? fichaCadastralToFormValues(selectedFichaCadastral) : undefined,
+    [selectedFichaCadastral]
+  );
 
   const detalhesPath = `${paths.detentos.detalhes(detentoId)}?t=ficha_cadastral`;
 
@@ -81,9 +86,7 @@ export default function DetentoFichaCadastralFormPage() {
             detento={detento}
             detentoId={detentoId}
             fichaCadastralId={fichaCadastralId}
-            defaultValues={
-              selectedFichaCadastral ? fichaCadastralToFormValues(selectedFichaCadastral) : undefined
-            }
+            defaultValues={selectedFichaDefaultValues}
             onCancel={handleBackToDetails}
             onSuccess={handleBackToDetails}
           />

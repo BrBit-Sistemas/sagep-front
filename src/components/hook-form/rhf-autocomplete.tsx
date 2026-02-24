@@ -13,6 +13,7 @@ type DisableClearable = boolean | undefined;
 type FreeSolo = boolean | undefined;
 
 type ExcludedProps = 'renderInput';
+const EMPTY_ARRAY: any[] = [];
 
 export type AutocompleteBaseProps = Omit<
   AutocompleteProps<any, Multiple, DisableClearable, FreeSolo>,
@@ -39,7 +40,7 @@ export function RHFAutocomplete({
   nullToEmptyString,
   ...other
 }: RHFAutocompleteProps) {
-  const { control, setValue } = useFormContext();
+  const { control } = useFormContext();
 
   const { textField, ...otherSlotProps } = slotProps ?? {};
 
@@ -47,46 +48,53 @@ export function RHFAutocomplete({
     <Controller
       name={name}
       control={control}
-      render={({ field, fieldState: { error } }) => (
-        <Autocomplete
-          {...field}
-          id={`${name}-rhf-autocomplete`}
-          onChange={(event, newValue) =>
-            setValue(
-              name,
-              nullToEmptyString && (newValue === null || newValue === undefined) ? '' : newValue,
-              { shouldValidate: true }
-            )
-          }
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              {...textField}
-              label={label}
-              placeholder={placeholder}
-              error={!!error}
-              helperText={error?.message ?? helperText}
-              slotProps={{
-                ...textField?.slotProps,
-                htmlInput: {
+      render={({ field, fieldState: { error } }) => {
+        const value = other.multiple
+          ? (field.value ?? EMPTY_ARRAY)
+          : field.value === '' || field.value === undefined
+            ? null
+            : field.value;
+
+        return (
+          <Autocomplete
+            id={`${name}-rhf-autocomplete`}
+            value={value}
+            onBlur={field.onBlur}
+            onChange={(_event, newValue) =>
+              field.onChange(
+                nullToEmptyString && (newValue === null || newValue === undefined) ? '' : newValue
+              )
+            }
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                {...textField}
+                label={label}
+                placeholder={placeholder}
+                error={!!error}
+                helperText={error?.message ?? helperText}
+                inputProps={{
                   ...params.inputProps,
-                  ...textField?.slotProps?.htmlInput,
+                  ...textField?.inputProps,
                   autoComplete: 'new-password', // Disable autocomplete and autofill
-                },
-              }}
-            />
-          )}
-          slotProps={{
-            ...otherSlotProps,
-            chip: {
-              size: 'small',
-              variant: 'soft',
-              ...otherSlotProps?.chip,
-            },
-          }}
-          {...other}
-        />
-      )}
+                }}
+                slotProps={{
+                  ...textField?.slotProps,
+                }}
+              />
+            )}
+            slotProps={{
+              ...otherSlotProps,
+              chip: {
+                size: 'small',
+                variant: 'soft',
+                ...otherSlotProps?.chip,
+              },
+            }}
+            {...other}
+          />
+        );
+      }}
     />
   );
 }

@@ -40,7 +40,6 @@ export function RHFDatePicker({ name, slotProps, ...other }: PickerProps<DatePic
       control={control}
       render={({ field, fieldState: { error } }) => (
         <DatePicker
-          {...field}
           value={normalizeDateValue(field.value)}
           onChange={(newValue) => {
             if (!newValue) {
@@ -57,6 +56,10 @@ export function RHFDatePicker({ name, slotProps, ...other }: PickerProps<DatePic
               ...slotProps?.textField,
               error: !!error,
               helperText: error?.message ?? slotProps?.textField?.helperText,
+              onBlur: (...args: any[]) => {
+                (slotProps?.textField as any)?.onBlur?.(...args);
+                field.onBlur();
+              },
             },
           }}
           {...other}
@@ -77,7 +80,6 @@ export function RHFTimePicker({ name, slotProps, ...other }: PickerProps<TimePic
       control={control}
       render={({ field, fieldState: { error } }) => (
         <TimePicker
-          {...field}
           value={normalizeDateValue(field.value)}
           onChange={(newValue) => {
             if (!newValue) {
@@ -94,6 +96,10 @@ export function RHFTimePicker({ name, slotProps, ...other }: PickerProps<TimePic
               ...slotProps?.textField,
               error: !!error,
               helperText: error?.message ?? slotProps?.textField?.helperText,
+              onBlur: (...args: any[]) => {
+                (slotProps?.textField as any)?.onBlur?.(...args);
+                field.onBlur();
+              },
             },
           }}
           {...other}
@@ -114,7 +120,6 @@ export function RHFDateTimePicker({ name, slotProps, ...other }: PickerProps<Dat
       control={control}
       render={({ field, fieldState: { error } }) => (
         <DateTimePicker
-          {...field}
           value={normalizeDateValue(field.value)}
           onChange={(newValue) => {
             if (!newValue) {
@@ -131,6 +136,10 @@ export function RHFDateTimePicker({ name, slotProps, ...other }: PickerProps<Dat
               ...slotProps?.textField,
               error: !!error,
               helperText: error?.message ?? slotProps?.textField?.helperText,
+              onBlur: (...args: any[]) => {
+                (slotProps?.textField as any)?.onBlur?.(...args);
+                field.onBlur();
+              },
             },
           }}
           {...other}

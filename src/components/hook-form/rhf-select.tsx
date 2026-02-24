@@ -61,7 +61,10 @@ export function RHFSelect({
       control={control}
       render={({ field, fieldState: { error } }) => (
         <TextField
-          {...field}
+          name={field.name}
+          value={field.value ?? ''}
+          onChange={field.onChange}
+          onBlur={field.onBlur}
           select
           fullWidth
           error={!!error}
@@ -147,7 +150,10 @@ export function RHFMultiSelect({
             {label && renderLabel()}
 
             <Select
-              {...field}
+              name={field.name}
+              value={field.value ?? []}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
               multiple
               displayEmpty={!!placeholder}
               label={label}

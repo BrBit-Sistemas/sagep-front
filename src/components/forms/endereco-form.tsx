@@ -245,7 +245,9 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
             control={control}
             render={({ field }) => (
               <TextField
-                {...field}
+                name={field.name}
+                value={field.value ?? ''}
+                onBlur={field.onBlur}
                 label="CEP"
                 placeholder="00000-000"
                 disabled={disabled || loadingCep}
@@ -424,7 +426,10 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
             control={control}
             render={({ field }) => (
               <TextField
-                {...field}
+                name={field.name}
+                value={field.value ?? ''}
+                onChange={(e) => field.onChange(e.target.value)}
+                onBlur={field.onBlur}
                 label="Logradouro"
                 placeholder="Rua, Avenida, etc."
                 disabled={disabled}
@@ -444,7 +449,10 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
             control={control}
             render={({ field }) => (
               <TextField
-                {...field}
+                name={field.name}
+                value={field.value ?? ''}
+                onChange={(e) => field.onChange(e.target.value)}
+                onBlur={field.onBlur}
                 label="Número"
                 placeholder="123"
                 disabled={disabled}
@@ -464,7 +472,10 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
             control={control}
             render={({ field }) => (
               <TextField
-                {...field}
+                name={field.name}
+                value={field.value ?? ''}
+                onChange={(e) => field.onChange(e.target.value)}
+                onBlur={field.onBlur}
                 label="Complemento"
                 placeholder="Apartamento, casa, etc."
                 disabled={disabled}
@@ -484,7 +495,10 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
             control={control}
             render={({ field }) => (
               <TextField
-                {...field}
+                name={field.name}
+                value={field.value ?? ''}
+                onChange={(e) => field.onChange(e.target.value)}
+                onBlur={field.onBlur}
                 label="Bairro"
                 placeholder="Nome do bairro"
                 disabled={disabled}

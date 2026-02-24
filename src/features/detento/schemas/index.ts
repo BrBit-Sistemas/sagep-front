@@ -2,7 +2,9 @@ import { z } from 'zod';
 
 import { isValidCpf } from 'src/utils/validate-cpf';
 
-import { Regime, Escolaridade } from 'src/types/prisional';
+import { Regime, Escolaridade, DisponibilidadeTrabalho } from 'src/types/prisional';
+
+const DISPONIBILIDADE_TRABALHO_VALUES = Object.values(DisponibilidadeTrabalho);
 
 export const createDetentoSchema = z.object({
   nome: z.string().min(1, 'Nome é obrigatório'),
@@ -74,7 +76,17 @@ export const createDetentoFichaCadastralSchema = z.object({
   // Experiência e qualificação
   experiencia_profissional: z.string().optional(),
   fez_curso_sistema_prisional: z.string().optional(),
-  disponibilidade_trabalho: z.string().optional(),
+  disponibilidade_trabalho: z
+    .preprocess(
+      (value) => (value == null ? '' : String(value).trim()),
+      z
+        .string()
+        .min(1, 'Disponibilidade de trabalho e obrigatoria')
+        .refine(
+          (value) => DISPONIBILIDADE_TRABALHO_VALUES.includes(value as DisponibilidadeTrabalho),
+          'Disponibilidade de trabalho deve ser: MANHA, TARDE, MANHA e TARDE ou SOMENTE NOITE'
+        )
+    ),
   ja_trabalhou_funap: z.boolean().default(false),
   ano_trabalho_anterior: z.string().optional(),
   profissao_01: z.string().min(1, 'Profissão 01 é obrigatória'),
@@ -127,3 +139,4 @@ export type UpdateDetentoSchema = CreateDetentoSchema & {
 export type UpdateDetentoFichaCadastralSchema = CreateDetentoFichaCadastralSchema & {
   fichaCadastralId: string;
 };
+

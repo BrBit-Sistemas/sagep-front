@@ -640,14 +640,6 @@ export function FichaCadastralInternaEtapaDeclaracoesResponsaveis({ loading }: E
           <Field.DatePicker
             name="data_assinatura"
             label="Data da abertura ficha"
-            readOnly
-            slotProps={{
-              textField: {
-                InputProps: {
-                  readOnly: true,
-                },
-              },
-            }}
           />
         </Grid>
       </Grid>

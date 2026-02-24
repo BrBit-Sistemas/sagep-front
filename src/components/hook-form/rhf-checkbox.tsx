@@ -49,8 +49,10 @@ export function RHFCheckbox({
             label={label}
             control={
               <Checkbox
-                {...field}
-                checked={field.value}
+                name={field.name}
+                checked={!!field.value}
+                onChange={(_event, checked) => field.onChange(checked)}
+                onBlur={field.onBlur}
                 {...slotProps?.checkbox}
                 slotProps={{
                   ...slotProps?.checkbox?.slotProps,

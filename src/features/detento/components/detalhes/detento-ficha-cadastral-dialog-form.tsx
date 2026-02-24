@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -139,14 +139,10 @@ export const DetentoFichaCadastralForm = ({
     limit: 1000,
   });
 
-  // Find the unit name for display
-  const getUnidadeName = useCallback(
-    (unidadeId: string) => {
-      const unidade = unidades.find((u) => u.id === unidadeId);
-      return unidade?.nome || unidadeId;
-    },
-    [unidades]
-  );
+  const unidadePrisionalNome = useMemo(() => {
+    const unidade = unidades.find((u) => u.id === detento.unidade_id);
+    return unidade?.nome || detento.unidade_id;
+  }, [unidades, detento.unidade_id]);
 
   // Preenche valores iniciais com dados do detento se não for edição
   const initialValues = isEditing
@@ -162,7 +158,7 @@ export const DetentoFichaCadastralForm = ({
           : '',
         regime: detento.regime,
         escolaridade: detento.escolaridade,
-        unidade_prisional: getUnidadeName(detento.unidade_id),
+        unidade_prisional: unidadePrisionalNome,
         filiacao_mae: detento.mae,
       };
 
@@ -170,24 +166,42 @@ export const DetentoFichaCadastralForm = ({
     resolver: zodResolver(dialogFormSchema) as any,
     defaultValues: initialValues,
   });
-  const isFormDirty = methods.formState.isDirty;
+  const { reset, setValue, getValues, formState } = methods;
+  const isFormDirty = formState.isDirty;
+  const lastResetSignatureRef = useRef<string>('');
+
+  const safeReset = useCallback(
+    (values: any, context: string) => {
+      const signature = `${context}:${JSON.stringify(values)}`;
+      if (lastResetSignatureRef.current === signature) {
+        return;
+      }
+
+      lastResetSignatureRef.current = signature;
+      reset(values);
+    },
+    [reset]
+  );
 
   const handleSelectFichaInativa = useCallback(
     (fichaInativa: DetentoFichaCadastral) => {
       const values = fichaInativaToCreateFormValues(fichaInativa, detento);
       const { rgOrgao, rgUf } = parseRgOrgaoUf(values.rg_orgao_uf);
 
-      methods.reset({
+      safeReset(
+        {
         ...values,
-        unidade_prisional: getUnidadeName(detento.unidade_id),
+        unidade_prisional: unidadePrisionalNome,
         data_nascimento: values.data_nascimento ? formatDateToYYYYMMDD(values.data_nascimento) : '',
         rg_orgao: rgOrgao,
         rg_uf: rgUf,
-      } as any);
+      } as any,
+        'recovery'
+      );
       setRecoveredFromFicha(fichaInativa);
       setShowRecoverySelector(false);
     },
-    [detento, getUnidadeName, methods]
+    [detento, unidadePrisionalNome, safeReset]
   );
 
   const handleSkipRecovery = useCallback(() => {
@@ -197,11 +211,18 @@ export const DetentoFichaCadastralForm = ({
 
   // Normaliza CPF para o componente de máscara não quebrar
   useEffect(() => {
-    const cpfRaw = (initialValues as any)?.cpf;
+    const cpfRaw = isEditing ? (defaultValues as any)?.cpf : detento.cpf;
     if (cpfRaw) {
-      methods.setValue('cpf', formatCpf(cpfRaw));
+      const formattedCpf = formatCpf(cpfRaw);
+      if (getValues('cpf') !== formattedCpf) {
+        setValue('cpf', formattedCpf, {
+          shouldDirty: false,
+          shouldTouch: false,
+          shouldValidate: false,
+        });
+      }
     }
-  }, []);
+  }, [isEditing, defaultValues, detento.cpf, getValues, setValue]);
 
   // Cache compartilhado de ID -> Nome para profissões (alimentado pelos campos)
   const globalProfissaoLabelCache = useRef<Map<string, string>>(new Map());
@@ -352,7 +373,8 @@ export const DetentoFichaCadastralForm = ({
       }
 
       if (!isFormDirty) {
-        setShowRecoverySelector(fichasInativas.length > 0);
+        const shouldShow = fichasInativas.length > 0;
+        setShowRecoverySelector((prev) => (prev === shouldShow ? prev : shouldShow));
       }
     }
   }, [isEditing, fichasInativas.length, isLoadingFichasInativas, isFormDirty]);
@@ -363,7 +385,8 @@ export const DetentoFichaCadastralForm = ({
       const { rgOrgao, rgUf } = parseRgOrgaoUf(defaultValues?.rg_orgao_uf);
 
       // Garantir que os campos do detento sejam sempre atualizados, mesmo em modo de edição
-      methods.reset({
+      safeReset(
+        {
         ...defaultValues,
         rg_orgao: rgOrgao,
         rg_uf: rgUf,
@@ -375,12 +398,15 @@ export const DetentoFichaCadastralForm = ({
           : '',
         regime: detento.regime,
         escolaridade: detento.escolaridade,
-        unidade_prisional: getUnidadeName(detento.unidade_id),
+        unidade_prisional: unidadePrisionalNome,
         filiacao_mae: detento.mae,
-      } as any);
+      } as any,
+        'editing'
+      );
     } else if (!recoveredFromFicha) {
       // Preenche os campos com os dados do detento ao criar
-      methods.reset({
+      safeReset(
+        {
         ...INITIAL_VALUES,
         detento_id: detento.id,
         nome: detento.nome,
@@ -391,11 +417,28 @@ export const DetentoFichaCadastralForm = ({
           : '',
         regime: detento.regime,
         escolaridade: detento.escolaridade,
-        unidade_prisional: getUnidadeName(detento.unidade_id),
+        unidade_prisional: unidadePrisionalNome,
         filiacao_mae: detento.mae,
-      });
+      },
+        'creation'
+      );
     }
-  }, [isEditing, defaultValues, detento, methods, getUnidadeName, recoveredFromFicha]);
+  }, [
+    isEditing,
+    defaultValues,
+    detento.id,
+    detento.nome,
+    detento.cpf,
+    detento.prontuario,
+    detento.data_nascimento,
+    detento.regime,
+    detento.escolaridade,
+    detento.unidade_id,
+    detento.mae,
+    unidadePrisionalNome,
+    safeReset,
+    recoveredFromFicha,
+  ]);
 
   const shouldShowRecoverySelector = !isEditing && showRecoverySelector && fichasInativas.length > 0;
 
