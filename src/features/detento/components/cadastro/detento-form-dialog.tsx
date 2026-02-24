@@ -62,7 +62,6 @@ export const DetentoFormDialog = ({
 
   const { mutateAsync: createDetento, isPending: isCreating } = useCreateDetento();
   const { mutateAsync: updateDetento, isPending: isUpdating } = useUpdateDetento();
-  // const { openFichaCadastralCreateDialog } = useDetentoDetalhesStore();
 
   const isLoading = isEditing ? isUpdating : isCreating;
 
