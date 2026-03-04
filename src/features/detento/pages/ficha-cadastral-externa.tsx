@@ -147,10 +147,13 @@ const externalSchema = createDetentoFichaCadastralSchema
   .extend({
     detento_id: z.string().optional(),
     unidade_prisional: z.string().optional(),
-    unidade_id: z
-      .string()
-      .min(1, { message: 'Unidade prisional é obrigatória' })
-      .uuid('ID da unidade prisional inválido'),
+    unidade_id: z.preprocess(
+      (v) => (v === undefined || v === null ? '' : v),
+      z
+        .string()
+        .min(1, { message: 'Unidade prisional é obrigatória' })
+        .uuid('ID da unidade prisional inválido')
+    ),
     // Permitir null vindo do Autocomplete e normalizar para string vazia
     profissao_01: z.preprocess(
       (v) => (v === null ? '' : v),
@@ -170,16 +173,19 @@ const externalSchema = createDetentoFichaCadastralSchema
   })
   .extend({
     rg_orgao_uf: z.string().optional(), // Torna o campo combinado opcional
-    rg: z
-      .string()
-      .optional()
-      .transform((value) => value || '') // Transforma undefined/null em string vazia
-      .refine((value) => {
-        // Se está vazio ou só espaços, é válido
-        if (!value || value.trim() === '') return true;
-        // Se tem conteúdo, deve ter entre 3 e 15 caracteres
-        return value.length >= 3 && value.length <= 15;
-      }, 'RG deve ter entre 3 e 15 caracteres'),
+    rg_expedicao: z.preprocess(
+      (value) => (value === undefined || value === null ? '' : value),
+      z.string().min(1, 'Data de expedição do RG é obrigatória')
+    ),
+    rg: z.preprocess(
+      (value) => (value === undefined || value === null ? '' : value),
+      z
+        .string()
+        .trim()
+        .min(1, 'RG é obrigatório')
+        .min(3, 'RG deve ter entre 3 e 15 caracteres')
+        .max(15, 'RG deve ter entre 3 e 15 caracteres')
+    ),
   })
   .refine((data) => /^\d{4}-\d{2}-\d{2}$/.test(data.data_nascimento || ''), {
     path: ['data_nascimento'],
@@ -330,6 +336,7 @@ export default function FichaCadastralExternaPage() {
       filiacao_mae: '',
       filiacao_pai: '',
       regime: undefined,
+      unidade_id: '',
       unidade_prisional: '',
       prontuario: '',
       sei: '',
@@ -1337,7 +1344,7 @@ export default function FichaCadastralExternaPage() {
                     />
                   </Grid>
                   <Grid size={{ md: 12, sm: 12 }}>
-                    <ArticlesSelector name="artigos_penais" label="Artigos Penais" />
+                    <ArticlesSelector name="artigos_penais" label="Artigos Penais*" />
                   </Grid>
                 </Grid>
 
