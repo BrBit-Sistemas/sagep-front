@@ -100,6 +100,36 @@ export const fichaInativaToCreateFormValues = (
   fichaInativa: DetentoFichaCadastral,
   detento: Detento
 ): CreateDetentoFichaCadastralSchema => {
+  const source = fichaInativa as any;
+
+  const pickFirst = (...keys: string[]) => {
+    for (const key of keys) {
+      if (source?.[key] !== undefined && source?.[key] !== null) {
+        return source[key];
+      }
+    }
+    return undefined;
+  };
+
+  const toBoolean = (value: any): boolean => {
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'number') return value === 1;
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+      return ['true', '1', 'sim', 'yes'].includes(normalized);
+    }
+    return false;
+  };
+
+  const normalizeDisponibilidade = (value: any): string => {
+    const raw = String(value ?? '').trim();
+    if (!raw) return '';
+
+    if (raw === 'MANHA') return 'MANHÃ';
+    if (raw === 'MANHA e TARDE' || raw === 'MANHA E TARDE') return 'MANHÃ e TARDE';
+    return raw;
+  };
+
   const unidadePrisionalAtual = (detento as Detento & { unidade_prisional?: string })
     .unidade_prisional;
 
@@ -118,7 +148,7 @@ export const fichaInativaToCreateFormValues = (
     regime: detento.regime ?? fichaInativa.regime ?? '',
     unidade_prisional: unidadePrisionalAtual ?? fichaInativa.unidade_prisional ?? '',
     prontuario: detento.prontuario ?? fichaInativa.prontuario ?? '',
-    sei: '',
+    sei: fichaInativa.sei ?? '',
     endereco: fichaInativa.endereco ?? '',
     regiao_administrativa: fichaInativa.regiao_administrativa ?? '',
     telefone: fichaInativa.telefone ?? '',
@@ -131,14 +161,29 @@ export const fichaInativaToCreateFormValues = (
     estado: fichaInativa.estado ?? '',
     ra_df: fichaInativa.ra_df ?? '',
     escolaridade: detento.escolaridade ?? fichaInativa.escolaridade ?? '',
-    tem_problema_saude: fichaInativa.tem_problema_saude ?? false,
-    problema_saude: fichaInativa.problema_saude ?? '',
+    tem_problema_saude: toBoolean(pickFirst('tem_problema_saude', 'temProblemaSaude')),
+    problema_saude:
+      pickFirst('problema_saude', 'problemaSaude', 'problemas_saude', 'problemasSaude') ?? '',
     regiao_bloqueada: fichaInativa.regiao_bloqueada ?? '',
     experiencia_profissional: fichaInativa.experiencia_profissional ?? '',
-    fez_curso_sistema_prisional: fichaInativa.fez_curso_sistema_prisional ?? '',
-    disponibilidade_trabalho: fichaInativa.disponibilidade_trabalho ?? '',
+    fez_curso_sistema_prisional:
+      pickFirst(
+        'fez_curso_sistema_prisional',
+        'fezCursoSistemaPrisional',
+        'curso_sistema_prisional',
+        'cursoSistemaPrisional'
+      ) ?? '',
+    disponibilidade_trabalho: normalizeDisponibilidade(
+      pickFirst('disponibilidade_trabalho', 'disponibilidadeTrabalho')
+    ),
     ja_trabalhou_funap: fichaInativa.ja_trabalhou_funap ?? false,
-    ano_trabalho_anterior: fichaInativa.ano_trabalho_anterior ?? '',
+    ano_trabalho_anterior:
+      pickFirst(
+        'ano_trabalho_anterior',
+        'anoTrabalhoAnterior',
+        'ano_trabalho_anterior_funap',
+        'anoTrabalhoAnteriorFunap'
+      ) ?? '',
     profissao_01: fichaInativa.profissao_01 ?? '',
     profissao_02: fichaInativa.profissao_02 ?? '',
     artigos_penais: fichaInativa.artigos_penais ?? [],

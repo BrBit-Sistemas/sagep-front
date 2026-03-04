@@ -28,6 +28,7 @@ import { formatDateToYYYYMMDD } from 'src/utils/format-date';
 
 import { CONFIG } from 'src/global-config';
 import { getProfissoes } from 'src/api/profissoes/profissoes';
+import { ArticlesSelector } from 'src/features/artigos-penais/components/articles-selector';
 import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/use-unidade-prisional-list';
 
 import { Iconify } from 'src/components/iconify';
@@ -346,6 +347,7 @@ export default function FichaCadastralExternaPage() {
       ano_trabalho_anterior: '',
       profissao_01: '',
       profissao_02: '',
+      artigos_penais: [],
       responsavel_preenchimento: '',
       assinatura: '',
       data_assinatura: formatDateToYYYYMMDD(new Date()),
@@ -528,6 +530,7 @@ export default function FichaCadastralExternaPage() {
       if (!canCreate) return;
 
       let phase: 'detento' | 'ficha' | null = null;
+      const isExistingDetentoFlow = Boolean(data.detento_id);
       setError(null);
       setLoading(true);
       setErrorSummary([]);
@@ -582,7 +585,6 @@ export default function FichaCadastralExternaPage() {
           const detentoUpdateData: any = {
             nome: data.nome,
             cpf: data.cpf,
-            prontuario: prontuarioValor || undefined,
             data_nascimento: formatDateToYYYYMMDD(data.data_nascimento),
             regime: data.regime as any,
             escolaridade: data.escolaridade as any,
@@ -608,7 +610,9 @@ export default function FichaCadastralExternaPage() {
         setCreatingFicha(true);
         const unidadeNome = getUnidadeName(data.unidade_id);
         const restData: any = { ...data };
-        if (prontuarioValor) {
+        if (isExistingDetentoFlow) {
+          restData.prontuario = detentoEncontrado?.prontuario || undefined;
+        } else if (prontuarioValor) {
           restData.prontuario = prontuarioValor;
         } else {
           delete restData.prontuario;
@@ -725,7 +729,22 @@ export default function FichaCadastralExternaPage() {
     },
     (invalid) => {
       const messages = collectErrorMessages(invalid);
-      setErrorSummary(messages.length ? messages : ['Corrija os campos obrigatórios.']);
+      const hasGenericInvalidInput = messages.some((msg) => /invalid input/i.test(String(msg)));
+      const hasArtigosMessage = messages.some((msg) => /artigos? penais/i.test(String(msg)));
+
+      const normalizedMessages = hasGenericInvalidInput
+        ? messages
+            .filter((msg) => !/invalid input/i.test(String(msg)))
+            .concat(
+              hasArtigosMessage
+                ? []
+                : ['Selecione ao menos um artigo penal na seção Situação Prisional.']
+            )
+        : messages;
+
+      setErrorSummary(
+        normalizedMessages.length ? normalizedMessages : ['Corrija os campos obrigatórios.']
+      );
     }
   );
 
@@ -1277,7 +1296,16 @@ export default function FichaCadastralExternaPage() {
                     </Field.Select>
                   </Grid>
                   <Grid size={{ md: 4, sm: 12 }}>
-                    <Field.Text name="prontuario" label="Prontuário" />
+                    <Field.Text
+                      name="prontuario"
+                      label="Prontuário"
+                      disabled={Boolean(methods.watch('detento_id'))}
+                      helperText={
+                        methods.watch('detento_id')
+                          ? 'Prontuário não pode ser alterado.'
+                          : 'Campo opcional no novo cadastro.'
+                      }
+                    />
                   </Grid>
                   <Grid size={{ md: 6, sm: 12 }}>
                     <Field.Text
@@ -1307,6 +1335,9 @@ export default function FichaCadastralExternaPage() {
                         methods.setValue('sei', formatted);
                       }}
                     />
+                  </Grid>
+                  <Grid size={{ md: 12, sm: 12 }}>
+                    <ArticlesSelector name="artigos_penais" label="Artigos Penais" />
                   </Grid>
                 </Grid>
 

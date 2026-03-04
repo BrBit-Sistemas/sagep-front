@@ -74,7 +74,16 @@ export const createDetentoFichaCadastralSchema = z.object({
   // Experiência e qualificação
   experiencia_profissional: z.string().optional(),
   fez_curso_sistema_prisional: z.string().optional(),
-  disponibilidade_trabalho: z.string().optional(),
+  disponibilidade_trabalho: z
+    .string()
+    .optional()
+    .transform((val) => (val === '' ? undefined : val))
+    .refine(
+      (val) =>
+        val === undefined ||
+        ['MANHÃ', 'TARDE', 'MANHÃ e TARDE', 'SOMENTE NOITE'].includes(val),
+      { message: 'Selecione uma opção válida de disponibilidade de trabalho' }
+    ),
   ja_trabalhou_funap: z.boolean().default(false),
   ano_trabalho_anterior: z.string().optional(),
   profissao_01: z.string().min(1, 'Profissão 01 é obrigatória'),

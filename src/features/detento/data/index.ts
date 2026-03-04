@@ -41,72 +41,117 @@ function toDetento(dto: ReadDetentoDto): Detento {
   };
 }
 
-const mapFichaFromApi = (f: any) => ({
-  fichacadastral_id: f.id,
-  detento_id: f.detento_id,
-  nome: f.nome,
-  cpf: f.cpf,
-  rg: f.rg,
-  rg_expedicao: f.rg_expedicao,
-  rg_orgao_uf: f.rg_orgao_uf,
-  data_nascimento: f.data_nascimento,
-  naturalidade: f.naturalidade,
-  naturalidade_uf: f.naturalidade_uf,
-  filiacao_mae: f.filiacao_mae,
-  filiacao_pai: f.filiacao_pai,
-  regime: f.regime,
-  unidade_prisional: f.unidade_prisional,
-  prontuario: f.prontuario,
-  sei: f.sei,
-  // Campos antigos de endereço
-  endereco: f.endereco,
-  regiao_administrativa: f.regiao_administrativa,
-  telefone: f.telefone,
-  // Novos campos de endereço estruturados
-  cep: f.cep,
-  logradouro: f.logradouro,
-  numero: f.numero,
-  complemento: f.complemento,
-  bairro: f.bairro,
-  cidade: f.cidade,
-  estado: f.estado,
-  ra_df: f.ra_df,
-  escolaridade: f.escolaridade,
-  tem_problema_saude: f.tem_problema_saude,
-  problema_saude: f.problema_saude,
-  regiao_bloqueada: f.regiao_bloqueada,
-  experiencia_profissional: f.experiencia_profissional,
-  fez_curso_sistema_prisional: f.fez_curso_sistema_prisional,
-  disponibilidade_trabalho: f.disponibilidade_trabalho,
-  ja_trabalhou_funap: f.ja_trabalhou_funap,
-  ano_trabalho_anterior: f.ano_trabalho_anterior,
-  profissao_01: f.profissao_01,
-  profissao_02: f.profissao_02,
-  artigos_penais: (f as any).artigos_penais ?? [],
-  responsavel_preenchimento: f.responsavel_preenchimento,
-  assinatura: f.assinatura,
-  data_assinatura: f.data_assinatura,
-  pdf_path: f.pdf_path,
-  status: f.status,
-  status_validacao: f.status_validacao,
-  substatus_operacional: f.substatus_operacional,
-  createdAt: f.createdAt,
-  updatedAt: f.updatedAt,
-  created_by: f.created_by,
-  updated_by: f.updated_by,
-  documentos: (f.documentos || []).map((doc: any) => ({
-    id: doc.id,
-    ficha_cadastral_id: doc.ficha_cadastral_id || doc.fichacadastral_id || f.id,
-    nome: doc.nome,
-    s3_key: doc.s3_key,
-    mime_type: doc.mime_type,
-    file_size: doc.file_size,
-    url: doc.url,
-    createdAt: doc.createdAt,
-    updatedAt: doc.updatedAt,
-    deletedAt: doc.deletedAt,
-  })),
-});
+const mapFichaFromApi = (f: any) => {
+  const pickFirst = (...keys: string[]) => {
+    for (const key of keys) {
+      if (f?.[key] !== undefined && f?.[key] !== null) {
+        return f[key];
+      }
+    }
+    return undefined;
+  };
+
+  const toBoolean = (value: any): boolean => {
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'number') return value === 1;
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+      return ['true', '1', 'sim', 'yes'].includes(normalized);
+    }
+    return false;
+  };
+
+  const normalizeDisponibilidade = (value: any): string => {
+    const raw = String(value ?? '').trim();
+    if (!raw) return '';
+
+    if (raw === 'MANHA') return 'MANHÃ';
+    if (raw === 'MANHA e TARDE' || raw === 'MANHA E TARDE') return 'MANHÃ e TARDE';
+    return raw;
+  };
+
+  return {
+    fichacadastral_id: f.id,
+    detento_id: f.detento_id,
+    nome: f.nome,
+    cpf: f.cpf,
+    rg: f.rg,
+    rg_expedicao: f.rg_expedicao,
+    rg_orgao_uf: f.rg_orgao_uf,
+    data_nascimento: f.data_nascimento,
+    naturalidade: f.naturalidade,
+    naturalidade_uf: f.naturalidade_uf,
+    filiacao_mae: f.filiacao_mae,
+    filiacao_pai: f.filiacao_pai,
+    regime: f.regime,
+    unidade_prisional: f.unidade_prisional,
+    prontuario: f.prontuario,
+    sei: f.sei,
+    // Campos antigos de endereço
+    endereco: f.endereco,
+    regiao_administrativa: f.regiao_administrativa,
+    telefone: f.telefone,
+    // Novos campos de endereço estruturados
+    cep: f.cep,
+    logradouro: f.logradouro,
+    numero: f.numero,
+    complemento: f.complemento,
+    bairro: f.bairro,
+    cidade: f.cidade,
+    estado: f.estado,
+    ra_df: f.ra_df,
+    escolaridade: f.escolaridade,
+    tem_problema_saude: toBoolean(pickFirst('tem_problema_saude', 'temProblemaSaude')),
+    problema_saude:
+      pickFirst('problema_saude', 'problemaSaude', 'problemas_saude', 'problemasSaude') ?? '',
+    regiao_bloqueada: f.regiao_bloqueada,
+    experiencia_profissional: f.experiencia_profissional,
+    fez_curso_sistema_prisional:
+      pickFirst(
+        'fez_curso_sistema_prisional',
+        'fezCursoSistemaPrisional',
+        'curso_sistema_prisional',
+        'cursoSistemaPrisional'
+      ) ?? '',
+    disponibilidade_trabalho: normalizeDisponibilidade(
+      pickFirst('disponibilidade_trabalho', 'disponibilidadeTrabalho')
+    ),
+    ja_trabalhou_funap: f.ja_trabalhou_funap,
+    ano_trabalho_anterior:
+      pickFirst(
+        'ano_trabalho_anterior',
+        'anoTrabalhoAnterior',
+        'ano_trabalho_anterior_funap',
+        'anoTrabalhoAnteriorFunap'
+      ) ?? '',
+    profissao_01: f.profissao_01,
+    profissao_02: f.profissao_02,
+    artigos_penais: (f as any).artigos_penais ?? [],
+    responsavel_preenchimento: f.responsavel_preenchimento,
+    assinatura: f.assinatura,
+    data_assinatura: f.data_assinatura,
+    pdf_path: f.pdf_path,
+    status: f.status,
+    status_validacao: f.status_validacao,
+    substatus_operacional: f.substatus_operacional,
+    createdAt: f.createdAt,
+    updatedAt: f.updatedAt,
+    created_by: f.created_by,
+    updated_by: f.updated_by,
+    documentos: (f.documentos || []).map((doc: any) => ({
+      id: doc.id,
+      ficha_cadastral_id: doc.ficha_cadastral_id || doc.fichacadastral_id || f.id,
+      nome: doc.nome,
+      s3_key: doc.s3_key,
+      mime_type: doc.mime_type,
+      file_size: doc.file_size,
+      url: doc.url,
+      createdAt: doc.createdAt,
+      updatedAt: doc.updatedAt,
+      deletedAt: doc.deletedAt,
+    })),
+  };
+};
 
 export const detentoService: DetentoService = {
   getFichasCadastrais: async (detentoId) => {
