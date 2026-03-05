@@ -581,6 +581,34 @@ export const DetentoFichaCadastralDialogForm = ({
       }
     },
     (errors) => {
+      const findFirstErrorPath = (errs: any, parentPath = ''): string | null => {
+        if (!errs || typeof errs !== 'object') return null;
+
+        for (const [key, value] of Object.entries(errs)) {
+          const path = parentPath ? `${parentPath}.${key}` : key;
+          if ((value as any)?.message) return path;
+
+          if (value && typeof value === 'object') {
+            const nested = findFirstErrorPath(value, path);
+            if (nested) return nested;
+          }
+        }
+
+        return null;
+      };
+
+      const firstErrorPath = findFirstErrorPath(errors);
+      if (firstErrorPath) {
+        methods.setFocus(firstErrorPath as any, { shouldSelect: true });
+
+        setTimeout(() => {
+          const input = document.querySelector(
+            `[name="${firstErrorPath}"]`
+          ) as HTMLElement | null;
+          input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 0);
+      }
+
       // Loga os erros do zod
       console.error('Zod validation errors:', errors);
     }
@@ -1108,12 +1136,12 @@ export const DetentoFichaCadastralDialogForm = ({
                     <Field.DatePicker
                       name="data_assinatura"
                       label="Data da abertura ficha"
-                      readOnly
+                      disableFuture
+                      format="DD/MM/YYYY"
+                      views={['day', 'month', 'year']}
                       slotProps={{
                         textField: {
-                          InputProps: {
-                            readOnly: true,
-                          },
+                          helperText: 'Selecione a data pelo calendário',
                         },
                       }}
                     />
