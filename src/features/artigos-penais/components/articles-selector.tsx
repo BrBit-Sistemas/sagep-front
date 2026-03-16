@@ -15,7 +15,7 @@ type ArticlesSelectorProps = {
 export function ArticlesSelector({
   name,
   label = 'Artigos Penais',
-  disablePortal = true,
+  disablePortal = false,
 }: ArticlesSelectorProps) {
   const [loading, setLoading] = useState(false);
   const [artigos, setArtigos] = useState<ArtigoPenal[]>([]);
@@ -69,4 +69,3 @@ export function ArticlesSelector({
     />
   );
 }
-

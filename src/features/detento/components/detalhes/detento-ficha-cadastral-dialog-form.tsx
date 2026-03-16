@@ -8,17 +8,14 @@ import { useForm, useWatch, useFormContext } from 'react-hook-form';
 import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
 import Divider from '@mui/material/Divider';
 import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { formatCpf } from 'src/utils/format-string';
@@ -46,7 +43,6 @@ import { createDetentoFichaCadastralSchema } from '../../schemas';
 import { parseRgOrgaoUf, fichaInativaToCreateFormValues } from '../../helper';
 import { DetentoFichaInativaSelector } from './detento-ficha-inativa-selector';
 import { useGetDetentoFichasInativas } from '../../hooks/use-get-detento-fichas-inativas';
-import { useDetentoDetalhesSearchParams } from '../../hooks/use-dentento-detalhes-search-params';
 
 // Schema estendido para o formulário interno que inclui campos separados de RG
 const dialogFormSchema = createDetentoFichaCadastralSchema
@@ -163,13 +159,13 @@ const REGIOES_ADMINISTRATIVAS_DF = [
   { value: 'RA XXXIII - Arniqueira', label: 'RA XXXIII - Arniqueira' },
 ];
 
-type DetentoFichaCadastralDialogFormProps = {
+type DetentoFichaCadastralFormProps = {
   detento: Detento;
   detentoId: string;
   fichaCadastralId?: string;
   defaultValues?: CreateDetentoFichaCadastralSchema;
-  open: boolean;
-  onClose: () => void;
+  onCancel?: () => void;
+  onSuccess?: () => void;
 };
 
 const INITIAL_VALUES: CreateDetentoFichaCadastralSchema & { rg_orgao?: string; rg_uf?: string } = {
@@ -327,17 +323,16 @@ const ProfissaoField = ({ name, label, excludeValue, onLabelUpdate }: ProfissaoF
   );
 };
 
-export const DetentoFichaCadastralDialogForm = ({
+export const DetentoFichaCadastralForm = ({
   detento,
   detentoId,
   fichaCadastralId,
   defaultValues,
-  open,
-  onClose,
-}: DetentoFichaCadastralDialogFormProps) => {
+  onCancel,
+  onSuccess,
+}: DetentoFichaCadastralFormProps) => {
   const isEditing = !!fichaCadastralId;
   const queryClient = useQueryClient();
-  const [, setSearchParams] = useDetentoDetalhesSearchParams();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showRecoverySelector, setShowRecoverySelector] = useState(false);
@@ -348,13 +343,13 @@ export const DetentoFichaCadastralDialogForm = ({
 
   const { data: fichasInativas = [], isLoading: isLoadingFichasInativas } =
     useGetDetentoFichasInativas(detentoId, {
-      enabled: open && !isEditing,
+      enabled: !isEditing,
     });
 
-  const { data: { items: unidades } = { items: [] } } = useUnidadePrisionalList({
-    page: 1,
-    limit: 1000,
-  });
+  const {
+    data: { items: unidades } = { items: [] },
+    isLoading: isLoadingUnidades,
+  } = useUnidadePrisionalList({ page: 1, limit: 1000 });
 
   // Find the unit name for display
   const getUnidadeName = useCallback(
@@ -441,10 +436,11 @@ export const DetentoFichaCadastralDialogForm = ({
   );
 
   const handleSkipRecovery = useCallback(() => {
+    methods.reset(buildInitialFormValues());
     setShowRecoverySelector(false);
     setRecoveredFromFicha(null);
     setHasHandledRecoveryChoice(true);
-  }, []);
+  }, [buildInitialFormValues, methods]);
 
   // Cache compartilhado de ID -> Nome para profissões (alimentado pelos campos)
   const globalProfissaoLabelCache = useRef<Map<string, string>>(new Map());
@@ -551,9 +547,7 @@ export const DetentoFichaCadastralDialogForm = ({
         await queryClient.refetchQueries({ queryKey: detentoKeys.fichasCadastrais(detentoId) });
 
         methods.reset();
-        onClose();
-        // Keep user on ficha cadastral tab after submit
-        setSearchParams({ tab: 'ficha_cadastral' });
+        onSuccess?.();
       } catch (err: any) {
         const status = err?.response?.status;
         let message: any = err?.response?.data?.message ?? err?.message;
@@ -591,57 +585,62 @@ export const DetentoFichaCadastralDialogForm = ({
   // };
 
   useEffect(() => {
-    if (!open) {
-      initializedRef.current = false;
-      setShowRecoverySelector(false);
-      setRecoveredFromFicha(null);
-      setHasHandledRecoveryChoice(false);
-      return;
-    }
+    initializedRef.current = false;
+    setShowRecoverySelector(false);
+    setRecoveredFromFicha(null);
+    setHasHandledRecoveryChoice(false);
+    setError(null);
+  }, [detentoId, fichaCadastralId]);
 
-    if (initializedRef.current) {
+  useEffect(() => {
+    if (initializedRef.current || isLoadingUnidades) {
       return;
     }
 
     methods.reset(buildInitialFormValues());
     initializedRef.current = true;
-  }, [open, methods, buildInitialFormValues]);
+  }, [methods, buildInitialFormValues, isLoadingUnidades]);
 
   useEffect(() => {
-    if (!open || isEditing) {
+    if (isEditing) {
       setShowRecoverySelector(false);
       return;
     }
 
-    if (isLoadingFichasInativas || hasHandledRecoveryChoice || recoveredFromFicha) {
+    if (
+      isLoadingFichasInativas ||
+      isLoadingUnidades ||
+      hasHandledRecoveryChoice ||
+      recoveredFromFicha
+    ) {
       return;
     }
 
     setShowRecoverySelector(fichasInativas.length > 0);
   }, [
-    open,
     isEditing,
     isLoadingFichasInativas,
+    isLoadingUnidades,
     hasHandledRecoveryChoice,
     recoveredFromFicha,
     fichasInativas.length,
   ]);
 
-  const shouldShowRecoverySelector =
-    open && !isEditing && showRecoverySelector && fichasInativas.length > 0;
+  const shouldShowRecoverySelector = !isEditing && showRecoverySelector && fichasInativas.length > 0;
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth keepMounted>
-      <DialogTitle>
+    <Card sx={{ p: 3 }}>
+      <Box sx={{ mb: 3 }}>
         <Typography variant="h6" component="div">
           Ficha Cadastral
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Preencha os campos abaixo para adicionar uma nova ficha cadastral.
+          Preencha os campos abaixo para{' '}
+          {isEditing ? 'editar a ficha cadastral.' : 'adicionar uma nova ficha cadastral.'}
         </Typography>
-      </DialogTitle>
+      </Box>
 
-      <DialogContent sx={{ pb: 0 }}>
+      <Box sx={{ pb: 0 }}>
         <Box sx={{ py: 2, display: shouldShowRecoverySelector ? 'block' : 'none' }}>
           <DetentoFichaInativaSelector
             fichasInativas={fichasInativas}
@@ -1148,22 +1147,28 @@ export const DetentoFichaCadastralDialogForm = ({
               </Box>
             </Form>
         </Box>
-      </DialogContent>
+      </Box>
 
-      <DialogActions sx={{ p: 3, pt: 2, display: shouldShowRecoverySelector ? 'none' : 'flex' }}>
-        <Button onClick={onClose} variant="outlined" color="primary" disabled={loading}>
-          Cancelar
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          variant="contained"
-          color="primary"
-          disabled={loading}
-          startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
-        >
-          {loading ? 'Salvando...' : 'Salvar'}
-        </Button>
-      </DialogActions>
-    </Dialog>
+      {!shouldShowRecoverySelector && (
+        <Box sx={{ p: 3, pt: 2, gap: 1.5, display: 'flex', justifyContent: 'flex-end' }}>
+          {onCancel && (
+            <Button onClick={onCancel} variant="outlined" color="primary" disabled={loading}>
+              Cancelar
+            </Button>
+          )}
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            color="primary"
+            disabled={loading}
+            startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
+          >
+            {loading ? 'Salvando...' : 'Salvar'}
+          </Button>
+        </Box>
+      )}
+    </Card>
   );
 };
+
+export const DetentoFichaCadastralDialogForm = DetentoFichaCadastralForm;

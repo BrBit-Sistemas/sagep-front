@@ -18,6 +18,9 @@ import {
   CardActionArea,
 } from '@mui/material';
 
+import { paths } from 'src/routes/paths';
+import { useRouter } from 'src/routes/hooks';
+
 import { fDateTime } from 'src/utils/format-time';
 
 import { Iconify } from 'src/components/iconify';
@@ -27,14 +30,13 @@ import { usePermissionCheck } from 'src/auth/guard/permission-guard';
 
 import { detentoService } from '../../data';
 import { detentoKeys } from '../../hooks/keys';
-import { useDetentoDetalhesStore } from '../../stores/detento-detalhes-store';
 
 type DetentoFichaCadastralCardProps = {
   fichaCadastral: DetentoFichaCadastral;
 };
 
 export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadastralCardProps) => {
-  const { openFichaCadastralEditDialog } = useDetentoDetalhesStore();
+  const navigate = useRouter();
   const { hasPermission } = usePermissionCheck();
   const [hover, setHover] = useState(false);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
@@ -80,14 +82,12 @@ export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadast
   }, [fichaCadastral.fichacadastral_id, fichaCadastral.pdf_path, fichaCadastral.updatedAt]);
 
   const handleEdit = () => {
-    // Abrir dialog imediatamente com dados do cache
-    openFichaCadastralEditDialog(fichaCadastral);
-
-    // Refetch em background para garantir dados sempre atualizados
-    // (não bloqueia a abertura do dialog)
     queryClient.invalidateQueries({
       queryKey: detentoKeys.fichasCadastrais(fichaCadastral.detento_id),
     });
+    navigate.push(
+      paths.detentos.fichaCadastralEdit(fichaCadastral.detento_id, fichaCadastral.fichacadastral_id)
+    );
   };
 
   const handleView = (e: React.MouseEvent) => {

@@ -28,6 +28,7 @@ import { formatDateToYYYYMMDD } from 'src/utils/format-date';
 
 import { CONFIG } from 'src/global-config';
 import { getProfissoes } from 'src/api/profissoes/profissoes';
+import { ArticlesSelector } from 'src/features/artigos-penais/components/articles-selector';
 import { useUnidadePrisionalList } from 'src/features/unidades-prisionais/hooks/use-unidade-prisional-list';
 
 import { Iconify } from 'src/components/iconify';
@@ -346,6 +347,7 @@ export default function FichaCadastralExternaPage() {
       ano_trabalho_anterior: '',
       profissao_01: '',
       profissao_02: '',
+      artigos_penais: [],
       responsavel_preenchimento: '',
       assinatura: '',
       data_assinatura: formatDateToYYYYMMDD(new Date()),
@@ -641,6 +643,9 @@ export default function FichaCadastralExternaPage() {
         ]);
         restData.profissao_01 = resolvedProfissao01;
         restData.profissao_02 = resolvedProfissao02;
+        restData.artigos_penais = Array.isArray(restData.artigos_penais)
+          ? restData.artigos_penais.map((artigo: string | number) => String(artigo))
+          : [];
 
         // Combinar órgão expedidor e UF do RG em um campo só
         const rgOrgao = restData.rg_orgao?.trim() || '';
@@ -1278,6 +1283,9 @@ export default function FichaCadastralExternaPage() {
                   </Grid>
                   <Grid size={{ md: 4, sm: 12 }}>
                     <Field.Text name="prontuario" label="Prontuário" />
+                  </Grid>
+                  <Grid size={{ md: 12, sm: 12 }}>
+                    <ArticlesSelector name="artigos_penais" label="Artigos Penais*" />
                   </Grid>
                   <Grid size={{ md: 6, sm: 12 }}>
                     <Field.Text

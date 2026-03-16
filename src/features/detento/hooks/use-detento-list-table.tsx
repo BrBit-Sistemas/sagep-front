@@ -49,6 +49,13 @@ export const useDetentoListTable = () => {
     [navigate]
   );
 
+  const onQuickFichaCreate = useCallback(
+    (detento: Detento) => {
+      navigate.push(paths.detentos.fichaCadastralNew(detento.id));
+    },
+    [navigate]
+  );
+
   const columns = useMemo((): GridColDef<Detento>[] => {
     const cols: GridColDef<Detento>[] = [];
 
@@ -179,6 +186,10 @@ export const useDetentoListTable = () => {
         const actions: React.ReactElement<GridActionsCellItemProps>[] = [];
         const canUpdate = hasPermission({ action: 'update', subject: 'detentos' });
         const canDelete = hasPermission({ action: 'delete', subject: 'detentos' });
+        const canQuickCreateFicha = hasPermission({
+          action: 'create',
+          subject: 'ficha_cadastral_interno',
+        });
         const canRead = hasAny([
           { action: 'read', subject: 'detentos' },
           { action: 'read', subject: 'ficha_cadastral_interno' },
@@ -224,12 +235,34 @@ export const useDetentoListTable = () => {
           );
         }
 
+        if (canQuickCreateFicha) {
+          actions.push(
+            (
+              <CustomGridActionsCellItem
+                showInMenu
+                label="Criar ficha rápida"
+                icon={<Iconify icon="solar:add-circle-bold" />}
+                onClick={() => onQuickFichaCreate(params.row)}
+              />
+            ) as unknown as React.ReactElement<GridActionsCellItemProps>
+          );
+        }
+
         return actions;
       },
     });
 
     return cols;
-  }, [hasPermission, isLoading, onDelete, onEdit, onView, theme.vars.palette.error.main]);
+  }, [
+    hasPermission,
+    isLoading,
+    hasAny,
+    onDelete,
+    onEdit,
+    onView,
+    onQuickFichaCreate,
+    theme.vars.palette.error.main,
+  ]);
 
   return { columns };
 };
