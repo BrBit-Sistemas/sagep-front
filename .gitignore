@@ -106,6 +106,10 @@ dist
 # Docusaurus cache and generated files
 .docusaurus
 
+# Playwright artifacts
+playwright-report/
+test-results/
+
 # Serverless directories
 .serverless/
 

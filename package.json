@@ -19,6 +19,10 @@
     "re:dev": "yarn clean && yarn install && yarn dev",
     "re:build": "yarn clean && yarn install && yarn build",
     "re:build-npm": "npm run clean && npm install && npm run build",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:update-snapshots": "playwright test --update-snapshots",
     "tsc:dev": "yarn dev & yarn tsc:watch",
     "tsc:watch": "tsc --noEmit --watch",
     "tsc:print": "npx tsc --showConfig"
@@ -75,6 +79,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
+    "@playwright/test": "^1.58.2",
     "@tanstack/eslint-plugin-query": "^5.81.2",
     "@types/autosuggest-highlight": "^3.2.3",
     "@types/node": "^24.0.3",

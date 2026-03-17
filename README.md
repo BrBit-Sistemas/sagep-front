@@ -26,6 +26,36 @@ yarn build
 npm run build
 ```
 
+## Playwright E2E
+
+Pré-requisitos:
+
+- frontend rodando em `http://localhost:3030`
+- API rodando em `http://localhost:3000`
+- usuário com permissão de ficha cadastral para os testes internos e externos
+
+Variáveis aceitas:
+
+- `PLAYWRIGHT_BASE_URL` padrão `http://localhost:3030`
+- `PLAYWRIGHT_API_URL` padrão `http://localhost:3000`
+- `PLAYWRIGHT_ADMIN_CPF` padrão `11144477735`
+- `PLAYWRIGHT_ADMIN_PASSWORD` padrão `admin@sagep`
+
+Comandos:
+
+```sh
+yarn test:e2e
+yarn test:e2e:headed
+yarn test:e2e:ui
+yarn test:e2e:update-snapshots
+```
+
+Notas:
+
+- A suíte usa dados com prefixo `PW E2E` e evita apagar registros fora desse padrão.
+- Os testes visuais salvam snapshots em `e2e/.snapshots`.
+- Se houver falhas de ambiente local, verifique primeiro autenticação, disponibilidade da API e acesso aos serviços externos usados pelo formulário.
+
 ## Mock server
 
 By default we provide demo data from : `https://api-dev-minimal-[version].vercel.app`
