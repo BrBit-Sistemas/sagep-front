@@ -1,8 +1,9 @@
+import type { FileRejection } from 'react-dropzone';
+
 import { isAxiosError } from 'axios';
 import { ErrorCode, useDropzone } from 'react-dropzone';
 import { useState, useEffect, useCallback } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
-import type { FileRejection } from 'react-dropzone';
 
 import {
   Box,
