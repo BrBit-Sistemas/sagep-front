@@ -1,7 +1,8 @@
 import { isAxiosError } from 'axios';
-import { useDropzone } from 'react-dropzone';
+import { ErrorCode, useDropzone } from 'react-dropzone';
 import { useState, useEffect, useCallback } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
+import type { FileRejection } from 'react-dropzone';
 
 import {
   Box,
@@ -40,9 +41,10 @@ const dropZoneStyles = (isActive: boolean) => ({
 type PendingUpload = {
   id: string;
   file: File;
-  previewUrl: string;
+  previewUrl?: string;
   status: 'uploading' | 'error';
   error?: string;
+  retryable?: boolean;
 };
 
 type DocumentoFormValue = {
@@ -61,6 +63,7 @@ type FichaDocumentosFieldProps = {
   detentoId?: string;
   title?: string;
   helperText?: string;
+  testId?: string;
 };
 
 const fichasApi = getFichasCadastrais();
@@ -99,12 +102,43 @@ const releasePreview = (url?: string) => {
   }
 };
 
+const MAX_UPLOAD_SIZE = 10 * 1024 * 1024;
+
+const createPreviewUrl = (file: File) =>
+  file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined;
+
+const buildPendingUpload = (
+  file: File,
+  overrides: Partial<Omit<PendingUpload, 'id' | 'file'>> = {}
+): PendingUpload => ({
+  id: crypto.randomUUID(),
+  file,
+  previewUrl: createPreviewUrl(file),
+  status: 'uploading',
+  retryable: true,
+  ...overrides,
+});
+
+const extractDropzoneErrorMessage = (code?: string) => {
+  switch (code) {
+    case ErrorCode.FileInvalidType:
+      return 'Envie apenas arquivos de imagem (JPG, JPEG ou PNG).';
+    case ErrorCode.FileTooLarge:
+      return 'O arquivo excede o limite de 10 MB.';
+    case ErrorCode.TooManyFiles:
+      return 'Envie menos arquivos por vez.';
+    default:
+      return 'Não foi possível anexar o arquivo selecionado.';
+  }
+};
+
 export function FichaDocumentosField({
   name = 'documentos',
   fichaId,
   detentoId,
   title = 'Documentos comprobatórios',
   helperText = 'Arraste e solte arquivos em formato de imagem ou clique para procurar.',
+  testId = 'ficha-documentos',
 }: FichaDocumentosFieldProps) {
   const {
     control,
@@ -123,9 +157,8 @@ export function FichaDocumentosField({
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       acceptedFiles.forEach((file) => {
-        const id = crypto.randomUUID();
-        const previewUrl = URL.createObjectURL(file);
-        setPendingUploads((prev) => [...prev, { id, file, previewUrl, status: 'uploading' }]);
+        const pending = buildPendingUpload(file);
+        setPendingUploads((prev) => [...prev, pending]);
 
         fichasApi
           .uploadDocumento(file, detentoId)
@@ -136,15 +169,15 @@ export function FichaDocumentosField({
               mime_type: uploaded.mime_type,
               file_size: uploaded.file_size,
               url: uploaded.url,
-              previewUrl,
+              previewUrl: pending.previewUrl,
             });
-            setPendingUploads((prev) => prev.filter((item) => item.id !== id));
+            setPendingUploads((prev) => prev.filter((item) => item.id !== pending.id));
           })
           .catch((error) => {
             const message = extractErrorMessage(error);
             setPendingUploads((prev) =>
               prev.map((item) =>
-                item.id === id ? { ...item, status: 'error', error: message } : item
+                item.id === pending.id ? { ...item, status: 'error', error: message } : item
               )
             );
           });
@@ -153,10 +186,28 @@ export function FichaDocumentosField({
     [append, detentoId]
   );
 
+  const onDropRejected = useCallback(
+    (fileRejections: FileRejection[]) => {
+      setPendingUploads((prev) => [
+        ...prev,
+        ...fileRejections.map(({ file, errors: fileErrors }) =>
+          buildPendingUpload(file, {
+            status: 'error',
+            error: extractDropzoneErrorMessage(fileErrors[0]?.code),
+            retryable: false,
+          })
+        ),
+      ]);
+    },
+    []
+  );
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: { 'image/*': [] },
+    maxSize: MAX_UPLOAD_SIZE,
     multiple: true,
     onDrop,
+    onDropRejected,
   });
 
   useEffect(() => {
@@ -248,19 +299,23 @@ export function FichaDocumentosField({
   );
 
   return (
-    <Card variant="outlined">
+    <Card variant="outlined" data-testid={testId}>
       <CardHeader
         title={title}
         subheader={
-          <Alert severity="info" sx={{ mt: 1 }}>
+          <Alert severity="info" sx={{ mt: 1 }} data-testid={`${testId}-info`}>
             <strong>Atenção:</strong> Os documentos devem ser os do reeducando que está em busca da
             oportunidade de emprego, por meio desta ficha cadastral.
           </Alert>
         }
       />
       <CardContent>
-        <Box {...getRootProps()} sx={dropZoneStyles(isDragActive)}>
-          <input {...getInputProps()} />
+        <Box
+          {...getRootProps()}
+          sx={dropZoneStyles(isDragActive)}
+          data-testid={`${testId}-dropzone`}
+        >
+          <input {...getInputProps()} data-testid={`${testId}-input`} />
           <Stack spacing={1} alignItems="center">
             <Iconify icon="eva:cloud-upload-fill" width={36} />
             <Typography variant="subtitle1">Arraste imagens aqui</Typography>
@@ -278,6 +333,7 @@ export function FichaDocumentosField({
             {pendingUploads.map((pending) => (
               <Card
                 key={pending.id}
+                data-testid={`${testId}-pending-${pending.id}`}
                 sx={{
                   border: '1px solid',
                   borderColor: pending.status === 'error' ? 'error.light' : 'divider',
@@ -294,14 +350,21 @@ export function FichaDocumentosField({
                         overflow: 'hidden',
                         bgcolor: 'background.default',
                         boxShadow: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                       }}
                     >
-                      <Box
-                        component="img"
-                        src={pending.previewUrl}
-                        alt={pending.file.name}
-                        sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
+                      {pending.previewUrl ? (
+                        <Box
+                          component="img"
+                          src={pending.previewUrl}
+                          alt={pending.file.name}
+                          sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <Iconify icon="solar:file-bold-duotone" width={32} />
+                      )}
                     </Box>
                     <Stack spacing={0.5} flexGrow={1}>
                       <Typography variant="subtitle2" noWrap>
@@ -318,15 +381,23 @@ export function FichaDocumentosField({
                       )}
                     </Stack>
                     <Stack direction="row" spacing={1}>
-                      {pending.status === 'error' ? (
+                      {pending.status === 'error' && pending.retryable ? (
                         <Tooltip title="Tentar novamente">
-                          <IconButton color="primary" onClick={() => handleRetry(pending)}>
+                          <IconButton
+                            color="primary"
+                            onClick={() => handleRetry(pending)}
+                            data-testid={`${testId}-retry-${pending.id}`}
+                          >
                             <Iconify icon="solar:restart-bold" />
                           </IconButton>
                         </Tooltip>
                       ) : null}
                       <Tooltip title="Remover">
-                        <IconButton color="error" onClick={() => handleRemovePending(pending)}>
+                        <IconButton
+                          color="error"
+                          onClick={() => handleRemovePending(pending)}
+                          data-testid={`${testId}-remove-pending-${pending.id}`}
+                        >
                           <Iconify icon="solar:trash-bin-trash-bold" />
                         </IconButton>
                       </Tooltip>
@@ -351,7 +422,7 @@ export function FichaDocumentosField({
             const preview = doc.previewUrl || (doc.id && signedUrls[doc.id]) || doc.url;
             // Use field.id (provided by useFieldArray) as key - it's always stable and unique
             return (
-              <Box key={field.id}>
+              <Box key={field.id} data-testid={`${testId}-item-${index}`}>
                 <Card
                   variant="outlined"
                   sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
@@ -394,6 +465,9 @@ export function FichaDocumentosField({
                           label="Nome do documento"
                           value={doc.nome}
                           onChange={(event) => handleUpdateNome(index, event.target.value)}
+                          inputProps={{
+                            'data-testid': `${testId}-name-${index}`,
+                          }}
                         />
                         <Stack direction="row" spacing={1} alignItems="center">
                           <Chip
@@ -412,6 +486,7 @@ export function FichaDocumentosField({
                           color="error"
                           onClick={() => handleRemoveDocumento(index)}
                           sx={{ mt: -1 }}
+                          data-testid={`${testId}-remove-${index}`}
                         >
                           <Iconify icon="solar:trash-bin-trash-bold" />
                         </IconButton>
@@ -425,13 +500,23 @@ export function FichaDocumentosField({
         </Box>
 
         {!pendingUploads.length && !documentos.length && (
-          <Typography variant="body2" color="text.disabled" sx={{ mt: 3, textAlign: 'center' }}>
+          <Typography
+            variant="body2"
+            color="text.disabled"
+            sx={{ mt: 3, textAlign: 'center' }}
+            data-testid={`${testId}-empty`}
+          >
             Nenhum documento adicionado até o momento.
           </Typography>
         )}
 
         {fieldError?.message && (
-          <Typography variant="caption" color="error.main" sx={{ mt: 2, display: 'block' }}>
+          <Typography
+            variant="caption"
+            color="error.main"
+            sx={{ mt: 2, display: 'block' }}
+            data-testid={`${testId}-error`}
+          >
             {fieldError.message}
           </Typography>
         )}

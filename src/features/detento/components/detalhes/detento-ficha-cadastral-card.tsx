@@ -141,6 +141,7 @@ export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadast
 
   return (
     <Card
+      data-testid={`ficha-card-${fichaCadastral.fichacadastral_id}`}
       sx={{
         aspectRatio: 1,
         position: 'relative',
@@ -189,6 +190,7 @@ export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadast
                     boxShadow: 1,
                   }}
                   size="small"
+                  data-testid={`ficha-card-view-pdf-${fichaCadastral.fichacadastral_id}`}
                 >
                   <Iconify icon="solar:eye-bold" width={22} height={22} />
                 </IconButton>

@@ -629,7 +629,7 @@ export const DetentoFichaCadastralForm = ({
   const shouldShowRecoverySelector = !isEditing && showRecoverySelector && fichasInativas.length > 0;
 
   return (
-    <Card sx={{ p: 3 }}>
+    <Card sx={{ p: 3 }} data-testid="internal-ficha-form">
       <Box sx={{ mb: 3 }}>
         <Typography variant="h6" component="div">
           Ficha Cadastral
@@ -659,7 +659,7 @@ export const DetentoFichaCadastralForm = ({
           <Form key="detento-ficha-form" methods={methods} onSubmit={handleSubmit}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 {error && (
-                  <Alert severity="error" sx={{ mb: 2 }}>
+                  <Alert severity="error" sx={{ mb: 2 }} data-testid="internal-form-error">
                     {error}
                   </Alert>
                 )}
@@ -1130,6 +1130,7 @@ export const DetentoFichaCadastralForm = ({
                     detentoId={detentoId}
                     title="7. Documentos anexados*"
                     helperText="Anexe imagens de documentos relevantes e nomeie cada arquivo para facilitar o controle."
+                    testId="internal-documentos"
                   />
                 </Box>
 
@@ -1162,6 +1163,7 @@ export const DetentoFichaCadastralForm = ({
             color="primary"
             disabled={loading}
             startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
+            data-testid="internal-submit"
           >
             {loading ? 'Salvando...' : 'Salvar'}
           </Button>

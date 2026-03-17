@@ -35,7 +35,7 @@ export const DetentoFichaInativaSelector = ({
   }
 
   return (
-    <Stack spacing={2}>
+    <Stack spacing={2} data-testid="ficha-inativa-selector">
       <Typography variant="h6">Fichas anteriores encontradas</Typography>
       <Typography variant="body2" color="text.secondary">
         Selecione uma ficha inativa para reaproveitar os dados na nova ficha ou inicie do zero.
@@ -48,7 +48,10 @@ export const DetentoFichaInativaSelector = ({
 
           return (
             <Grid size={{ xs: 12, md: 6 }} key={ficha.fichacadastral_id}>
-              <Card variant="outlined">
+              <Card
+                variant="outlined"
+                data-testid={`ficha-inativa-card-${ficha.fichacadastral_id}`}
+              >
                 <CardContent>
                   <Stack spacing={1.5}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
@@ -60,7 +63,12 @@ export const DetentoFichaInativaSelector = ({
                     <Typography variant="body2" color="text.secondary">
                       Profissão: {ficha.profissao_01 || 'Não informada'}
                     </Typography>
-                    <Button variant="contained" onClick={() => onSelectFicha(ficha)} size="small">
+                    <Button
+                      variant="contained"
+                      onClick={() => onSelectFicha(ficha)}
+                      size="small"
+                      data-testid={`ficha-inativa-select-${ficha.fichacadastral_id}`}
+                    >
                       Usar esta ficha
                     </Button>
                   </Stack>
@@ -72,7 +80,7 @@ export const DetentoFichaInativaSelector = ({
       </Grid>
 
       <Stack direction="row" justifyContent="flex-end">
-        <Button variant="outlined" onClick={onSkip}>
+        <Button variant="outlined" onClick={onSkip} data-testid="ficha-inativa-skip">
           Criar do zero
         </Button>
       </Stack>
