@@ -307,13 +307,13 @@ export async function fillExternalFichaForm(
   await selectMuiOption(page, /UF de naturalidade/i, /Distrito Federal/i);
   await fillTextField(page, /Nome da mãe/i, draft.form.filiacao_mae);
   await fillTextField(page, /Nome do pai/i, draft.form.filiacao_pai);
-  await selectMuiOption(page, /^Regime$/i, /Semiaberto/i);
+  await selectMuiOption(page, /Regime/i, /Semiaberto/i);
   await selectMuiOption(page, /Unidade prisional/i, new RegExp(escapeRegExp(draft.form.unidade_prisional), 'i'));
   await fillTextField(page, /Prontuário/i, draft.form.prontuario);
   await selectFirstArticle(page);
   await fillTextField(page, /Número SEI/i, draft.form.sei.replace(/\D/g, ''));
   await fillTextField(page, /Telefone/i, draft.form.telefone);
-  await selectMuiOption(page, /^Escolaridade$/i, /Ensino Médio Completo/i);
+  await selectMuiOption(page, /Escolaridade/i, /Ensino Médio Completo/i);
   await selectAutocompleteOption(
     page,
     /Disponibilidade de trabalho/i,

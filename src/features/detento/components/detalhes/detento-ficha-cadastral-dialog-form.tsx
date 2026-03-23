@@ -31,6 +31,8 @@ import { Form, Field } from 'src/components/hook-form';
 import { EnderecoForm } from 'src/components/forms/endereco-form';
 
 import {
+  Regime,
+  Escolaridade,
   getRegimeOptions,
   getEscolaridadeOptions,
   getDisponibilidadeTrabalhoOptions,
@@ -39,34 +41,30 @@ import {
 import { detentoService } from '../../data';
 import { detentoKeys } from '../../hooks/keys';
 import { FichaDocumentosField } from '../ficha-documentos-field';
-import { createDetentoFichaCadastralSchema } from '../../schemas';
 import { parseRgOrgaoUf, fichaInativaToCreateFormValues } from '../../helper';
 import { DetentoFichaInativaSelector } from './detento-ficha-inativa-selector';
 import { useGetDetentoFichasInativas } from '../../hooks/use-get-detento-fichas-inativas';
+import {
+  withFichaConditionalRules,
+  createDetentoFichaCadastralBaseSchema,
+} from '../../schemas';
 
 // Schema estendido para o formulário interno que inclui campos separados de RG
-const dialogFormSchema = createDetentoFichaCadastralSchema
-  .extend({
-    rg_orgao: z.string().min(1, 'Órgão expedidor é obrigatório'),
-    rg_uf: z.string().min(1, 'UF do RG é obrigatória'),
-  })
-  .omit({
-    rg_orgao_uf: true, // Remove a validação obrigatória do campo combinado
-    rg: true, // Remove a validação do campo RG para sobrescrever
-  })
-  .extend({
-    rg_orgao_uf: z.string().optional(), // Torna o campo combinado opcional
-    rg: z
-      .string()
-      .optional()
-      .transform((value) => value || '') // Transforma undefined/null em string vazia
-      .refine((value) => {
-        // Se está vazio ou só espaços, é válido
-        if (!value || value.trim() === '') return true;
-        // Se tem conteúdo, deve ter entre 3 e 15 caracteres
-        return value.length >= 3 && value.length <= 15;
-      }, 'RG deve ter entre 3 e 15 caracteres'),
-  });
+const dialogFormSchema = withFichaConditionalRules(
+  createDetentoFichaCadastralBaseSchema
+    .extend({
+      rg_orgao: z.string().min(1, 'Órgão expedidor é obrigatório'),
+      rg_uf: z.string().min(1, 'UF do RG é obrigatória'),
+      regime: z.nativeEnum(Regime, { message: 'Regime é obrigatório' }),
+      escolaridade: z.nativeEnum(Escolaridade, { message: 'Escolaridade é obrigatória' }),
+    })
+    .omit({
+      rg_orgao_uf: true, // Remove a validação obrigatória do campo combinado
+    })
+    .extend({
+      rg_orgao_uf: z.string().optional(), // Torna o campo combinado opcional
+    })
+);
 
 // Órgãos expedidores de RG
 const ORGAOS_EXPEDIDORES = [

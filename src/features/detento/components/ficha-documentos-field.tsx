@@ -187,21 +187,18 @@ export function FichaDocumentosField({
     [append, detentoId]
   );
 
-  const onDropRejected = useCallback(
-    (fileRejections: FileRejection[]) => {
-      setPendingUploads((prev) => [
-        ...prev,
-        ...fileRejections.map(({ file, errors: fileErrors }) =>
-          buildPendingUpload(file, {
-            status: 'error',
-            error: extractDropzoneErrorMessage(fileErrors[0]?.code),
-            retryable: false,
-          })
-        ),
-      ]);
-    },
-    []
-  );
+  const onDropRejected = useCallback((fileRejections: FileRejection[]) => {
+    setPendingUploads((prev) => [
+      ...prev,
+      ...fileRejections.map(({ file, errors: fileErrors }) =>
+        buildPendingUpload(file, {
+          status: 'error',
+          error: extractDropzoneErrorMessage(fileErrors[0]?.code),
+          retryable: false,
+        })
+      ),
+    ]);
+  }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: { 'image/*': [] },

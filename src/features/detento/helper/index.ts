@@ -1,6 +1,8 @@
 import type { Detento, DetentoFichaCadastral } from '../types';
 import type { CreateDetentoSchema, CreateDetentoFichaCadastralSchema } from '../schemas';
 
+import { DisponibilidadeTrabalho } from 'src/types/prisional';
+
 export const detentoToFormValues = (detento: Detento): CreateDetentoSchema => ({
   nome: detento?.nome ?? '',
   mae: detento?.mae ?? '',
@@ -33,6 +35,19 @@ export const parseRgOrgaoUf = (
   }
 
   return { rgOrgao, rgUf };
+};
+
+const disponibilidadeTrabalhoValues = new Set<string>(
+  Object.values(DisponibilidadeTrabalho)
+);
+
+const normalizeDisponibilidadeTrabalho = (
+  value: string | null | undefined
+): CreateDetentoFichaCadastralSchema['disponibilidade_trabalho'] => {
+  if (!value) return '';
+  return disponibilidadeTrabalhoValues.has(value)
+    ? (value as CreateDetentoFichaCadastralSchema['disponibilidade_trabalho'])
+    : '';
 };
 
 export const fichaCadastralToFormValues = (
@@ -73,7 +88,9 @@ export const fichaCadastralToFormValues = (
   regiao_bloqueada: fichaCadastral.regiao_bloqueada ?? '',
   experiencia_profissional: fichaCadastral.experiencia_profissional ?? '',
   fez_curso_sistema_prisional: fichaCadastral.fez_curso_sistema_prisional ?? '',
-  disponibilidade_trabalho: fichaCadastral.disponibilidade_trabalho ?? '',
+  disponibilidade_trabalho: normalizeDisponibilidadeTrabalho(
+    fichaCadastral.disponibilidade_trabalho
+  ),
   ja_trabalhou_funap: fichaCadastral.ja_trabalhou_funap ?? false,
   ano_trabalho_anterior: fichaCadastral.ano_trabalho_anterior ?? '',
   profissao_01: fichaCadastral.profissao_01 ?? '',
@@ -136,7 +153,9 @@ export const fichaInativaToCreateFormValues = (
     regiao_bloqueada: fichaInativa.regiao_bloqueada ?? '',
     experiencia_profissional: fichaInativa.experiencia_profissional ?? '',
     fez_curso_sistema_prisional: fichaInativa.fez_curso_sistema_prisional ?? '',
-    disponibilidade_trabalho: fichaInativa.disponibilidade_trabalho ?? '',
+    disponibilidade_trabalho: normalizeDisponibilidadeTrabalho(
+      fichaInativa.disponibilidade_trabalho
+    ),
     ja_trabalhou_funap: fichaInativa.ja_trabalhou_funap ?? false,
     ano_trabalho_anterior: fichaInativa.ano_trabalho_anterior ?? '',
     profissao_01: fichaInativa.profissao_01 ?? '',

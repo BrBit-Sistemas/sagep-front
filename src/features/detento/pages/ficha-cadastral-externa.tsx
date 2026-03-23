@@ -46,10 +46,13 @@ import {
 } from 'src/types/prisional';
 
 import { detentoService } from '../data';
-import { createDetentoFichaCadastralSchema } from '../schemas';
 import { parseRgOrgaoUf, fichaInativaToCreateFormValues } from '../helper';
 import { FichaDocumentosField } from '../components/ficha-documentos-field';
 import { useProfissoesAutocomplete } from '../../empresa-convenios/hooks/use-profissoes-options';
+import {
+  withFichaConditionalRules,
+  createDetentoFichaCadastralBaseSchema,
+} from '../schemas';
 import { DetentoFichaInativaSelector } from '../components/detalhes/detento-ficha-inativa-selector';
 
 // Órgãos expedidores de RG
@@ -143,14 +146,18 @@ const REGIOES_ADMINISTRATIVAS_DF = [
   { value: 'RA XXXIII - Arniqueira', label: 'RA XXXIII - Arniqueira' },
 ];
 
-const externalSchema = createDetentoFichaCadastralSchema
-  .extend({
+const externalSchema = withFichaConditionalRules(
+  createDetentoFichaCadastralBaseSchema
+    .extend({
     detento_id: z.string().optional(),
     unidade_prisional: z.string().optional(),
-    unidade_id: z
-      .string()
-      .min(1, { message: 'Unidade prisional é obrigatória' })
-      .uuid('ID da unidade prisional inválido'),
+    unidade_id: z.preprocess(
+      (value) => (value == null ? '' : value),
+      z
+        .string()
+        .min(1, { message: 'Unidade prisional é obrigatória' })
+        .uuid('ID da unidade prisional inválido')
+    ),
     // Permitir null vindo do Autocomplete e normalizar para string vazia
     profissao_01: z.preprocess(
       (v) => (v === null ? '' : v),
@@ -163,28 +170,14 @@ const externalSchema = createDetentoFichaCadastralSchema
     // Sobrescrever regime e escolaridade para aceitar valores dos enums
     regime: z.nativeEnum(Regime, { message: 'Regime é obrigatório' }),
     escolaridade: z.nativeEnum(Escolaridade, { message: 'Escolaridade é obrigatória' }),
-  })
-  .omit({
-    rg_orgao_uf: true, // Remove a validação obrigatória do campo combinado
-    rg: true, // Remove a validação do campo RG para sobrescrever
-  })
-  .extend({
-    rg_orgao_uf: z.string().optional(), // Torna o campo combinado opcional
-    rg: z
-      .string()
-      .optional()
-      .transform((value) => value || '') // Transforma undefined/null em string vazia
-      .refine((value) => {
-        // Se está vazio ou só espaços, é válido
-        if (!value || value.trim() === '') return true;
-        // Se tem conteúdo, deve ter entre 3 e 15 caracteres
-        return value.length >= 3 && value.length <= 15;
-      }, 'RG deve ter entre 3 e 15 caracteres'),
-  })
-  .refine((data) => /^\d{4}-\d{2}-\d{2}$/.test(data.data_nascimento || ''), {
-    path: ['data_nascimento'],
-    message: 'Data deve estar no formato YYYY-MM-DD',
-  });
+    })
+    .omit({
+      rg_orgao_uf: true, // Remove a validação obrigatória do campo combinado
+    })
+    .extend({
+      rg_orgao_uf: z.string().optional(), // Torna o campo combinado opcional
+    })
+);
 type ExternalFichaSchema = z.infer<typeof externalSchema>;
 
 // Componente interno para campo de profissão com cache de rótulos

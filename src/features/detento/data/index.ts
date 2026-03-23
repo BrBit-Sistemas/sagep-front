@@ -139,6 +139,9 @@ export const detentoService: DetentoService = {
 
     // Remover campo obsoleto que o backend rejeita
     delete payload.declaracao_veracidade;
+    // Campos de validação são controlados pela API
+    delete payload.status_validacao;
+    delete payload.substatus_operacional;
 
     const ficha = await fichasApi.create(payload as CreateFichaCadastralDto);
     return ficha;
@@ -154,6 +157,11 @@ export const detentoService: DetentoService = {
 
     // Remover campo obsoleto que o backend rejeita
     delete payload.declaracao_veracidade;
+    // Não permitir alteração de vínculo da ficha por update.
+    delete payload.detento_id;
+    // Campos de validação são controlados por transições de status da API.
+    delete payload.status_validacao;
+    delete payload.substatus_operacional;
 
     return fichasApi.update(fichacadastral_id, payload);
   },

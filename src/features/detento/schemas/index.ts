@@ -19,7 +19,7 @@ export const createDetentoSchema = z.object({
   unidade_id: z.string().min(1, 'Unidade é obrigatória'),
 });
 
-export const createDetentoFichaCadastralSchema = z.object({
+export const createDetentoFichaCadastralBaseSchema = z.object({
   detento_id: z.string().min(1, 'ID do detento é obrigatório'),
   // Identificação pessoal
   nome: z.string().min(1, 'Nome completo é obrigatório'),
@@ -29,30 +29,57 @@ export const createDetentoFichaCadastralSchema = z.object({
     .refine((value) => isValidCpf(value), 'CPF inválido'),
   rg: z
     .string()
-    .optional()
-    .transform((value) => value || '') // Transforma undefined/null em string vazia
+    .min(1, 'RG é obrigatório')
     .refine((value) => {
-      // Se está vazio ou só espaços, é válido
-      if (!value || value.trim() === '') return true;
-      // Se tem conteúdo, deve ter entre 3 e 15 caracteres
-      return value.length >= 3 && value.length <= 15;
+      const rg = value.trim();
+      return rg.length >= 3 && rg.length <= 15;
     }, 'RG deve ter entre 3 e 15 caracteres'),
-  rg_expedicao: z.string().optional().or(z.literal('')),
-  rg_orgao_uf: z.string().optional().or(z.literal('')),
-  data_nascimento: z.string().min(1, 'Data de nascimento é obrigatória'),
+  rg_expedicao: z
+    .string()
+    .optional()
+    .or(z.literal(''))
+    .refine((value) => !value || /^\d{4}-\d{2}-\d{2}$/.test(value), {
+      message: 'Data de expedição do RG deve estar no formato YYYY-MM-DD',
+    }),
+  rg_orgao_uf: z.string().min(1, 'Órgão e UF do RG são obrigatórios'),
+  data_nascimento: z
+    .string()
+    .min(1, 'Data de nascimento é obrigatória')
+    .refine((value) => /^\d{4}-\d{2}-\d{2}$/.test(value), {
+      message: 'Data deve estar no formato YYYY-MM-DD',
+    }),
   naturalidade: z.string().min(1, 'Naturalidade é obrigatória'),
-  naturalidade_uf: z.string().min(1, 'UF de naturalidade é obrigatória'),
+  naturalidade_uf: z
+    .string()
+    .min(1, 'UF de naturalidade é obrigatória')
+    .refine((value) => /^[A-Z]{2}$/.test(value), {
+      message: 'UF de naturalidade deve conter 2 letras',
+    }),
   filiacao_mae: z.string().min(1, 'Nome da mãe é obrigatório'),
   filiacao_pai: z.string().optional(),
   // Situação prisional
   regime: z.string().min(1, 'Regime é obrigatório'),
   unidade_prisional: z.string().min(1, 'Unidade prisional é obrigatória'),
   prontuario: z.string().optional(),
-  sei: z.string().optional(),
+  sei: z
+    .string()
+    .optional()
+    .refine((value) => {
+      if (!value || value.trim() === '') return true;
+      const onlyDigits = value.replace(/\D/g, '');
+      return onlyDigits.length === 17;
+    }, 'Número SEI deve conter 17 dígitos'),
   // Endereço e contato (campos antigos - compatibilidade)
   endereco: z.string().optional(),
   regiao_administrativa: z.string().optional(),
-  telefone: z.string().optional(),
+  telefone: z
+    .string()
+    .optional()
+    .refine((value) => {
+      if (!value || value.trim() === '') return true;
+      const onlyDigits = value.replace(/\D/g, '');
+      return onlyDigits.length === 10 || onlyDigits.length === 11;
+    }, 'Telefone deve conter 10 ou 11 dígitos'),
 
   // Novos campos de endereço estruturados
   cep: z.string().optional(),
@@ -61,7 +88,12 @@ export const createDetentoFichaCadastralSchema = z.object({
   complemento: z.string().optional(),
   bairro: z.string().optional(),
   cidade: z.string().optional(),
-  estado: z.string().optional(),
+  estado: z
+    .string()
+    .optional()
+    .refine((value) => !value || /^[A-Z]{2}$/.test(value), {
+      message: 'Estado deve conter 2 letras (UF)',
+    }),
   // Região Administrativa (específico para DF)
   ra_df: z.string().optional(),
   // Escolaridade
@@ -74,9 +106,17 @@ export const createDetentoFichaCadastralSchema = z.object({
   // Experiência e qualificação
   experiencia_profissional: z.string().optional(),
   fez_curso_sistema_prisional: z.string().optional(),
-  disponibilidade_trabalho: z.string().optional(),
+  disponibilidade_trabalho: z
+    .enum(['MANHÃ', 'TARDE', 'MANHÃ e TARDE', 'SOMENTE NOITE'])
+    .optional()
+    .or(z.literal('')),
   ja_trabalhou_funap: z.boolean().default(false),
-  ano_trabalho_anterior: z.string().optional(),
+  ano_trabalho_anterior: z
+    .string()
+    .optional()
+    .refine((value) => !value || /^\d{4}$/.test(value), {
+      message: 'Ano do trabalho anterior deve estar no formato AAAA',
+    }),
   profissao_01: z.string().min(1, 'Profissão 01 é obrigatória'),
   profissao_02: z.string().optional(),
   // Artigos penais (códigos)
@@ -86,7 +126,12 @@ export const createDetentoFichaCadastralSchema = z.object({
   // Declarações e responsáveis
   responsavel_preenchimento: z.string().optional(),
   assinatura: z.string().optional(),
-  data_assinatura: z.string().optional(),
+  data_assinatura: z
+    .string()
+    .optional()
+    .refine((value) => !value || /^\d{4}-\d{2}-\d{2}$/.test(value), {
+      message: 'Data da assinatura deve estar no formato YYYY-MM-DD',
+    }),
   // Status de validação (Fase 1)
   status_validacao: z.string().optional(),
   substatus_operacional: z.string().nullable().optional(),
@@ -116,6 +161,43 @@ export const createDetentoFichaCadastralSchema = z.object({
       }
     }),
 });
+
+type AnyZodObject = z.ZodObject<z.ZodRawShape>;
+
+export const withFichaConditionalRules = <T extends AnyZodObject>(schema: T) =>
+  schema.superRefine((data, ctx) => {
+    const temProblemaSaude = Boolean(data.tem_problema_saude);
+    const problemaSaude =
+      typeof data.problema_saude === 'string' ? data.problema_saude : '';
+
+    if (temProblemaSaude && !problemaSaude.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['problema_saude'],
+        message:
+          'Informe o problema de saúde quando "Tem problema de saúde?" estiver marcado',
+      });
+    }
+
+    const jaTrabalhouFunap = Boolean(data.ja_trabalhou_funap);
+    const anoTrabalhoAnterior =
+      typeof data.ano_trabalho_anterior === 'string'
+        ? data.ano_trabalho_anterior
+        : '';
+
+    if (jaTrabalhouFunap && !anoTrabalhoAnterior.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['ano_trabalho_anterior'],
+        message:
+          'Informe o ano do trabalho anterior quando "Já trabalhou pela FUNAP?" estiver marcado',
+      });
+    }
+  });
+
+export const createDetentoFichaCadastralSchema = withFichaConditionalRules(
+  createDetentoFichaCadastralBaseSchema
+);
 
 export type CreateDetentoSchema = z.infer<typeof createDetentoSchema>;
 export type CreateDetentoFichaCadastralSchema = z.infer<typeof createDetentoFichaCadastralSchema>;

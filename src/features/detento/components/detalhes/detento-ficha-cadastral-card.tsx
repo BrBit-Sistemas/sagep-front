@@ -213,6 +213,7 @@ export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadast
                     boxShadow: 1,
                   }}
                   size="small"
+                  data-testid={`ficha-card-delete-${fichaCadastral.fichacadastral_id}`}
                 >
                   <Iconify icon="solar:trash-bin-trash-bold" width={22} height={22} />
                 </IconButton>
@@ -236,6 +237,7 @@ export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadast
                           boxShadow: 1,
                         }}
                         size="small"
+                        data-testid={`ficha-card-deactivate-${fichaCadastral.fichacadastral_id}`}
                       >
                         <Iconify icon="solar:pen-bold" width={22} height={22} />
                       </IconButton>
@@ -256,6 +258,7 @@ export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadast
                           boxShadow: 1,
                         }}
                         size="small"
+                        data-testid={`ficha-card-activate-${fichaCadastral.fichacadastral_id}`}
                       >
                         <Iconify icon="solar:pen-bold" width={22} height={22} />
                       </IconButton>
@@ -331,6 +334,7 @@ export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadast
             onClick={onConfirm}
             variant="contained"
             color={confirm.type === 'delete' ? 'error' : 'primary'}
+            data-testid={`ficha-card-confirm-${confirm.type ?? 'none'}-${fichaCadastral.fichacadastral_id}`}
           >
             Confirmar
           </Button>

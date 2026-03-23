@@ -50,6 +50,23 @@ test.describe('Ficha cadastral externa', () => {
     await expect(page.getByTestId('external-ficha-form')).toBeVisible();
   });
 
+  test('permanece na etapa de CPF ao cancelar confirmacao de CPF inexistente', async ({
+    page,
+    authenticatedApi,
+  }) => {
+    const { draft } = await buildDraftForTest(`cpf-cancelado-${Date.now()}`, authenticatedApi);
+
+    await startExternalLookup(page, draft.cpf);
+
+    const confirmDialog = page.getByTestId('external-cpf-confirm-dialog');
+    await expect(confirmDialog).toBeVisible();
+    await confirmDialog.getByRole('button', { name: /Cancelar/i }).click();
+
+    await expect(confirmDialog).not.toBeVisible();
+    await expect(page.getByTestId('external-cpf-input')).toBeVisible();
+    await expect(page.getByTestId('external-ficha-form')).toHaveCount(0);
+  });
+
   test('bloqueia criacao quando ja existe ficha ativa para o CPF', async ({
     page,
     authenticatedApi,
@@ -112,12 +129,55 @@ test.describe('Ficha cadastral externa', () => {
     await page.getByTestId('external-submit').click();
 
     await expect(page.getByText(/Nome completo é obrigatório/i).first()).toBeVisible();
+    await expect(page.getByText(/RG é obrigatório/i).first()).toBeVisible();
+    await expect(page.getByText(/Órgão expedidor é obrigatório/i).first()).toBeVisible();
+    await expect(page.getByText(/UF do RG é obrigatória/i).first()).toBeVisible();
     await expect(page.getByText(/Data de nascimento é obrigatória/i).first()).toBeVisible();
+    await expect(page.getByText(/Naturalidade é obrigatória/i).first()).toBeVisible();
+    await expect(page.getByText(/UF de naturalidade é obrigatória/i).first()).toBeVisible();
+    await expect(page.getByText(/Nome da mãe é obrigatório/i).first()).toBeVisible();
+    await expect(page.getByText(/Regime é obrigatório/i).first()).toBeVisible();
+    await expect(page.getByText(/Unidade prisional é obrigatória/i).first()).toBeVisible();
+    await expect(page.getByText(/Escolaridade é obrigatória/i).first()).toBeVisible();
     await expect(page.getByText(/Profissão 01 é obrigatória/i).first()).toBeVisible();
     await expect(page.getByText(/Selecione ao menos um artigo penal/i).first()).toBeVisible();
     await expect(page.getByTestId('external-documentos-error')).toContainText(
       /Anexe ao menos um documento em imagem/i
     );
+  });
+
+  test('exibe erros de formato e condicionais no formulario externo', async ({
+    page,
+    authenticatedApi,
+  }) => {
+    const { draft } = await buildDraftForTest(`validacao-formatos-${Date.now()}`, authenticatedApi);
+
+    await startExternalLookup(page, draft.cpf);
+    await confirmUnknownCpf(page);
+    await fillExternalFichaForm(page, draft);
+    await uploadDocuments(page, 'external-documentos', ['validPng']);
+
+    await page.getByRole('textbox', { name: /^RG/i }).first().fill('12');
+    await page.getByRole('textbox', { name: /Número SEI/i }).first().fill('12345.123456/2024-1');
+    await page.getByRole('textbox', { name: /Telefone/i }).first().fill('(61) 999');
+
+    const temProblemaSaude = page.getByRole('checkbox', { name: /Tem problema de saúde/i }).first();
+    await temProblemaSaude.click();
+    await expect(temProblemaSaude).toBeChecked();
+    await page.getByLabel(/Qual\(is\) problema\(s\) de saúde/i).fill('');
+
+    const jaTrabalhouFunap = page.getByRole('checkbox', { name: /Já trabalhou pela FUNAP/i }).first();
+    await jaTrabalhouFunap.click();
+    await expect(jaTrabalhouFunap).toBeChecked();
+    await page.getByLabel(/Ano do trabalho anterior pela FUNAP/i).fill('');
+
+    await page.getByTestId('external-submit').click();
+
+    await expect(page.getByText(/RG deve ter entre 3 e 15 caracteres/i).first()).toBeVisible();
+    await expect(page.getByText(/Número SEI deve conter 17 dígitos/i).first()).toBeVisible();
+    await expect(page.getByText(/Telefone deve conter 10 ou 11 dígitos/i).first()).toBeVisible();
+    await expect(page.getByText(/Informe o problema de saúde/i).first()).toBeVisible();
+    await expect(page.getByText(/Informe o ano do trabalho anterior/i).first()).toBeVisible();
   });
 
   test('cria uma ficha externa completa e valida o PDF gerado', async ({
@@ -189,6 +249,76 @@ test.describe('Ficha cadastral externa', () => {
     const fichas = await getFichasByDetento(authenticatedApi, detento.id);
     expect(fichas.filter((item) => item.status === 'ativa')).toHaveLength(1);
     expect(fichas.filter((item) => item.status === 'inativa').length).toBeGreaterThanOrEqual(1);
+  });
+
+  test('permite criar do zero ao pular recuperacao de ficha inativa', async ({
+    page,
+    authenticatedApi,
+  }) => {
+    const unidade = await getFirstUnidade(authenticatedApi);
+    const draft = buildFichaPayload({
+      mode: 'complete',
+      seed: `externa-skip-recover-${Date.now()}`,
+      unidadeId: unidade.id,
+      unidadeNome: unidade.nome,
+    });
+
+    const { detento } = await createDetentoWithFicha(authenticatedApi, {
+      draft,
+      status: 'inativa',
+    });
+
+    await startExternalLookup(page, draft.cpf);
+    await expect(page.getByTestId('external-recovery-step')).toBeVisible();
+    await page.getByTestId('ficha-inativa-skip').click();
+
+    await expect(page.getByTestId('external-ficha-form')).toBeVisible();
+    await expect(page.locator('input[name="rg"]').first()).toHaveValue('');
+
+    await fillExternalFichaForm(page, draft, { complete: true });
+    await uploadDocuments(page, 'external-documentos', ['validPng']);
+    await page.getByTestId('external-submit').click();
+
+    await expect(page.getByTestId('external-success-alert')).toContainText(
+      /Ficha cadastral criada com sucesso/i
+    );
+
+    const fichas = await getFichasByDetento(authenticatedApi, detento.id);
+    expect(fichas.filter((item) => item.status === 'ativa')).toHaveLength(1);
+    expect(fichas.filter((item) => item.status === 'inativa').length).toBeGreaterThanOrEqual(1);
+  });
+
+  test('exibe erro quando a API falha ao salvar ficha externa', async ({
+    page,
+    authenticatedApi,
+  }) => {
+    const { draft } = await buildDraftForTest(`externa-erro-api-${Date.now()}`, authenticatedApi);
+
+    await startExternalLookup(page, draft.cpf);
+    await confirmUnknownCpf(page);
+    await fillExternalFichaForm(page, draft);
+    await uploadDocuments(page, 'external-documentos', ['validPng']);
+
+    let failOnce = true;
+    await page.route('**/fichas-cadastrais', async (route) => {
+      if (route.request().method() === 'POST' && failOnce) {
+        failOnce = false;
+        await route.fulfill({
+          status: 500,
+          contentType: 'application/json',
+          body: JSON.stringify({ message: 'Falha simulada ao salvar ficha externa' }),
+        });
+        return;
+      }
+      await route.continue();
+    });
+
+    await page.getByTestId('external-submit').click();
+
+    await expect(page.getByTestId('external-error-alert')).toContainText(
+      /Falha simulada ao salvar ficha externa/i
+    );
+    await page.unroute('**/fichas-cadastrais');
   });
 
   test.describe.serial('@serial concorrencia', () => {
