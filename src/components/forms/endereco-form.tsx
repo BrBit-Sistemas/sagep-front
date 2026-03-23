@@ -39,15 +39,20 @@ interface EnderecoFormProps {
 }
 
 export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
-  const { control, watch, setValue, formState: { errors } } = useFormContext();
-  
+  const {
+    control,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useFormContext();
+
   const [estados, setEstados] = useState<Estado[]>([]);
   const [municipios, setMunicipios] = useState<Municipio[]>([]);
   const [loadingEstados, setLoadingEstados] = useState(false);
   const [loadingMunicipios, setLoadingMunicipios] = useState(false);
   const [loadingCep, setLoadingCep] = useState(false);
   const [errorCep, setErrorCep] = useState<string | null>(null);
-  
+
   // Ref para controlar se já carregou o CEP inicial (modo edição)
   const cepInicialCarregado = useRef(false);
 
@@ -65,7 +70,7 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
   const cep = watch('cep');
   const numero = watch('numero');
   const complemento = watch('complemento');
-  
+
   // Campos antigos (para compatibilidade)
   const enderecoAntigo = watch('endereco');
   const regiaoAdministrativa = watch('regiao_administrativa');
@@ -101,7 +106,8 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
       const carregarMunicipios = async () => {
         setLoadingMunicipios(true);
         try {
-          const municipiosData = await enderecoApiService.listarMunicipiosPorEstado(estadoSelecionado);
+          const municipiosData =
+            await enderecoApiService.listarMunicipiosPorEstado(estadoSelecionado);
           setMunicipios(municipiosData);
         } catch (error) {
           console.error('Erro ao carregar municípios:', error);
@@ -125,34 +131,33 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
         // Pegar valores atuais de numero e complemento
         const numeroAtual = numero;
         const complementoAtual = complemento;
-        
+
         // Se tem dados, é modo edição - apenas marcar como carregado e não buscar
         if (numeroAtual || complementoAtual) {
           cepInicialCarregado.current = true;
           return;
         }
       }
-      
+
       const buscarCep = async () => {
         setLoadingCep(true);
         setErrorCep(null);
-        
+
         try {
           const dadosCep = await enderecoApiService.buscarCep(cep);
-          
+
           // Preencher campos automaticamente
           setValue('logradouro', dadosCep.logradouro);
           setValue('bairro', dadosCep.bairro);
           setValue('cidade', dadosCep.cidade);
           setValue('estado', dadosCep.estado);
-          
+
           // Limpar número e complemento para usuário preencher
           setValue('numero', '');
           setValue('complemento', '');
-          
+
           // Marcar que já fez uma busca
           cepInicialCarregado.current = true;
-          
         } catch (error) {
           setErrorCep(error instanceof Error ? error.message : 'Erro ao buscar CEP');
         } finally {
@@ -192,23 +197,21 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
 
     setLoadingBuscaEndereco(true);
     setErrorBuscaEndereco(null);
-    
+
     try {
       const resultados = await enderecoApiService.buscarCepPorEndereco({
         uf: estadoBusca,
         cidade: cidadeBusca,
         logradouro: enderecoParaBusca || undefined,
       });
-      
+
       if (resultados.length === 0) {
         setErrorBuscaEndereco('Nenhum CEP encontrado para os parâmetros informados');
       }
-      
+
       setResultadosBusca(resultados);
     } catch (error) {
-      setErrorBuscaEndereco(
-        error instanceof Error ? error.message : 'Erro ao buscar endereços'
-      );
+      setErrorBuscaEndereco(error instanceof Error ? error.message : 'Erro ao buscar endereços');
       setResultadosBusca([]);
     } finally {
       setLoadingBuscaEndereco(false);
@@ -232,7 +235,12 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
           </Typography>
           <Typography variant="body2">
             <strong>Endereço:</strong> {enderecoAntigo}
-            {regiaoAdministrativa && <> • <strong>RA:</strong> {regiaoAdministrativa}</>}
+            {regiaoAdministrativa && (
+              <>
+                {' '}
+                • <strong>RA:</strong> {regiaoAdministrativa}
+              </>
+            )}
           </Typography>
         </Alert>
       )}
@@ -250,7 +258,7 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
                 placeholder="00000-000"
                 disabled={disabled || loadingCep}
                 error={!!errors.cep}
-                helperText={(errors.cep?.message as string) || "Ou busque pelo endereço"}
+                helperText={(errors.cep?.message as string) || 'Ou busque pelo endereço'}
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
@@ -279,11 +287,11 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
                 onChange={(e) => {
                   const value = e.target.value.replace(/\D/g, '');
                   let formatted = value;
-                  
+
                   if (value.length > 5) {
                     formatted = `${value.slice(0, 5)}-${value.slice(5, 8)}`;
                   }
-                  
+
                   field.onChange(formatted);
                 }}
                 fullWidth
@@ -353,11 +361,7 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
                       <Box component="span" sx={{ fontWeight: 600 }}>
                         {option.nome}
                       </Box>
-                      <Chip 
-                        label={option.sigla} 
-                        size="small" 
-                        sx={{ ml: 1 }} 
-                      />
+                      <Chip label={option.sigla} size="small" sx={{ ml: 1 }} />
                     </Box>
                   </li>
                 )}
@@ -398,7 +402,9 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
                   <TextField
                     {...params}
                     label="Cidade"
-                    placeholder={estadoSelecionado ? "Selecione a cidade" : "Primeiro selecione o estado"}
+                    placeholder={
+                      estadoSelecionado ? 'Selecione a cidade' : 'Primeiro selecione o estado'
+                    }
                     error={!!errors.cidade}
                     helperText={errors.cidade?.message as string}
                     InputProps={{
@@ -536,7 +542,11 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
                         ...params.InputProps,
                         startAdornment: (
                           <InputAdornment position="start">
-                            <Iconify icon="solar:flag-bold" width={20} sx={{ color: 'primary.main' }} />
+                            <Iconify
+                              icon="solar:flag-bold"
+                              width={20}
+                              sx={{ color: 'primary.main' }}
+                            />
                           </InputAdornment>
                         ),
                       }}
@@ -544,9 +554,7 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
                   )}
                   renderOption={(props, option) => (
                     <li {...props}>
-                      <Typography variant="body2">
-                        {option.label}
-                      </Typography>
+                      <Typography variant="body2">{option.label}</Typography>
                     </li>
                   )}
                 />
@@ -573,7 +581,6 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
         }}
       >
         <Paper sx={{ borderRadius: 1.5 }}>
-        
           <DialogTitle sx={{ pb: 2 }}>
             <Stack direction="row" alignItems="center" spacing={1.5}>
               <Box
@@ -586,11 +593,7 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
                   justifyContent: 'center',
                 }}
               >
-                <Iconify
-                  icon="solar:list-bold"
-                  width={32}
-                  sx={{ color: 'common.white' }}
-                />
+                <Iconify icon="solar:list-bold" width={32} sx={{ color: 'common.white' }} />
               </Box>
               <Box>
                 <Typography variant="h5" fontWeight={700}>
@@ -602,7 +605,7 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
               </Box>
             </Stack>
           </DialogTitle>
-          
+
           <Divider />
 
           <DialogContent sx={{ pt: 3, pb: 2 }}>
@@ -684,7 +687,9 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
                       <TextField
                         {...params}
                         label="Cidade *"
-                        placeholder={estadoBusca ? "Selecione a cidade" : "Primeiro selecione o estado"}
+                        placeholder={
+                          estadoBusca ? 'Selecione a cidade' : 'Primeiro selecione o estado'
+                        }
                         InputLabelProps={{ shrink: true }}
                       />
                     )}
@@ -731,7 +736,13 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
                 size="large"
                 onClick={handleBuscarPorEndereco}
                 disabled={!estadoBusca || !cidadeBusca || loadingBuscaEndereco}
-                startIcon={loadingBuscaEndereco ? <CircularProgress size={20} /> : <Iconify icon="solar:eye-bold" width={20} />}
+                startIcon={
+                  loadingBuscaEndereco ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    <Iconify icon="solar:eye-bold" width={20} />
+                  )
+                }
                 sx={{
                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                   '&:hover': {
@@ -770,10 +781,14 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
                     Como funciona?
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Digite o endereço que você conhece (rua, número, bairro, cidade) e
-                    encontraremos os CEPs correspondentes.
+                    Digite o endereço que você conhece (rua, número, bairro, cidade) e encontraremos
+                    os CEPs correspondentes.
                   </Typography>
-                  <Typography variant="caption" color="text.disabled" sx={{ mt: 1, display: 'block' }}>
+                  <Typography
+                    variant="caption"
+                    color="text.disabled"
+                    sx={{ mt: 1, display: 'block' }}
+                  >
                     💡 Dica: Quanto mais detalhes, melhor será o resultado!
                   </Typography>
                 </Paper>
@@ -783,7 +798,10 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
               {resultadosBusca.length > 0 && (
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5 }}>
-                    {resultadosBusca.length} {resultadosBusca.length === 1 ? 'resultado encontrado' : 'resultados encontrados'}
+                    {resultadosBusca.length}{' '}
+                    {resultadosBusca.length === 1
+                      ? 'resultado encontrado'
+                      : 'resultados encontrados'}
                   </Typography>
                   <List sx={{ p: 0, maxHeight: 400, overflow: 'auto' }}>
                     {resultadosBusca.map((resultado, index) => (
@@ -840,7 +858,11 @@ export function EnderecoForm({ disabled = false }: EnderecoFormProps) {
                                     {resultado.logradouro}
                                   </Typography>
                                   {resultado.complemento && (
-                                    <Typography variant="caption" color="primary.main" sx={{ display: 'block', fontWeight: 600, mt: 0.25 }}>
+                                    <Typography
+                                      variant="caption"
+                                      color="primary.main"
+                                      sx={{ display: 'block', fontWeight: 600, mt: 0.25 }}
+                                    >
                                       📍 {resultado.complemento}
                                     </Typography>
                                   )}
