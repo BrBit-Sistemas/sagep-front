@@ -29,6 +29,9 @@ const dashboardLayout = () => (
 
 const DetentoCadastroPage = lazy(() => import('src/features/detento/pages/cadastro'));
 const DetentoDetalhesPage = lazy(() => import('src/features/detento/pages/detalhes'));
+const DetentoFichaCadastralFormPage = lazy(
+  () => import('src/features/detento/pages/ficha-cadastral-form')
+);
 
 const UnidadePrisionalCadastroPage = lazy(
   () => import('src/features/unidades-prisionais/pages/cadastro')
@@ -93,6 +96,28 @@ export const dashboardRoutes: RouteObject[] = [
           {
             path: 'detalhes/:detentoId',
             element: <DetentoDetalhesPage />,
+          },
+          {
+            path: 'detalhes/:detentoId/ficha-cadastral/new',
+            element: (
+              <PermissionGuard
+                required={{ action: 'create', subject: 'ficha_cadastral_interno' }}
+                hasContent={false}
+              >
+                <DetentoFichaCadastralFormPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: 'detalhes/:detentoId/ficha-cadastral/:fichaCadastralId/edit',
+            element: (
+              <PermissionGuard
+                required={{ action: 'update', subject: 'ficha_cadastral_interno' }}
+                hasContent={false}
+              >
+                <DetentoFichaCadastralFormPage />
+              </PermissionGuard>
+            ),
           },
         ],
       },

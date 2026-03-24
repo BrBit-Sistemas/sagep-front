@@ -46,10 +46,13 @@ import {
 } from 'src/types/prisional';
 
 import { detentoService } from '../data';
-import { createDetentoFichaCadastralSchema } from '../schemas';
 import { parseRgOrgaoUf, fichaInativaToCreateFormValues } from '../helper';
 import { FichaDocumentosField } from '../components/ficha-documentos-field';
 import { useProfissoesAutocomplete } from '../../empresa-convenios/hooks/use-profissoes-options';
+import {
+  withFichaConditionalRules,
+  createDetentoFichaCadastralBaseSchema,
+} from '../schemas';
 import { DetentoFichaInativaSelector } from '../components/detalhes/detento-ficha-inativa-selector';
 
 // Órgãos expedidores de RG
@@ -143,12 +146,13 @@ const REGIOES_ADMINISTRATIVAS_DF = [
   { value: 'RA XXXIII - Arniqueira', label: 'RA XXXIII - Arniqueira' },
 ];
 
-const externalSchema = createDetentoFichaCadastralSchema
-  .extend({
+const externalSchema = withFichaConditionalRules(
+  createDetentoFichaCadastralBaseSchema
+    .extend({
     detento_id: z.string().optional(),
     unidade_prisional: z.string().optional(),
     unidade_id: z.preprocess(
-      (v) => (v === undefined || v === null ? '' : v),
+      (value) => (value == null ? '' : value),
       z
         .string()
         .min(1, { message: 'Unidade prisional é obrigatória' })
@@ -166,31 +170,14 @@ const externalSchema = createDetentoFichaCadastralSchema
     // Sobrescrever regime e escolaridade para aceitar valores dos enums
     regime: z.nativeEnum(Regime, { message: 'Regime é obrigatório' }),
     escolaridade: z.nativeEnum(Escolaridade, { message: 'Escolaridade é obrigatória' }),
-  })
-  .omit({
-    rg_orgao_uf: true, // Remove a validação obrigatória do campo combinado
-    rg: true, // Remove a validação do campo RG para sobrescrever
-  })
-  .extend({
-    rg_orgao_uf: z.string().optional(), // Torna o campo combinado opcional
-    rg_expedicao: z.preprocess(
-      (value) => (value === undefined || value === null ? '' : value),
-      z.string().min(1, 'Data de expedição do RG é obrigatória')
-    ),
-    rg: z.preprocess(
-      (value) => (value === undefined || value === null ? '' : value),
-      z
-        .string()
-        .trim()
-        .min(1, 'RG é obrigatório')
-        .min(3, 'RG deve ter entre 3 e 15 caracteres')
-        .max(15, 'RG deve ter entre 3 e 15 caracteres')
-    ),
-  })
-  .refine((data) => /^\d{4}-\d{2}-\d{2}$/.test(data.data_nascimento || ''), {
-    path: ['data_nascimento'],
-    message: 'Data deve estar no formato YYYY-MM-DD',
-  });
+    })
+    .omit({
+      rg_orgao_uf: true, // Remove a validação obrigatória do campo combinado
+    })
+    .extend({
+      rg_orgao_uf: z.string().optional(), // Torna o campo combinado opcional
+    })
+);
 type ExternalFichaSchema = z.infer<typeof externalSchema>;
 
 // Componente interno para campo de profissão com cache de rótulos
@@ -336,7 +323,6 @@ export default function FichaCadastralExternaPage() {
       filiacao_mae: '',
       filiacao_pai: '',
       regime: undefined,
-      unidade_id: '',
       unidade_prisional: '',
       prontuario: '',
       sei: '',
@@ -532,28 +518,11 @@ export default function FichaCadastralExternaPage() {
     return Array.from(new Set(messages)).filter(Boolean);
   };
 
-  const findFirstErrorPath = (errs: any, parentPath = ''): string | null => {
-    if (!errs || typeof errs !== 'object') return null;
-
-    for (const [key, value] of Object.entries(errs)) {
-      const path = parentPath ? `${parentPath}.${key}` : key;
-      if ((value as any)?.message) return path;
-
-      if (value && typeof value === 'object') {
-        const nested = findFirstErrorPath(value, path);
-        if (nested) return nested;
-      }
-    }
-
-    return null;
-  };
-
   const handleSubmit = methods.handleSubmit(
     async (data: any) => {
       if (!canCreate) return;
 
       let phase: 'detento' | 'ficha' | null = null;
-      const isExistingDetentoFlow = Boolean(data.detento_id);
       setError(null);
       setLoading(true);
       setErrorSummary([]);
@@ -608,6 +577,7 @@ export default function FichaCadastralExternaPage() {
           const detentoUpdateData: any = {
             nome: data.nome,
             cpf: data.cpf,
+            prontuario: prontuarioValor || undefined,
             data_nascimento: formatDateToYYYYMMDD(data.data_nascimento),
             regime: data.regime as any,
             escolaridade: data.escolaridade as any,
@@ -633,9 +603,7 @@ export default function FichaCadastralExternaPage() {
         setCreatingFicha(true);
         const unidadeNome = getUnidadeName(data.unidade_id);
         const restData: any = { ...data };
-        if (isExistingDetentoFlow) {
-          restData.prontuario = detentoEncontrado?.prontuario || undefined;
-        } else if (prontuarioValor) {
+        if (prontuarioValor) {
           restData.prontuario = prontuarioValor;
         } else {
           delete restData.prontuario;
@@ -668,6 +636,9 @@ export default function FichaCadastralExternaPage() {
         ]);
         restData.profissao_01 = resolvedProfissao01;
         restData.profissao_02 = resolvedProfissao02;
+        restData.artigos_penais = Array.isArray(restData.artigos_penais)
+          ? restData.artigos_penais.map((artigo: string | number) => String(artigo))
+          : [];
 
         // Combinar órgão expedidor e UF do RG em um campo só
         const rgOrgao = restData.rg_orgao?.trim() || '';
@@ -752,39 +723,12 @@ export default function FichaCadastralExternaPage() {
     },
     (invalid) => {
       const messages = collectErrorMessages(invalid);
-      const hasGenericInvalidInput = messages.some((msg) => /invalid input/i.test(String(msg)));
-      const hasArtigosMessage = messages.some((msg) => /artigos? penais/i.test(String(msg)));
-
-      const normalizedMessages = hasGenericInvalidInput
-        ? messages
-            .filter((msg) => !/invalid input/i.test(String(msg)))
-            .concat(
-              hasArtigosMessage
-                ? []
-                : ['Selecione ao menos um artigo penal na seção Situação Prisional.']
-            )
-        : messages;
-
-      setErrorSummary(
-        normalizedMessages.length ? normalizedMessages : ['Corrija os campos obrigatórios.']
-      );
-
-      const firstErrorPath = findFirstErrorPath(invalid);
-      if (firstErrorPath) {
-        methods.setFocus(firstErrorPath as any, { shouldSelect: true });
-
-        setTimeout(() => {
-          const input = document.querySelector(
-            `[name="${firstErrorPath}"]`
-          ) as HTMLElement | null;
-          input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 0);
-      }
+      setErrorSummary(messages.length ? messages : ['Corrija os campos obrigatórios.']);
     }
   );
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="lg" sx={{ py: 4 }} data-testid="external-ficha-page">
       <Stack spacing={3}>
         <Typography variant="h4">Ficha Cadastral (Acesso Externo)</Typography>
 
@@ -801,7 +745,11 @@ export default function FichaCadastralExternaPage() {
           <Card sx={{ p: 3 }}>
             <Stack spacing={3}>
               {successMessage && (
-                <Alert severity="success" onClose={() => setSuccessMessage(null)}>
+                <Alert
+                  severity="success"
+                  onClose={() => setSuccessMessage(null)}
+                  data-testid="external-success-alert"
+                >
                   {successMessage}
                 </Alert>
               )}
@@ -905,8 +853,16 @@ export default function FichaCadastralExternaPage() {
                   ? 'Informe o CPF do reeducando para iniciar o cadastro.'
                   : 'Esta é a tela inicial onde o CPF do reeducando seria informado para iniciar o cadastro.'}
               </Typography>
-              {activeWarning && <Alert severity="warning">{activeWarning}</Alert>}
-              {error && <Alert severity="error">{error}</Alert>}
+              {activeWarning && (
+                <Alert severity="warning" data-testid="external-active-warning">
+                  {activeWarning}
+                </Alert>
+              )}
+              {error && (
+                <Alert severity="error" data-testid="external-error-alert">
+                  {error}
+                </Alert>
+              )}
               <Grid container spacing={2}>
                 <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
@@ -916,6 +872,9 @@ export default function FichaCadastralExternaPage() {
                     disabled={!canCreate}
                     error={Boolean(cpfError)}
                     helperText={cpfError || (canCreate ? '' : 'Campo desabilitado - sem permissão')}
+                    inputProps={{
+                      'data-testid': 'external-cpf-input',
+                    }}
                     onKeyDown={(e: any) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
@@ -937,6 +896,7 @@ export default function FichaCadastralExternaPage() {
                     variant="contained"
                     disabled={canCreate && (loading || !cpf)}
                     startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
+                    data-testid="external-cpf-submit"
                   >
                     {canCreate ? (loading ? 'Buscando...' : 'Buscar') : 'Ver Formulário'}
                   </Button>
@@ -1112,7 +1072,7 @@ export default function FichaCadastralExternaPage() {
         )}
 
         {step === 'recover' && (
-          <Card sx={{ p: 3 }}>
+          <Card sx={{ p: 3 }} data-testid="external-recovery-step">
             <Stack spacing={3}>
               <Alert severity="info">
                 O reeducando já possui ficha(s) inativa(s). Você pode reaproveitar os dados de uma
@@ -1142,9 +1102,9 @@ export default function FichaCadastralExternaPage() {
         )}
 
         {step === 'form' && (
-          <Card sx={{ p: 3 }}>
+          <Card sx={{ p: 3 }} data-testid="external-ficha-form">
             {error && (
-              <Alert severity="error" sx={{ mb: 2 }}>
+              <Alert severity="error" sx={{ mb: 2 }} data-testid="external-error-alert">
                 {error}
               </Alert>
             )}
@@ -1331,16 +1291,10 @@ export default function FichaCadastralExternaPage() {
                     </Field.Select>
                   </Grid>
                   <Grid size={{ md: 4, sm: 12 }}>
-                    <Field.Text
-                      name="prontuario"
-                      label="Prontuário"
-                      disabled={Boolean(methods.watch('detento_id'))}
-                      helperText={
-                        methods.watch('detento_id')
-                          ? 'Prontuário não pode ser alterado.'
-                          : 'Campo opcional no novo cadastro.'
-                      }
-                    />
+                    <Field.Text name="prontuario" label="Prontuário" />
+                  </Grid>
+                  <Grid size={{ md: 12, sm: 12 }}>
+                    <ArticlesSelector name="artigos_penais" label="Artigos Penais*" />
                   </Grid>
                   <Grid size={{ md: 6, sm: 12 }}>
                     <Field.Text
@@ -1370,9 +1324,6 @@ export default function FichaCadastralExternaPage() {
                         methods.setValue('sei', formatted);
                       }}
                     />
-                  </Grid>
-                  <Grid size={{ md: 12, sm: 12 }}>
-                    <ArticlesSelector name="artigos_penais" label="Artigos Penais*" />
                   </Grid>
                 </Grid>
 
@@ -1517,12 +1468,12 @@ export default function FichaCadastralExternaPage() {
                     <Field.DatePicker
                       name="data_assinatura"
                       label="Data da abertura ficha"
-                      disableFuture
-                      format="DD/MM/YYYY"
-                      views={['day', 'month', 'year']}
+                      readOnly
                       slotProps={{
                         textField: {
-                          helperText: 'Selecione a data pelo calendário',
+                          InputProps: {
+                            readOnly: true,
+                          },
                         },
                       }}
                     />
@@ -1533,6 +1484,7 @@ export default function FichaCadastralExternaPage() {
                   detentoId={methods.watch('detento_id')}
                   title="7. Documentos anexados*"
                   helperText="Envie imagens legíveis e nomeie cada documento para facilitar a conferência pela equipe."
+                  testId="external-documentos"
                 />
 
                 <Stack direction="row" spacing={2}>
@@ -1551,6 +1503,7 @@ export default function FichaCadastralExternaPage() {
                     variant="contained"
                     disabled={loading || creatingDetento || !canCreate}
                     startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
+                    data-testid="external-submit"
                   >
                     {canCreate
                       ? loading
@@ -1564,7 +1517,11 @@ export default function FichaCadastralExternaPage() {
           </Card>
         )}
 
-        <Dialog open={confirmCpfOpen} onClose={() => setConfirmCpfOpen(false)}>
+        <Dialog
+          open={confirmCpfOpen}
+          onClose={() => setConfirmCpfOpen(false)}
+          data-testid="external-cpf-confirm-dialog"
+        >
           <DialogTitle>Confirmar CPF</DialogTitle>
           <DialogContent>
             <Typography variant="body2">
@@ -1584,6 +1541,7 @@ export default function FichaCadastralExternaPage() {
                 setStep('form');
               }}
               variant="contained"
+              data-testid="external-cpf-confirm-proceed"
             >
               Prosseguir
             </Button>

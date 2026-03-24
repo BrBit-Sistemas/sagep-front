@@ -2,16 +2,19 @@ import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
 import CardActionArea from '@mui/material/CardActionArea';
 
+import { paths } from 'src/routes/paths';
+import { useRouter } from 'src/routes/hooks';
+
 import { Iconify } from 'src/components/iconify';
 
 import { usePermissionCheck } from 'src/auth/guard/permission-guard';
 
-import { useDetentoDetalhesStore } from '../../stores/detento-detalhes-store';
-import { useDetentoDetalhesSearchParams } from '../../hooks/use-dentento-detalhes-search-params';
+type DetentoFichaCadastralAddCardProps = {
+  detentoId: string;
+};
 
-export const DetentoFichaCadastralAddCard = () => {
-  const { openFichaCadastralCreateDialog } = useDetentoDetalhesStore();
-  const [, setSearchParams] = useDetentoDetalhesSearchParams();
+export const DetentoFichaCadastralAddCard = ({ detentoId }: DetentoFichaCadastralAddCardProps) => {
+  const navigate = useRouter();
   const { hasPermission } = usePermissionCheck();
 
   // Permission
@@ -19,8 +22,7 @@ export const DetentoFichaCadastralAddCard = () => {
 
   const handleCreate = () => {
     if (!canCreate) return;
-    setSearchParams({ tab: 'ficha_cadastral' });
-    openFichaCadastralCreateDialog();
+    navigate.push(paths.detentos.fichaCadastralNew(detentoId));
   };
 
   if (!canCreate) {

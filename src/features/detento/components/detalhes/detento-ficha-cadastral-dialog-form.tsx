@@ -8,17 +8,14 @@ import { useForm, useWatch, useFormContext } from 'react-hook-form';
 import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
 import Divider from '@mui/material/Divider';
 import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { formatCpf } from 'src/utils/format-string';
@@ -34,6 +31,8 @@ import { Form, Field } from 'src/components/hook-form';
 import { EnderecoForm } from 'src/components/forms/endereco-form';
 
 import {
+  Regime,
+  Escolaridade,
   getRegimeOptions,
   getEscolaridadeOptions,
   getDisponibilidadeTrabalhoOptions,
@@ -42,38 +41,30 @@ import {
 import { detentoService } from '../../data';
 import { detentoKeys } from '../../hooks/keys';
 import { FichaDocumentosField } from '../ficha-documentos-field';
-import { createDetentoFichaCadastralSchema } from '../../schemas';
 import { parseRgOrgaoUf, fichaInativaToCreateFormValues } from '../../helper';
 import { DetentoFichaInativaSelector } from './detento-ficha-inativa-selector';
 import { useGetDetentoFichasInativas } from '../../hooks/use-get-detento-fichas-inativas';
-import { useDetentoDetalhesSearchParams } from '../../hooks/use-dentento-detalhes-search-params';
+import {
+  withFichaConditionalRules,
+  createDetentoFichaCadastralBaseSchema,
+} from '../../schemas';
 
 // Schema estendido para o formulário interno que inclui campos separados de RG
-const dialogFormSchema = createDetentoFichaCadastralSchema
-  .extend({
-    rg_orgao: z.string().min(1, 'Órgão expedidor é obrigatório'),
-    rg_uf: z.string().min(1, 'UF do RG é obrigatória'),
-  })
-  .omit({
-    rg_orgao_uf: true, // Remove a validação obrigatória do campo combinado
-    rg: true, // Remove a validação do campo RG para sobrescrever
-  })
-  .extend({
-    rg_orgao_uf: z.string().optional(), // Torna o campo combinado opcional
-    rg_expedicao: z.preprocess(
-      (value) => (value === undefined || value === null ? '' : value),
-      z.string().min(1, 'Data de expedição do RG é obrigatória')
-    ),
-    rg: z.preprocess(
-      (value) => (value === undefined || value === null ? '' : value),
-      z
-        .string()
-        .trim()
-        .min(1, 'RG é obrigatório')
-        .min(3, 'RG deve ter entre 3 e 15 caracteres')
-        .max(15, 'RG deve ter entre 3 e 15 caracteres')
-    ),
-  });
+const dialogFormSchema = withFichaConditionalRules(
+  createDetentoFichaCadastralBaseSchema
+    .extend({
+      rg_orgao: z.string().min(1, 'Órgão expedidor é obrigatório'),
+      rg_uf: z.string().min(1, 'UF do RG é obrigatória'),
+      regime: z.nativeEnum(Regime, { message: 'Regime é obrigatório' }),
+      escolaridade: z.nativeEnum(Escolaridade, { message: 'Escolaridade é obrigatória' }),
+    })
+    .omit({
+      rg_orgao_uf: true, // Remove a validação obrigatória do campo combinado
+    })
+    .extend({
+      rg_orgao_uf: z.string().optional(), // Torna o campo combinado opcional
+    })
+);
 
 // Órgãos expedidores de RG
 const ORGAOS_EXPEDIDORES = [
@@ -166,13 +157,13 @@ const REGIOES_ADMINISTRATIVAS_DF = [
   { value: 'RA XXXIII - Arniqueira', label: 'RA XXXIII - Arniqueira' },
 ];
 
-type DetentoFichaCadastralDialogFormProps = {
+type DetentoFichaCadastralFormProps = {
   detento: Detento;
   detentoId: string;
   fichaCadastralId?: string;
   defaultValues?: CreateDetentoFichaCadastralSchema;
-  open: boolean;
-  onClose: () => void;
+  onCancel?: () => void;
+  onSuccess?: () => void;
 };
 
 const INITIAL_VALUES: CreateDetentoFichaCadastralSchema & { rg_orgao?: string; rg_uf?: string } = {
@@ -330,17 +321,16 @@ const ProfissaoField = ({ name, label, excludeValue, onLabelUpdate }: ProfissaoF
   );
 };
 
-export const DetentoFichaCadastralDialogForm = ({
+export const DetentoFichaCadastralForm = ({
   detento,
   detentoId,
   fichaCadastralId,
   defaultValues,
-  open,
-  onClose,
-}: DetentoFichaCadastralDialogFormProps) => {
+  onCancel,
+  onSuccess,
+}: DetentoFichaCadastralFormProps) => {
   const isEditing = !!fichaCadastralId;
   const queryClient = useQueryClient();
-  const [, setSearchParams] = useDetentoDetalhesSearchParams();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showRecoverySelector, setShowRecoverySelector] = useState(false);
@@ -351,13 +341,13 @@ export const DetentoFichaCadastralDialogForm = ({
 
   const { data: fichasInativas = [], isLoading: isLoadingFichasInativas } =
     useGetDetentoFichasInativas(detentoId, {
-      enabled: open && !isEditing,
+      enabled: !isEditing,
     });
 
-  const { data: { items: unidades } = { items: [] } } = useUnidadePrisionalList({
-    page: 1,
-    limit: 1000,
-  });
+  const {
+    data: { items: unidades } = { items: [] },
+    isLoading: isLoadingUnidades,
+  } = useUnidadePrisionalList({ page: 1, limit: 1000 });
 
   // Find the unit name for display
   const getUnidadeName = useCallback(
@@ -397,7 +387,9 @@ export const DetentoFichaCadastralDialogForm = ({
       nome: detento.nome,
       cpf: detento.cpf ? formatCpf(detento.cpf) : '',
       prontuario: detento.prontuario ?? '',
-      data_nascimento: detento.data_nascimento ? formatDateToYYYYMMDD(detento.data_nascimento) : '',
+      data_nascimento: detento.data_nascimento
+        ? formatDateToYYYYMMDD(detento.data_nascimento)
+        : '',
       regime: detento.regime,
       escolaridade: detento.escolaridade,
       unidade_prisional: getUnidadeName(detento.unidade_id),
@@ -442,10 +434,11 @@ export const DetentoFichaCadastralDialogForm = ({
   );
 
   const handleSkipRecovery = useCallback(() => {
+    methods.reset(buildInitialFormValues());
     setShowRecoverySelector(false);
     setRecoveredFromFicha(null);
     setHasHandledRecoveryChoice(true);
-  }, []);
+  }, [buildInitialFormValues, methods]);
 
   // Cache compartilhado de ID -> Nome para profissões (alimentado pelos campos)
   const globalProfissaoLabelCache = useRef<Map<string, string>>(new Map());
@@ -552,9 +545,7 @@ export const DetentoFichaCadastralDialogForm = ({
         await queryClient.refetchQueries({ queryKey: detentoKeys.fichasCadastrais(detentoId) });
 
         methods.reset();
-        onClose();
-        // Keep user on ficha cadastral tab after submit
-        setSearchParams({ tab: 'ficha_cadastral' });
+        onSuccess?.();
       } catch (err: any) {
         const status = err?.response?.status;
         let message: any = err?.response?.data?.message ?? err?.message;
@@ -570,7 +561,7 @@ export const DetentoFichaCadastralDialogForm = ({
           ) {
             methods.setError('prontuario' as any, { type: 'manual', message: msg });
           } else {
-            setError(msg || 'Conflito ao salvar ficha cadastral.');
+            setError('Prontuário não está disponível.');
           }
         } else {
           setError(String(message));
@@ -581,34 +572,6 @@ export const DetentoFichaCadastralDialogForm = ({
       }
     },
     (errors) => {
-      const findFirstErrorPath = (errs: any, parentPath = ''): string | null => {
-        if (!errs || typeof errs !== 'object') return null;
-
-        for (const [key, value] of Object.entries(errs)) {
-          const path = parentPath ? `${parentPath}.${key}` : key;
-          if ((value as any)?.message) return path;
-
-          if (value && typeof value === 'object') {
-            const nested = findFirstErrorPath(value, path);
-            if (nested) return nested;
-          }
-        }
-
-        return null;
-      };
-
-      const firstErrorPath = findFirstErrorPath(errors);
-      if (firstErrorPath) {
-        methods.setFocus(firstErrorPath as any, { shouldSelect: true });
-
-        setTimeout(() => {
-          const input = document.querySelector(
-            `[name="${firstErrorPath}"]`
-          ) as HTMLElement | null;
-          input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 0);
-      }
-
       // Loga os erros do zod
       console.error('Zod validation errors:', errors);
     }
@@ -620,57 +583,62 @@ export const DetentoFichaCadastralDialogForm = ({
   // };
 
   useEffect(() => {
-    if (!open) {
-      initializedRef.current = false;
-      setShowRecoverySelector(false);
-      setRecoveredFromFicha(null);
-      setHasHandledRecoveryChoice(false);
-      return;
-    }
+    initializedRef.current = false;
+    setShowRecoverySelector(false);
+    setRecoveredFromFicha(null);
+    setHasHandledRecoveryChoice(false);
+    setError(null);
+  }, [detentoId, fichaCadastralId]);
 
-    if (initializedRef.current) {
+  useEffect(() => {
+    if (initializedRef.current || isLoadingUnidades) {
       return;
     }
 
     methods.reset(buildInitialFormValues());
     initializedRef.current = true;
-  }, [open, methods, buildInitialFormValues]);
+  }, [methods, buildInitialFormValues, isLoadingUnidades]);
 
   useEffect(() => {
-    if (!open || isEditing) {
+    if (isEditing) {
       setShowRecoverySelector(false);
       return;
     }
 
-    if (isLoadingFichasInativas || hasHandledRecoveryChoice || recoveredFromFicha) {
+    if (
+      isLoadingFichasInativas ||
+      isLoadingUnidades ||
+      hasHandledRecoveryChoice ||
+      recoveredFromFicha
+    ) {
       return;
     }
 
     setShowRecoverySelector(fichasInativas.length > 0);
   }, [
-    open,
     isEditing,
     isLoadingFichasInativas,
+    isLoadingUnidades,
     hasHandledRecoveryChoice,
     recoveredFromFicha,
     fichasInativas.length,
   ]);
 
-  const shouldShowRecoverySelector =
-    open && !isEditing && showRecoverySelector && fichasInativas.length > 0;
+  const shouldShowRecoverySelector = !isEditing && showRecoverySelector && fichasInativas.length > 0;
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth keepMounted>
-      <DialogTitle>
+    <Card sx={{ p: 3 }} data-testid="internal-ficha-form">
+      <Box sx={{ mb: 3 }}>
         <Typography variant="h6" component="div">
           Ficha Cadastral
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Preencha os campos abaixo para adicionar uma nova ficha cadastral.
+          Preencha os campos abaixo para{' '}
+          {isEditing ? 'editar a ficha cadastral.' : 'adicionar uma nova ficha cadastral.'}
         </Typography>
-      </DialogTitle>
+      </Box>
 
-      <DialogContent sx={{ pb: 0 }}>
+      <Box sx={{ pb: 0 }}>
         <Box sx={{ py: 2, display: shouldShowRecoverySelector ? 'block' : 'none' }}>
           <DetentoFichaInativaSelector
             fichasInativas={fichasInativas}
@@ -687,481 +655,485 @@ export const DetentoFichaCadastralDialogForm = ({
             </Alert>
           )}
           <Form key="detento-ficha-form" methods={methods} onSubmit={handleSubmit}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              {error && (
-                <Alert severity="error" sx={{ mb: 2 }}>
-                  {error}
-                </Alert>
-              )}
-              {loading && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
-                  <CircularProgress />
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                {error && (
+                  <Alert severity="error" sx={{ mb: 2 }} data-testid="internal-form-error">
+                    {error}
+                  </Alert>
+                )}
+                {loading && (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                    <CircularProgress />
+                  </Box>
+                )}
+                {/* 1. Identificação Pessoal */}
+                <Box sx={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      mb: 2,
+                    }}
+                  >
+                    <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 600 }}>
+                      1. Identificação Pessoal
+                    </Typography>
+                    {/* Status da Ficha (readonly, alinhado à direita) */}
+                    {(() => {
+                      const status =
+                        (methods.getValues() as any)?.status_validacao ??
+                        (defaultValues as any)?.status_validacao;
+                      const map: Record<
+                        string,
+                        {
+                          label: string;
+                          color: 'default' | 'success' | 'warning' | 'error' | 'info';
+                        }
+                      > = {
+                        VALIDADO: { label: 'Validada', color: 'success' },
+                        AGUARDANDO_VALIDACAO: { label: 'Aguardando validação', color: 'info' },
+                        REQUER_CORRECAO: { label: 'Requer correção', color: 'warning' },
+                        REJEITADA: { label: 'Rejeitada', color: 'error' },
+                        FILA_DISPONIVEL: { label: 'Na fila', color: 'info' },
+                      };
+                      const conf = map[status] || {
+                        label: status || '-',
+                        color: 'default' as const,
+                      };
+                      return (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography variant="subtitle2" color="text.secondary">
+                            Status da Ficha:
+                          </Typography>
+                          <Chip
+                            size="medium"
+                            label={conf.label}
+                            color={conf.color}
+                            variant="soft"
+                            sx={{ fontWeight: 600 }}
+                          />
+                        </Box>
+                      );
+                    })()}
+                  </Box>
+                  <Grid container spacing={2}>
+                    <Grid size={{ md: 6, sm: 12 }}>
+                      <Field.Text
+                        required
+                        name="nome"
+                        label="Nome completo"
+                        disabled
+                        helperText="Campo preenchido automaticamente com os dados do cadastro do detento"
+                      />
+                    </Grid>
+                    <Grid size={{ md: 6, sm: 12 }}>
+                      <Field.Cpf
+                        required
+                        name="cpf"
+                        label="CPF"
+                        disabled
+                        helperText="Campo preenchido automaticamente com os dados do cadastro do detento"
+                      />
+                    </Grid>
+                    <Grid size={{ md: 4, sm: 12 }}>
+                      <Field.Text required name="rg" label="RG" />
+                    </Grid>
+                    <Grid size={{ md: 4, sm: 12 }}>
+                      <Field.DatePicker
+                        name="rg_expedicao"
+                        label="Data de expedição do RG*"
+                        disableFuture
+                      />
+                    </Grid>
+                    <Grid size={{ md: 2, sm: 6 }}>
+                      <Field.Select required name="rg_orgao" label="Órgão expedidor" fullWidth>
+                        <MenuItem value="">
+                          <em>Órgão</em>
+                        </MenuItem>
+                        {ORGAOS_EXPEDIDORES.map((orgao) => (
+                          <MenuItem key={orgao.value} value={orgao.value}>
+                            {orgao.label}
+                          </MenuItem>
+                        ))}
+                      </Field.Select>
+                    </Grid>
+                    <Grid size={{ md: 2, sm: 6 }}>
+                      <Field.Select
+                        required
+                        name="rg_uf"
+                        label="UF do RG"
+                        fullWidth
+                        helperText="Estado emissor"
+                      >
+                        <MenuItem value="">
+                          <em>UF</em>
+                        </MenuItem>
+                        {ESTADOS_BRASILEIROS.map((estado) => (
+                          <MenuItem key={estado.value} value={estado.value}>
+                            {estado.value}
+                          </MenuItem>
+                        ))}
+                      </Field.Select>
+                    </Grid>
+                    <Grid size={{ md: 5, sm: 12 }}>
+                      <Field.DatePicker
+                        name="data_nascimento"
+                        label="Data de nascimento*"
+                        disableFuture
+                        disabled
+                        slotProps={{
+                          textField: {
+                            helperText:
+                              'Campo preenchido automaticamente com os dados do cadastro do detento',
+                          },
+                        }}
+                      />
+                    </Grid>
+                    <Grid size={{ md: 5, sm: 12 }}>
+                      <Field.Text required name="naturalidade" label="Naturalidade (Cidade)" />
+                    </Grid>
+                    <Grid size={{ md: 2, sm: 12 }}>
+                      <Field.Select
+                        required
+                        name="naturalidade_uf"
+                        label="UF"
+                        fullWidth
+                        helperText="Estado de nascimento"
+                      >
+                        <MenuItem value="">
+                          <em>UF</em>
+                        </MenuItem>
+                        {ESTADOS_BRASILEIROS.map((estado) => (
+                          <MenuItem key={estado.value} value={estado.value}>
+                            {estado.label}
+                          </MenuItem>
+                        ))}
+                      </Field.Select>
+                    </Grid>
+                    <Grid size={{ md: 6, sm: 12 }}>
+                      <Field.Text
+                        required
+                        name="filiacao_mae"
+                        label="Nome da mãe"
+                        disabled
+                        helperText="Campo preenchido automaticamente com os dados do cadastro do detento"
+                      />
+                    </Grid>
+                    <Grid size={{ md: 6, sm: 12 }}>
+                      <Field.Text name="filiacao_pai" label="Nome do pai (ou N/D)" />
+                    </Grid>
+                  </Grid>
                 </Box>
-              )}
-              {/* 1. Identificação Pessoal */}
-              <Box sx={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }}>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    mb: 2,
-                  }}
-                >
-                  <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 600 }}>
-                    1. Identificação Pessoal
+
+                <Divider />
+
+                {/* 2. Situação Prisional */}
+                <Box sx={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }}>
+                  <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
+                    2. Situação Prisional
                   </Typography>
-                  {/* Status da Ficha (readonly, alinhado à direita) */}
-                  {(() => {
-                    const status =
-                      (methods.getValues() as any)?.status_validacao ??
-                      (defaultValues as any)?.status_validacao;
-                    const map: Record<
-                      string,
-                      {
-                        label: string;
-                        color: 'default' | 'success' | 'warning' | 'error' | 'info';
-                      }
-                    > = {
-                      VALIDADO: { label: 'Validada', color: 'success' },
-                      AGUARDANDO_VALIDACAO: { label: 'Aguardando validação', color: 'info' },
-                      REQUER_CORRECAO: { label: 'Requer correção', color: 'warning' },
-                      REJEITADA: { label: 'Rejeitada', color: 'error' },
-                      FILA_DISPONIVEL: { label: 'Na fila', color: 'info' },
-                    };
-                    const conf = map[status] || {
-                      label: status || '-',
-                      color: 'default' as const,
-                    };
-                    return (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          Status da Ficha:
-                        </Typography>
-                        <Chip
-                          size="medium"
-                          label={conf.label}
-                          color={conf.color}
-                          variant="soft"
-                          sx={{ fontWeight: 600 }}
-                        />
-                      </Box>
-                    );
-                  })()}
+                  <Grid container spacing={2}>
+                    <Grid size={{ md: 4, sm: 12 }}>
+                      <Field.Select
+                        required
+                        name="regime"
+                        label="Regime"
+                        fullWidth
+                        disabled
+                        helperText="Campo preenchido automaticamente com os dados do cadastro do detento"
+                      >
+                        {getRegimeOptions().map((option) => (
+                          <MenuItem key={option.value} value={option.value}>
+                            {option.label}
+                          </MenuItem>
+                        ))}
+                      </Field.Select>
+                    </Grid>
+                    <Grid size={{ md: 4, sm: 12 }}>
+                      <Field.Select
+                        required
+                        name="unidade_prisional"
+                        label="Unidade prisional"
+                        fullWidth
+                        disabled
+                        helperText="Campo preenchido automaticamente com os dados do cadastro do detento"
+                      >
+                        {unidades.map((u) => (
+                          <MenuItem key={u.id} value={u.nome}>
+                            {u.nome}
+                          </MenuItem>
+                        ))}
+                      </Field.Select>
+                    </Grid>
+                    <Grid size={{ md: 4, sm: 12 }}>
+                      <Field.Text
+                        name="prontuario"
+                        label="Prontuário"
+                        disabled
+                        helperText="Campo preenchido automaticamente com os dados do cadastro do detento"
+                      />
+                    </Grid>
+                    <Grid size={{ md: 12, sm: 12 }}>
+                      <ArticlesSelector name="artigos_penais" label="Artigos Penais" />
+                    </Grid>
+                    <Grid size={{ md: 6, sm: 12 }}>
+                      <Field.Text
+                        name="sei"
+                        label="Número SEI (processo)"
+                        placeholder="Ex: 12345.123456/2024-12"
+                        helperText="Digite o número SEI do processo digital"
+                        onInput={(e: any) => {
+                          const input = e.target;
+                          const value = input.value.replace(/\D/g, ''); // Remove não-dígitos
+                          let formatted = '';
+
+                          if (value.length <= 5) {
+                            // #####
+                            formatted = value;
+                          } else if (value.length <= 11) {
+                            // #####.######
+                            formatted = `${value.slice(0, 5)}.${value.slice(5)}`;
+                          } else if (value.length <= 15) {
+                            // #####.######/####
+                            formatted = `${value.slice(0, 5)}.${value.slice(5, 11)}/${value.slice(11)}`;
+                          } else {
+                            // #####.######/####-##
+                            formatted = `${value.slice(0, 5)}.${value.slice(5, 11)}/${value.slice(11, 15)}-${value.slice(15, 17)}`;
+                          }
+
+                          input.value = formatted;
+
+                          // Salvar apenas os dígitos no formulário
+                          methods.setValue('sei', value);
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
                 </Box>
-                <Grid container spacing={2}>
-                  <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Text
-                      required
-                      name="nome"
-                      label="Nome completo"
-                      disabled
-                      helperText="Campo preenchido automaticamente com os dados do cadastro do detento"
-                    />
-                  </Grid>
-                  <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Cpf
-                      required
-                      name="cpf"
-                      label="CPF"
-                      disabled
-                      helperText="Campo preenchido automaticamente com os dados do cadastro do detento"
-                    />
-                  </Grid>
-                  <Grid size={{ md: 4, sm: 12 }}>
-                    <Field.Text required name="rg" label="RG" />
-                  </Grid>
-                  <Grid size={{ md: 4, sm: 12 }}>
-                    <Field.DatePicker
-                      name="rg_expedicao"
-                      label="Data de expedição do RG*"
-                      disableFuture
-                    />
-                  </Grid>
-                  <Grid size={{ md: 2, sm: 6 }}>
-                    <Field.Select required name="rg_orgao" label="Órgão expedidor" fullWidth>
-                      <MenuItem value="">
-                        <em>Órgão</em>
-                      </MenuItem>
-                      {ORGAOS_EXPEDIDORES.map((orgao) => (
-                        <MenuItem key={orgao.value} value={orgao.value}>
-                          {orgao.label}
-                        </MenuItem>
-                      ))}
-                    </Field.Select>
-                  </Grid>
-                  <Grid size={{ md: 2, sm: 6 }}>
-                    <Field.Select
-                      required
-                      name="rg_uf"
-                      label="UF do RG"
-                      fullWidth
-                      helperText="Estado emissor"
-                    >
-                      <MenuItem value="">
-                        <em>UF</em>
-                      </MenuItem>
-                      {ESTADOS_BRASILEIROS.map((estado) => (
-                        <MenuItem key={estado.value} value={estado.value}>
-                          {estado.value}
-                        </MenuItem>
-                      ))}
-                    </Field.Select>
-                  </Grid>
-                  <Grid size={{ md: 5, sm: 12 }}>
-                    <Field.DatePicker
-                      name="data_nascimento"
-                      label="Data de nascimento*"
-                      disableFuture
-                      disabled
-                      slotProps={{
-                        textField: {
-                          helperText:
-                            'Campo preenchido automaticamente com os dados do cadastro do detento',
-                        },
-                      }}
-                    />
-                  </Grid>
-                  <Grid size={{ md: 5, sm: 12 }}>
-                    <Field.Text required name="naturalidade" label="Naturalidade (Cidade)" />
-                  </Grid>
-                  <Grid size={{ md: 2, sm: 12 }}>
-                    <Field.Select
-                      required
-                      name="naturalidade_uf"
-                      label="UF"
-                      fullWidth
-                      helperText="Estado de nascimento"
-                    >
-                      <MenuItem value="">
-                        <em>UF</em>
-                      </MenuItem>
-                      {ESTADOS_BRASILEIROS.map((estado) => (
-                        <MenuItem key={estado.value} value={estado.value}>
-                          {estado.label}
-                        </MenuItem>
-                      ))}
-                    </Field.Select>
-                  </Grid>
-                  <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Text
-                      required
-                      name="filiacao_mae"
-                      label="Nome da mãe"
-                      disabled
-                      helperText="Campo preenchido automaticamente com os dados do cadastro do detento"
-                    />
-                  </Grid>
-                  <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Text name="filiacao_pai" label="Nome do pai (ou N/D)" />
-                  </Grid>
-                </Grid>
-              </Box>
 
-              <Divider />
+                <Divider />
 
-              {/* 2. Situação Prisional */}
-              <Box sx={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }}>
-                <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
-                  2. Situação Prisional
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid size={{ md: 4, sm: 12 }}>
-                    <Field.Select
-                      required
-                      name="regime"
-                      label="Regime"
-                      fullWidth
-                      disabled
-                      helperText="Campo preenchido automaticamente com os dados do cadastro do detento"
-                    >
-                      {getRegimeOptions().map((option) => (
-                        <MenuItem key={option.value} value={option.value}>
-                          {option.label}
-                        </MenuItem>
-                      ))}
-                    </Field.Select>
-                  </Grid>
-                  <Grid size={{ md: 4, sm: 12 }}>
-                    <Field.Select
-                      required
-                      name="unidade_prisional"
-                      label="Unidade prisional"
-                      fullWidth
-                      disabled
-                      helperText="Campo preenchido automaticamente com os dados do cadastro do detento"
-                    >
-                      {unidades.map((u) => (
-                        <MenuItem key={u.id} value={u.nome}>
-                          {u.nome}
-                        </MenuItem>
-                      ))}
-                    </Field.Select>
-                  </Grid>
-                  <Grid size={{ md: 4, sm: 12 }}>
-                    <Field.Text
-                      name="prontuario"
-                      label="Prontuário"
-                      disabled
-                      helperText="Campo preenchido automaticamente com os dados do cadastro do detento"
-                    />
-                  </Grid>
-                  <Grid size={{ md: 12, sm: 12 }}>
-                    <ArticlesSelector name="artigos_penais" label="Artigos Penais*" />
-                  </Grid>
-                  <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Text
-                      name="sei"
-                      label="Número SEI (processo)"
-                      placeholder="Ex: 12345.123456/2024-12"
-                      helperText="Digite o número SEI do processo digital"
-                      onInput={(e: any) => {
-                        const input = e.target;
-                        const value = input.value.replace(/\D/g, ''); // Remove não-dígitos
-                        let formatted = '';
+                {/* 3. Endereço e Contato */}
+                <Box sx={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }}>
+                  <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
+                    3. Endereço e Contato
+                  </Typography>
+                  <Grid container spacing={2}>
+                    {/* Novo formulário de endereço estruturado */}
+                    <Grid size={{ xs: 12 }}>
+                      <EnderecoForm disabled={loading} />
+                    </Grid>
 
-                        if (value.length <= 5) {
-                          // #####
-                          formatted = value;
-                        } else if (value.length <= 11) {
-                          // #####.######
-                          formatted = `${value.slice(0, 5)}.${value.slice(5)}`;
-                        } else if (value.length <= 15) {
-                          // #####.######/####
-                          formatted = `${value.slice(0, 5)}.${value.slice(5, 11)}/${value.slice(11)}`;
-                        } else {
-                          // #####.######/####-##
-                          formatted = `${value.slice(0, 5)}.${value.slice(5, 11)}/${value.slice(11, 15)}-${value.slice(15, 17)}`;
+                    {/* Telefone */}
+                    <Grid size={{ md: 6, sm: 12 }}>
+                      <Field.Text
+                        name="telefone"
+                        label="Telefone(s)"
+                        placeholder="Ex: (61) 99999-9999"
+                        onInput={(e: any) => {
+                          const input = e.target;
+                          const value = input.value.replace(/\D/g, ''); // Remove não-dígitos
+                          let formatted = '';
+
+                          if (value.length <= 2) {
+                            formatted = value;
+                          } else if (value.length <= 6) {
+                            formatted = `(${value.slice(0, 2)}) ${value.slice(2)}`;
+                          } else if (value.length <= 10) {
+                            formatted = `(${value.slice(0, 2)}) ${value.slice(2, 6)}-${value.slice(6)}`;
+                          } else {
+                            // Celular com 9 dígitos
+                            formatted = `(${value.slice(0, 2)}) ${value.slice(2, 7)}-${value.slice(7, 11)}`;
+                          }
+
+                          input.value = formatted;
+
+                          // Salvar apenas os dígitos no formulário
+                          methods.setValue('telefone', value);
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
+                </Box>
+
+                <Divider />
+
+                {/* 4. Escolaridade e Saúde */}
+                <Box sx={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }}>
+                  <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
+                    4. Escolaridade e Saúde
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid size={{ md: 6, sm: 12 }}>
+                      <Field.Select
+                        required
+                        name="escolaridade"
+                        label="Escolaridade"
+                        fullWidth
+                        disabled
+                        helperText="Campo preenchido automaticamente com os dados do cadastro do detento"
+                      >
+                        {getEscolaridadeOptions().map((option) => (
+                          <MenuItem key={option.value} value={option.value}>
+                            {option.label}
+                          </MenuItem>
+                        ))}
+                      </Field.Select>
+                    </Grid>
+                    <Grid size={{ md: 6, sm: 12 }}>
+                      <Field.Switch name="tem_problema_saude" label="Tem problema de saúde?" />
+                    </Grid>
+                    <Grid size={{ md: 6, sm: 12 }}>
+                      <Field.Text name="problema_saude" label="Qual(is) problema(s) de saúde?" />
+                    </Grid>
+                    <Grid size={{ md: 6, sm: 12 }}>
+                      <Field.Select
+                        name="regiao_bloqueada"
+                        label="Região Administrativa onde não pode trabalhar"
+                        fullWidth
+                        helperText="Selecione a RA onde o detento não pode trabalhar (diferente da região onde pode trabalhar)"
+                        onChange={(e: any) => {
+                          // Se uma região foi selecionada aqui e ela estava selecionada no campo permitido, limpar o campo permitido
+                          const selectedValue = e.target.value;
+                          if (selectedValue && regiaoAdministrativa === selectedValue) {
+                            methods.setValue('regiao_administrativa', '');
+                          }
+                          methods.setValue('regiao_bloqueada', selectedValue);
+                        }}
+                      >
+                        <MenuItem value="">
+                          <em>Selecione uma RA</em>
+                        </MenuItem>
+                        {REGIOES_ADMINISTRATIVAS_DF.filter(
+                          (ra) => !regiaoAdministrativa || ra.value !== regiaoAdministrativa
+                        ).map((ra) => (
+                          <MenuItem key={ra.value} value={ra.value}>
+                            {ra.label}
+                          </MenuItem>
+                        ))}
+                      </Field.Select>
+                    </Grid>
+                  </Grid>
+                </Box>
+
+                <Divider />
+
+                {/* 5. Experiência e Qualificação */}
+                <Box sx={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }}>
+                  <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
+                    5. Experiência e Qualificação
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid size={{ md: 6, sm: 12 }}>
+                      <Field.Text
+                        name="experiencia_profissional"
+                        label="Experiência profissional"
+                      />
+                    </Grid>
+                    <Grid size={{ md: 6, sm: 12 }}>
+                      <Field.Text
+                        name="fez_curso_sistema_prisional"
+                        label="Fez curso no sistema prisional? Qual?"
+                      />
+                    </Grid>
+                    <Grid size={{ md: 6, sm: 12 }}>
+                      <Field.Autocomplete
+                        name="disponibilidade_trabalho"
+                        label="Disponibilidade de trabalho"
+                        nullToEmptyString
+                        options={disponibilidadeTrabalhoOptions.map((option) => option.value)}
+                        getOptionLabel={(value) =>
+                          disponibilidadeTrabalhoOptions.find((option) => option.value === value)
+                            ?.label || String(value || '')
                         }
+                        isOptionEqualToValue={(opt, val) => String(opt) === String(val)}
+                        disablePortal
+                      />
+                    </Grid>
+                    <Grid size={{ md: 6, sm: 12 }}>
+                      <Field.Switch name="ja_trabalhou_funap" label="Já trabalhou pela FUNAP?" />
+                    </Grid>
+                    <Grid size={{ md: 6, sm: 12 }}>
+                      <Field.Text
+                        name="ano_trabalho_anterior"
+                        label="Ano do trabalho anterior pela FUNAP"
+                        placeholder="Ex: 2024"
+                        helperText="Digite o ano no formato AAAA"
+                        inputProps={{ maxLength: 4 }}
+                        onInput={(e: any) => {
+                          const input = e.target;
+                          let value = input.value.replace(/\D/g, ''); // Remove não-dígitos
 
-                        input.value = formatted;
+                          // Limitar a 4 dígitos
+                          if (value.length > 4) {
+                            value = value.slice(0, 4);
+                          }
 
-                        // Salvar apenas os dígitos no formulário
-                        methods.setValue('sei', value);
-                      }}
-                    />
+                          input.value = value;
+                          methods.setValue('ano_trabalho_anterior', value);
+                        }}
+                      />
+                    </Grid>
+                    <Grid size={{ md: 6, sm: 12 }}>
+                      <ProfissaoField
+                        name="profissao_01"
+                        label="Profissão 01*"
+                        excludeValue={profissao02 ? String(profissao02) : undefined}
+                        onLabelUpdate={handleLabelUpdate}
+                      />
+                    </Grid>
+                    <Grid size={{ md: 6, sm: 12 }}>
+                      <ProfissaoField
+                        name="profissao_02"
+                        label="Profissão 02 (opcional)"
+                        excludeValue={profissao01 ? String(profissao01) : undefined}
+                        onLabelUpdate={handleLabelUpdate}
+                      />
+                    </Grid>
                   </Grid>
-                </Grid>
-              </Box>
+                </Box>
 
-              <Divider />
-
-              {/* 3. Endereço e Contato */}
-              <Box sx={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }}>
-                <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
-                  3. Endereço e Contato
-                </Typography>
-                <Grid container spacing={2}>
-                  {/* Novo formulário de endereço estruturado */}
-                  <Grid size={{ xs: 12 }}>
-                    <EnderecoForm disabled={loading} />
+                {/* 6. Declarações e Responsáveis */}
+                <Box sx={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }}>
+                  <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
+                    6. Declarações e Responsáveis
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid size={{ md: 6, sm: 12 }}>
+                      <Field.Text name="responsavel_preenchimento" label="Nome de quem preencheu" />
+                    </Grid>
+                    <Grid size={{ md: 6, sm: 12 }}>
+                      <Field.DatePicker
+                        name="data_assinatura"
+                        label="Data da abertura ficha"
+                        readOnly
+                        slotProps={{
+                          textField: {
+                            InputProps: {
+                              readOnly: true,
+                            },
+                          },
+                        }}
+                      />
+                    </Grid>
                   </Grid>
+                </Box>
 
-                  {/* Telefone */}
-                  <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Text
-                      name="telefone"
-                      label="Telefone(s)"
-                      placeholder="Ex: (61) 99999-9999"
-                      onInput={(e: any) => {
-                        const input = e.target;
-                        const value = input.value.replace(/\D/g, ''); // Remove não-dígitos
-                        let formatted = '';
+                <Divider />
 
-                        if (value.length <= 2) {
-                          formatted = value;
-                        } else if (value.length <= 6) {
-                          formatted = `(${value.slice(0, 2)}) ${value.slice(2)}`;
-                        } else if (value.length <= 10) {
-                          formatted = `(${value.slice(0, 2)}) ${value.slice(2, 6)}-${value.slice(6)}`;
-                        } else {
-                          // Celular com 9 dígitos
-                          formatted = `(${value.slice(0, 2)}) ${value.slice(2, 7)}-${value.slice(7, 11)}`;
-                        }
+                <Box sx={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }}>
+                  <FichaDocumentosField
+                    fichaId={fichaCadastralId}
+                    detentoId={detentoId}
+                    title="7. Documentos anexados*"
+                    helperText="Anexe imagens de documentos relevantes e nomeie cada arquivo para facilitar o controle."
+                    testId="internal-documentos"
+                  />
+                </Box>
 
-                        input.value = formatted;
-
-                        // Salvar apenas os dígitos no formulário
-                        methods.setValue('telefone', value);
-                      }}
-                    />
-                  </Grid>
-                </Grid>
-              </Box>
-
-              <Divider />
-
-              {/* 4. Escolaridade e Saúde */}
-              <Box sx={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }}>
-                <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
-                  4. Escolaridade e Saúde
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Select
-                      required
-                      name="escolaridade"
-                      label="Escolaridade"
-                      fullWidth
-                      disabled
-                      helperText="Campo preenchido automaticamente com os dados do cadastro do detento"
-                    >
-                      {getEscolaridadeOptions().map((option) => (
-                        <MenuItem key={option.value} value={option.value}>
-                          {option.label}
-                        </MenuItem>
-                      ))}
-                    </Field.Select>
-                  </Grid>
-                  <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Switch name="tem_problema_saude" label="Tem problema de saúde?" />
-                  </Grid>
-                  <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Text name="problema_saude" label="Qual(is) problema(s) de saúde?" />
-                  </Grid>
-                  <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Select
-                      name="regiao_bloqueada"
-                      label="Região Administrativa onde não pode trabalhar"
-                      fullWidth
-                      helperText="Selecione a RA onde o detento não pode trabalhar (diferente da região onde pode trabalhar)"
-                      onChange={(e: any) => {
-                        // Se uma região foi selecionada aqui e ela estava selecionada no campo permitido, limpar o campo permitido
-                        const selectedValue = e.target.value;
-                        if (selectedValue && regiaoAdministrativa === selectedValue) {
-                          methods.setValue('regiao_administrativa', '');
-                        }
-                        methods.setValue('regiao_bloqueada', selectedValue);
-                      }}
-                    >
-                      <MenuItem value="">
-                        <em>Selecione uma RA</em>
-                      </MenuItem>
-                      {REGIOES_ADMINISTRATIVAS_DF.filter(
-                        (ra) => !regiaoAdministrativa || ra.value !== regiaoAdministrativa
-                      ).map((ra) => (
-                        <MenuItem key={ra.value} value={ra.value}>
-                          {ra.label}
-                        </MenuItem>
-                      ))}
-                    </Field.Select>
-                  </Grid>
-                </Grid>
-              </Box>
-
-              <Divider />
-
-              {/* 5. Experiência e Qualificação */}
-              <Box sx={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }}>
-                <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
-                  5. Experiência e Qualificação
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Text name="experiencia_profissional" label="Experiência profissional" />
-                  </Grid>
-                  <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Text
-                      name="fez_curso_sistema_prisional"
-                      label="Fez curso no sistema prisional? Qual?"
-                    />
-                  </Grid>
-                  <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Autocomplete
-                      name="disponibilidade_trabalho"
-                      label="Disponibilidade de trabalho"
-                      nullToEmptyString
-                      options={disponibilidadeTrabalhoOptions.map((option) => option.value)}
-                      getOptionLabel={(value) =>
-                        disponibilidadeTrabalhoOptions.find((option) => option.value === value)
-                          ?.label || String(value || '')
-                      }
-                      isOptionEqualToValue={(opt, val) => String(opt) === String(val)}
-                      disablePortal
-                    />
-                  </Grid>
-                  <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Switch name="ja_trabalhou_funap" label="Já trabalhou pela FUNAP?" />
-                  </Grid>
-                  <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Text
-                      name="ano_trabalho_anterior"
-                      label="Ano do trabalho anterior pela FUNAP"
-                      placeholder="Ex: 2024"
-                      helperText="Digite o ano no formato AAAA"
-                      inputProps={{ maxLength: 4 }}
-                      onInput={(e: any) => {
-                        const input = e.target;
-                        let value = input.value.replace(/\D/g, ''); // Remove não-dígitos
-
-                        // Limitar a 4 dígitos
-                        if (value.length > 4) {
-                          value = value.slice(0, 4);
-                        }
-
-                        input.value = value;
-                        methods.setValue('ano_trabalho_anterior', value);
-                      }}
-                    />
-                  </Grid>
-                  <Grid size={{ md: 6, sm: 12 }}>
-                    <ProfissaoField
-                      name="profissao_01"
-                      label="Profissão 01*"
-                      excludeValue={profissao02 ? String(profissao02) : undefined}
-                      onLabelUpdate={handleLabelUpdate}
-                    />
-                  </Grid>
-                  <Grid size={{ md: 6, sm: 12 }}>
-                    <ProfissaoField
-                      name="profissao_02"
-                      label="Profissão 02 (opcional)"
-                      excludeValue={profissao01 ? String(profissao01) : undefined}
-                      onLabelUpdate={handleLabelUpdate}
-                    />
-                  </Grid>
-                </Grid>
-              </Box>
-
-              {/* 6. Declarações e Responsáveis */}
-              <Box sx={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }}>
-                <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
-                  6. Declarações e Responsáveis
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.Text name="responsavel_preenchimento" label="Nome de quem preencheu" />
-                  </Grid>
-                  <Grid size={{ md: 6, sm: 12 }}>
-                    <Field.DatePicker
-                      name="data_assinatura"
-                      label="Data da abertura ficha"
-                      disableFuture
-                      format="DD/MM/YYYY"
-                      views={['day', 'month', 'year']}
-                      slotProps={{
-                        textField: {
-                          helperText: 'Selecione a data pelo calendário',
-                        },
-                      }}
-                    />
-                  </Grid>
-                </Grid>
-              </Box>
-
-              <Divider />
-
-              <Box sx={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }}>
-                <FichaDocumentosField
-                  fichaId={fichaCadastralId}
-                  detentoId={detentoId}
-                  title="7. Documentos anexados*"
-                  helperText="Anexe imagens de documentos relevantes e nomeie cada arquivo para facilitar o controle."
-                />
-              </Box>
-
-              {/* PDF gerado (upload manual, se necessário) */}
-              {/* <Box>
+                {/* PDF gerado (upload manual, se necessário) */}
+                {/* <Box>
               <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
                 8. Documento PDF
               </Typography>
@@ -1171,25 +1143,32 @@ export const DetentoFichaCadastralDialogForm = ({
                 </Grid>
               </Grid>
             </Box> */}
-            </Box>
-          </Form>
+              </Box>
+            </Form>
         </Box>
-      </DialogContent>
+      </Box>
 
-      <DialogActions sx={{ p: 3, pt: 2, display: shouldShowRecoverySelector ? 'none' : 'flex' }}>
-        <Button onClick={onClose} variant="outlined" color="primary" disabled={loading}>
-          Cancelar
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          variant="contained"
-          color="primary"
-          disabled={loading}
-          startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
-        >
-          {loading ? 'Salvando...' : 'Salvar'}
-        </Button>
-      </DialogActions>
-    </Dialog>
+      {!shouldShowRecoverySelector && (
+        <Box sx={{ p: 3, pt: 2, gap: 1.5, display: 'flex', justifyContent: 'flex-end' }}>
+          {onCancel && (
+            <Button onClick={onCancel} variant="outlined" color="primary" disabled={loading}>
+              Cancelar
+            </Button>
+          )}
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            color="primary"
+            disabled={loading}
+            startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
+            data-testid="internal-submit"
+          >
+            {loading ? 'Salvando...' : 'Salvar'}
+          </Button>
+        </Box>
+      )}
+    </Card>
   );
 };
+
+export const DetentoFichaCadastralDialogForm = DetentoFichaCadastralForm;
