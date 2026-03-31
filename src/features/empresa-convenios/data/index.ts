@@ -160,6 +160,9 @@ const fromApi = (dto: ReadEmpresaConvenioDto): EmpresaConvenio => ({
   percentual_gestao: dto.percentual_gestao ?? null,
   percentual_contrapartida: dto.percentual_contrapartida ?? null,
   data_fim: dto.data_fim ?? null,
+  possui_seguro_acidente: dto.possui_seguro_acidente ?? false,
+  template_contrato_id: dto.template_contrato_id,
+  template_codigo: dto.template_codigo ?? null,
   locais_execucao: (dto.locais_execucao ?? []).map((local) => ({
     local_id: local.local_id!,
     logradouro: local.logradouro,
@@ -171,21 +174,51 @@ const fromApi = (dto: ReadEmpresaConvenioDto): EmpresaConvenio => ({
     cep: local.cep ?? null,
     referencia: local.referencia ?? null,
   })),
+  responsaveis: dto.responsaveis,
+  quantidades_nivel: dto.quantidades_nivel,
 });
 
-const serializeDto = (data: CreateEmpresaConvenioSchema | UpdateEmpresaConvenioSchema) => ({
-  ...data,
-  locais_execucao: data.locais_execucao?.map((local) => ({
-    ...local,
-    local_id: local.local_id || undefined,
-    numero: local.numero || undefined,
-    complemento: local.complemento || undefined,
-    bairro: local.bairro || undefined,
-    referencia: local.referencia || undefined,
-    cep: local.cep ? local.cep.replace(/\D/g, '') : undefined,
-    estado: local.estado?.toUpperCase(),
-  })),
-  max_reeducandos: data.max_reeducandos,
-  percentual_gestao: data.percentual_gestao ?? undefined,
-  percentual_contrapartida: data.percentual_contrapartida ?? undefined,
-});
+const serializeDto = (data: CreateEmpresaConvenioSchema | UpdateEmpresaConvenioSchema) => {
+  const tabelaId = data.permite_bonus_produtividade
+    ? String(data.tabela_produtividade_id || '').trim() || undefined
+    : undefined;
+  const responsaveis = (data.responsaveis ?? [])
+    .filter((r) => r.nome?.trim())
+    .map((r) => ({
+      tipo: r.tipo,
+      nome: r.nome!.trim(),
+      cargo: r.cargo?.trim() || undefined,
+      documento: r.documento?.trim() || undefined,
+      email: r.email?.trim() || undefined,
+      telefone: r.telefone?.trim() || undefined,
+    }));
+  return {
+    ...data,
+    locais_execucao: data.locais_execucao?.map((local) => ({
+      ...local,
+      local_id: local.local_id || undefined,
+      numero: local.numero || undefined,
+      complemento: local.complemento || undefined,
+      bairro: local.bairro || undefined,
+      referencia: local.referencia || undefined,
+      cep: local.cep ? local.cep.replace(/\D/g, '') : undefined,
+      estado: local.estado?.toUpperCase(),
+    })),
+    max_reeducandos: data.max_reeducandos,
+    percentual_gestao: data.percentual_gestao ?? undefined,
+    percentual_contrapartida: data.percentual_contrapartida ?? undefined,
+    horario_inicio: data.horario_inicio ?? null,
+    horario_fim: data.horario_fim ?? null,
+    tabela_produtividade_id: tabelaId,
+    tipo_cobertura_seguro: data.tipo_cobertura_seguro?.trim() || undefined,
+    observacao_seguro: data.observacao_seguro?.trim() || undefined,
+    observacao_juridica: data.observacao_juridica?.trim() || undefined,
+    clausula_adicional: data.clausula_adicional?.trim() || undefined,
+    descricao_complementar_objeto: data.descricao_complementar_objeto?.trim() || undefined,
+    observacao_operacional: data.observacao_operacional?.trim() || undefined,
+    jornada_tipo: data.jornada_tipo?.trim() || undefined,
+    escala: data.escala?.trim() || undefined,
+    responsaveis: responsaveis.length > 0 ? responsaveis : undefined,
+    quantidades_nivel: data.quantidades_nivel,
+  };
+};

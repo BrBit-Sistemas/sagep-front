@@ -43,6 +43,9 @@ const EmpresaConvenioCadastroPage = lazy(
 const EmpresaConvenioFormPage = lazy(
   () => import('src/features/empresa-convenios/pages/convenio-form-page')
 );
+const EmpresaConvenioContratoPreviewPage = lazy(
+  () => import('src/features/empresa-convenios/pages/convenio-contrato-preview-page')
+);
 const TrabalhoPenalCatalogosPage = lazy(
   () => import('src/features/trabalho-penal/pages/catalogos')
 );
@@ -194,6 +197,17 @@ export const dashboardRoutes: RouteObject[] = [
             hasContent={false}
           >
             <EmpresaConvenioFormPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: 'empresa-convenios/:convenioId/contrato-preview',
+        element: (
+          <PermissionGuard
+            required={{ action: 'read', subject: 'empresas_convenio' }}
+            hasContent={false}
+          >
+            <EmpresaConvenioContratoPreviewPage />
           </PermissionGuard>
         ),
       },

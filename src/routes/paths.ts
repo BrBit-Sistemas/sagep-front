@@ -52,6 +52,8 @@ export const paths = {
     root: ROOTS.EMPRESA_CONVENIOS,
     new: `${ROOTS.EMPRESA_CONVENIOS}/new`,
     edit: (convenioId: string) => `${ROOTS.EMPRESA_CONVENIOS}/${convenioId}/edit`,
+    contratoPreview: (convenioId: string) =>
+      `${ROOTS.EMPRESA_CONVENIOS}/${convenioId}/contrato-preview`,
   },
   trabalhoPenalCatalogos: {
     root: ROOTS.TRABALHO_PENAL,

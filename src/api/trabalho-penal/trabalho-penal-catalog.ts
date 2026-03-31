@@ -35,6 +35,8 @@ export type ReadPoliticaBeneficioCatalogDto = {
   valor_transporte_padrao: number;
   valor_alimentacao_padrao: number;
   variavel_por_dia: boolean;
+  observacao_regra_transporte?: string | null;
+  observacao_regra_alimentacao?: string | null;
 };
 
 export type CreatePoliticaBeneficioDto = {
@@ -43,6 +45,8 @@ export type CreatePoliticaBeneficioDto = {
   valor_transporte_padrao?: number;
   valor_alimentacao_padrao?: number;
   variavel_por_dia?: boolean;
+  observacao_regra_transporte?: string;
+  observacao_regra_alimentacao?: string;
 };
 
 export type UpdatePoliticaBeneficioDto = Partial<CreatePoliticaBeneficioDto>;

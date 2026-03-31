@@ -1,4 +1,5 @@
 import type { AuditableEntity } from 'src/types';
+import type { CodigoTemplateContrato } from 'src/api/empresa-convenios/convenio-contrato-catalog';
 
 export type ModalidadeExecucao = 'INTRAMUROS' | 'EXTRAMUROS';
 
@@ -12,6 +13,22 @@ export type EmpresaConvenioLocal = {
   estado: string;
   cep?: string | null;
   referencia?: string | null;
+};
+
+export type ConvenioResponsavel = {
+  convenio_responsavel_id?: string;
+  tipo: 'REPRESENTANTE_LEGAL' | 'PREPOSTO_OPERACIONAL';
+  nome: string;
+  cargo?: string | null;
+  documento?: string | null;
+  email?: string | null;
+  telefone?: string | null;
+};
+
+export type ConvenioQuantidadeNivel = {
+  convenio_quantidade_nivel_id?: string;
+  nivel: 'I' | 'II' | 'III';
+  quantidade: number;
 };
 
 export type EmpresaConvenio = {
@@ -32,6 +49,23 @@ export type EmpresaConvenio = {
   percentual_contrapartida?: number | null;
   observacoes?: string;
   locais_execucao?: EmpresaConvenioLocal[];
+  template_contrato_id: string;
+  template_codigo?: CodigoTemplateContrato | null;
+  jornada_tipo?: string | null;
+  carga_horaria_semanal?: number | null;
+  escala?: string | null;
+  horario_inicio?: string | null;
+  horario_fim?: string | null;
+  possui_seguro_acidente: boolean;
+  tipo_cobertura_seguro?: string | null;
+  observacao_seguro?: string | null;
+  observacao_juridica?: string | null;
+  clausula_adicional?: string | null;
+  descricao_complementar_objeto?: string | null;
+  observacao_operacional?: string | null;
+  tabela_produtividade_id?: string | null;
+  responsaveis?: ConvenioResponsavel[];
+  quantidades_nivel?: ConvenioQuantidadeNivel[];
 } & AuditableEntity;
 
 export type EmpresaConvenioListParams = {

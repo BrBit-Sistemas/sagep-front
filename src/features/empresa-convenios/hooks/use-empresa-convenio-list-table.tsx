@@ -49,6 +49,11 @@ export const useEmpresaConvenioListTable = () => {
     [navigate]
   );
 
+  const onContratoPreview = useCallback(
+    (item: EmpresaConvenio) => navigate(paths.empresaConvenios.contratoPreview(item.convenio_id)),
+    [navigate]
+  );
+
   const columns = useMemo(
     (): GridColDef<EmpresaConvenio>[] => [
       {
@@ -103,8 +108,22 @@ export const useEmpresaConvenioListTable = () => {
           if (isLoading) return [] as React.ReactElement<GridActionsCellItemProps>[];
           const actions: React.ReactElement<GridActionsCellItemProps>[] = [];
 
+          const canRead = hasPermission({ action: 'read', subject: 'empresas_convenio' });
           const canUpdate = hasPermission({ action: 'update', subject: 'empresas_convenio' });
           const canDelete = hasPermission({ action: 'delete', subject: 'empresas_convenio' });
+
+          if (canRead) {
+            actions.push(
+              (
+                <CustomGridActionsCellItem
+                  showInMenu
+                  label="Preview do contrato"
+                  icon={<Iconify icon="solar:file-text-bold" />}
+                  onClick={() => onContratoPreview(params.row)}
+                />
+              ) as unknown as React.ReactElement<GridActionsCellItemProps>
+            );
+          }
 
           if (canUpdate) {
             actions.push(
@@ -137,7 +156,15 @@ export const useEmpresaConvenioListTable = () => {
         },
       },
     ],
-    [empresasIndex, isLoading, hasPermission, onDelete, onEdit, theme.vars.palette.error.main]
+    [
+      empresasIndex,
+      isLoading,
+      hasPermission,
+      onContratoPreview,
+      onDelete,
+      onEdit,
+      theme.vars.palette.error.main,
+    ]
   );
 
   return { columns };
