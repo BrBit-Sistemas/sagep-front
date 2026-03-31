@@ -11,6 +11,7 @@ const ROOTS = {
   DASHBOARD: '/dashboard',
   USERS: '/users',
   SETTINGS: '/configuracoes',
+  TRABALHO_PENAL: '/trabalho-penal/catalogos',
 };
 
 // ----------------------------------------------------------------------
@@ -51,6 +52,9 @@ export const paths = {
     root: ROOTS.EMPRESA_CONVENIOS,
     new: `${ROOTS.EMPRESA_CONVENIOS}/new`,
     edit: (convenioId: string) => `${ROOTS.EMPRESA_CONVENIOS}/${convenioId}/edit`,
+  },
+  trabalhoPenalCatalogos: {
+    root: ROOTS.TRABALHO_PENAL,
   },
   profissoes: {
     root: '/profissoes',
