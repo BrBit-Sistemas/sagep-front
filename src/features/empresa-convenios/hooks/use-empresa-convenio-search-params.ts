@@ -10,9 +10,7 @@ import {
 export const empresaConvenioSearchQueryParsers = {
   search: parseAsString.withDefault(''),
   empresa_id: parseAsString.withDefault(''),
-  tipo: parseAsString.withDefault(''),
   modalidade: parseAsString.withDefault(''),
-  status: parseAsString.withDefault(''),
   page: parseAsInteger.withDefault(1),
   limit: parseAsInteger.withDefault(10),
   sort: parseAsString.withDefault(''),
@@ -23,9 +21,7 @@ export const empresaConvenioSearchQueryUrlKeys: UrlKeys<typeof empresaConvenioSe
   {
     search: 'q',
     empresa_id: 'e',
-    tipo: 't',
     modalidade: 'm',
-    status: 's',
     page: 'p',
     limit: 'l',
     sort: 'so',

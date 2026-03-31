@@ -15,14 +15,18 @@ export type EmpresaConvenioLocalDto = {
 // DTOs alinhados com backend controller
 export type CreateEmpresaConvenioDto = {
   empresa_id: string;
-  tipo_codigo: string;
   modalidade_execucao: 'INTRAMUROS' | 'EXTRAMUROS';
   regimes_permitidos: number[];
-  artigos_vedados?: string[]; // idUnicos da ThereTech (ex: "DRG:33", "CP:157")
-  quantitativos_profissoes?: { profissao_id: string; quantidade: number }[];
-  data_inicio: string; // YYYY-MM-DD
+  artigos_vedados?: string[];
+  max_reeducandos?: number;
+  permite_variacao_quantidade?: boolean;
+  modelo_remuneracao_id: string;
+  politica_beneficio_id: string;
+  permite_bonus_produtividade?: boolean;
+  percentual_gestao?: number | null;
+  percentual_contrapartida?: number | null;
+  data_inicio: string;
   data_fim?: string | null;
-  status: 'RASCUNHO' | 'ATIVO' | 'SUSPENSO' | 'ENCERRADO';
   observacoes?: string;
   locais_execucao?: EmpresaConvenioLocalDto[];
 };

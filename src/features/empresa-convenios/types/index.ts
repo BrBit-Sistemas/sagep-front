@@ -1,7 +1,6 @@
 import type { AuditableEntity } from 'src/types';
 
 export type ModalidadeExecucao = 'INTRAMUROS' | 'EXTRAMUROS';
-export type StatusConvenio = 'RASCUNHO' | 'ATIVO' | 'SUSPENSO' | 'ENCERRADO';
 
 export type EmpresaConvenioLocal = {
   local_id: string;
@@ -16,17 +15,21 @@ export type EmpresaConvenioLocal = {
 };
 
 export type EmpresaConvenio = {
-  id: string; // Campo necessário para MUI DataGrid
+  id: string;
   convenio_id: string;
   empresa_id: string;
-  tipo_codigo: string;
   modalidade_execucao: ModalidadeExecucao;
   regimes_permitidos: number[];
-  artigos_vedados: string[]; // idUnicos da ThereTech (ex: "DRG:33", "CP:157")
-  quantitativos_profissoes?: { profissao_id: string; quantidade: number; escolaridade_minima?: string }[];
-  data_inicio: string; // YYYY-MM-DD
-  data_fim?: string | null; // YYYY-MM-DD
-  status: StatusConvenio;
+  artigos_vedados: string[];
+  max_reeducandos?: number | null;
+  permite_variacao_quantidade: boolean;
+  data_inicio: string;
+  data_fim?: string | null;
+  modelo_remuneracao_id: string;
+  politica_beneficio_id: string;
+  permite_bonus_produtividade: boolean;
+  percentual_gestao?: number | null;
+  percentual_contrapartida?: number | null;
   observacoes?: string;
   locais_execucao?: EmpresaConvenioLocal[];
 } & AuditableEntity;
@@ -35,5 +38,4 @@ export type EmpresaConvenioListParams = {
   page: number;
   limit: number;
   search?: string;
-  status?: StatusConvenio;
 };

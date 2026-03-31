@@ -40,6 +40,9 @@ const EmpresaCadastroPage = lazy(() => import('src/features/empresas/pages/cadas
 const EmpresaConvenioCadastroPage = lazy(
   () => import('src/features/empresa-convenios/pages/cadastro')
 );
+const EmpresaConvenioFormPage = lazy(
+  () => import('src/features/empresa-convenios/pages/convenio-form-page')
+);
 const ProfissaoCadastroPage = lazy(() => import('src/features/profissoes/pages/cadastro'));
 const RegionalCadastroPage = lazy(() => import('src/features/regionais/pages/regional-cadastro'));
 const SecretariaCadastroPage = lazy(
@@ -179,6 +182,28 @@ export const dashboardRoutes: RouteObject[] = [
       {
         path: 'empresas',
         element: <EmpresaCadastroPage />,
+      },
+      {
+        path: 'empresa-convenios/new',
+        element: (
+          <PermissionGuard
+            required={{ action: 'create', subject: 'empresas_convenio' }}
+            hasContent={false}
+          >
+            <EmpresaConvenioFormPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: 'empresa-convenios/:convenioId/edit',
+        element: (
+          <PermissionGuard
+            required={{ action: 'update', subject: 'empresas_convenio' }}
+            hasContent={false}
+          >
+            <EmpresaConvenioFormPage />
+          </PermissionGuard>
+        ),
       },
       {
         path: 'empresa-convenios',

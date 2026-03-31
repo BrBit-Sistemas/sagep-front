@@ -8,11 +8,6 @@ import {
   type PaginateEmpresaConvenioDto,
 } from 'src/api/empresa-convenios/empresa-convenios';
 
-import { CONVENIO_TIPOS } from 'src/types/prisional';
-
-// Tipos de convênio - usando constantes centralizadas
-export const convenioTipos = CONVENIO_TIPOS;
-
 // Regimes permitidos - mapeamento numérico (compatível com backend)
 // 1: Fechado, 2: Semiaberto, 3: Aberto, 4: Livramento Condicional, 5: CIME
 export const regimesOptions = [
@@ -156,10 +151,14 @@ export const empresaConvenioService: CrudService<
 
 const fromApi = (dto: ReadEmpresaConvenioDto): EmpresaConvenio => ({
   ...dto,
-  id: dto.convenio_id, // Usar convenio_id como id para o MUI DataGrid
+  id: dto.convenio_id,
   artigos_vedados: dto.artigos_vedados ?? [],
   regimes_permitidos: dto.regimes_permitidos ?? [],
-  quantitativos_profissoes: dto.quantitativos_profissoes ?? [],
+  max_reeducandos: dto.max_reeducandos ?? null,
+  permite_variacao_quantidade: dto.permite_variacao_quantidade ?? true,
+  permite_bonus_produtividade: dto.permite_bonus_produtividade ?? false,
+  percentual_gestao: dto.percentual_gestao ?? null,
+  percentual_contrapartida: dto.percentual_contrapartida ?? null,
   data_fim: dto.data_fim ?? null,
   locais_execucao: (dto.locais_execucao ?? []).map((local) => ({
     local_id: local.local_id!,
@@ -186,9 +185,7 @@ const serializeDto = (data: CreateEmpresaConvenioSchema | UpdateEmpresaConvenioS
     cep: local.cep ? local.cep.replace(/\D/g, '') : undefined,
     estado: local.estado?.toUpperCase(),
   })),
-  quantitativos_profissoes: (data.quantitativos_profissoes || []).map((q) => ({
-    profissao_id: q.profissao_id,
-    quantidade: q.quantidade,
-    escolaridade_minima: q.escolaridade_minima || undefined,
-  })),
+  max_reeducandos: data.max_reeducandos,
+  percentual_gestao: data.percentual_gestao ?? undefined,
+  percentual_contrapartida: data.percentual_contrapartida ?? undefined,
 });

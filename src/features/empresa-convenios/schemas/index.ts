@@ -1,19 +1,26 @@
-import type { StatusConvenio, ModalidadeExecucao } from '../types';
+import type { ModalidadeExecucao } from '../types';
 
 import { z } from 'zod';
 
 export const modalidadesExecucao: ModalidadeExecucao[] = ['INTRAMUROS', 'EXTRAMUROS'];
-export const statusConvenioValues: StatusConvenio[] = [
-  'RASCUNHO',
-  'ATIVO',
-  'SUSPENSO',
-  'ENCERRADO',
-];
 
-const toNumberArray = (val: unknown) => {
-  if (Array.isArray(val)) return val.map((x) => Number(x)).filter((x) => !Number.isNaN(x));
-  return [] as number[];
-};
+const toOptionalInt = z
+  .union([z.string(), z.number(), z.null(), z.undefined()])
+  .transform((v) => {
+    if (v === null || v === undefined || v === '') return undefined;
+    const n = typeof v === 'number' ? v : Number(v);
+    return Number.isNaN(n) ? undefined : n;
+  })
+  .pipe(z.number().int().min(1).optional());
+
+const optionalPercent = z
+  .union([z.string(), z.number(), z.null(), z.undefined()])
+  .transform((v) => {
+    if (v === null || v === undefined || v === '') return undefined;
+    const n = typeof v === 'number' ? v : Number(v);
+    return Number.isNaN(n) ? undefined : n;
+  })
+  .pipe(z.number().min(0).max(100).optional());
 
 const localExecucaoSchema = z.object({
   local_id: z.string().uuid().optional(),
@@ -34,7 +41,6 @@ const localExecucaoSchema = z.object({
     .or(z.literal(''))
     .transform((val) => {
       if (!val) return undefined;
-      // Remove o traço para salvar apenas números
       return val.replace(/\D/g, '');
     }),
   referencia: z.string().optional().nullable(),
@@ -42,34 +48,28 @@ const localExecucaoSchema = z.object({
 
 export const createEmpresaConvenioSchema = z.object({
   empresa_id: z.string().min(1, 'Empresa é obrigatória'),
-  tipo_codigo: z.string().min(1, 'Tipo é obrigatório'),
   modalidade_execucao: z.enum(modalidadesExecucao as [ModalidadeExecucao, ...ModalidadeExecucao[]]),
   regimes_permitidos: z
-    .preprocess(toNumberArray, z.array(z.number()))
+    .array(z.union([z.number(), z.string()]))
+    .transform((arr) =>
+      arr.map((x) => Number(x)).filter((n) => !Number.isNaN(n))
+    )
     .pipe(z.array(z.number()).min(1, 'Selecione ao menos um regime')),
   artigos_vedados: z.array(z.string()).default([]),
-  quantitativos_profissoes: z
-    .array(
-      z.object({
-        profissao_id: z.string().min(1, 'Profissão é obrigatória'),
-        quantidade: z.number().int().positive('Quantidade deve ser positiva'),
-        // Campo opcional: aceitar null/'' e normalizar para undefined
-        escolaridade_minima: z
-          .string()
-          .optional()
-          .nullable()
-          .transform((v) => (v ? v : undefined)),
-      })
-    )
-    .optional()
-    .default([]),
+  max_reeducandos: toOptionalInt,
+  permite_variacao_quantidade: z.boolean().default(true),
+  modelo_remuneracao_id: z.string().uuid('Modelo de remuneração é obrigatório'),
+  politica_beneficio_id: z.string().uuid('Política de benefício é obrigatória'),
+  permite_bonus_produtividade: z.boolean().default(false),
+  percentual_gestao: optionalPercent,
+  percentual_contrapartida: optionalPercent,
   data_inicio: z.string().min(1, 'Data de início é obrigatória'),
   data_fim: z.string().optional().nullable(),
-  status: z.enum(statusConvenioValues as [StatusConvenio, ...StatusConvenio[]]),
   observacoes: z.string().optional(),
   locais_execucao: z.array(localExecucaoSchema).optional().default([]),
 });
 
-export type CreateEmpresaConvenioSchema = z.infer<typeof createEmpresaConvenioSchema>;
+export type CreateEmpresaConvenioFormValues = z.input<typeof createEmpresaConvenioSchema>;
+export type CreateEmpresaConvenioSchema = z.output<typeof createEmpresaConvenioSchema>;
 export type UpdateEmpresaConvenioSchema = CreateEmpresaConvenioSchema;
 export type EmpresaConvenioLocalSchema = z.infer<typeof localExecucaoSchema>;

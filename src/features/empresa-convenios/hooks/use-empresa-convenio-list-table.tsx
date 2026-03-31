@@ -2,9 +2,12 @@ import type { GridColDef } from '@mui/x-data-grid/models';
 import type { GridActionsCellItemProps } from '@mui/x-data-grid';
 import type { EmpresaConvenio } from '../types';
 
+import { useNavigate } from 'react-router';
 import { useMemo, useCallback } from 'react';
 
 import { useTheme } from '@mui/material/styles';
+
+import { paths } from 'src/routes/paths';
 
 import { formatDateToDDMMYYYY } from 'src/utils/format-date';
 
@@ -13,23 +16,38 @@ import { CustomGridActionsCellItem } from 'src/components/custom-data-grid';
 
 import { usePermissionCheck } from 'src/auth/guard/permission-guard';
 
-import { convenioTipos } from '../data';
-import { useEmpresasOptions } from '../hooks/use-empresas-options';
+import { useEmpresasOptions } from './use-empresas-options';
 import { useEmpresaConvenioCadastroStore } from '../stores/empresa-convenio-cadastro-store';
+
+const modalidadeLabels: Record<string, string> = {
+  INTRAMUROS: 'Intramuros',
+  EXTRAMUROS: 'Extramuros',
+};
+
+const isConvenioAtivo = (dataFim: string | null | undefined): boolean => {
+  if (!dataFim) return true;
+  const fim = new Date(`${dataFim}T12:00:00`);
+  const hoje = new Date();
+  hoje.setHours(12, 0, 0, 0);
+  return fim >= hoje;
+};
 
 export const useEmpresaConvenioListTable = () => {
   const theme = useTheme();
-  const { openDeleteDialog, openEditDialog } = useEmpresaConvenioCadastroStore();
+  const navigate = useNavigate();
+  const { openDeleteDialog } = useEmpresaConvenioCadastroStore();
   const { isLoading, hasPermission } = usePermissionCheck();
   const { indexMap: empresasIndex } = useEmpresasOptions('');
-  const tiposIndex = useMemo(() => new Map(convenioTipos.map((t) => [t.codigo, t.descricao])), []);
 
   const onDelete = useCallback(
     (item: EmpresaConvenio) => openDeleteDialog(item),
     [openDeleteDialog]
   );
 
-  const onEdit = useCallback((item: EmpresaConvenio) => openEditDialog(item), [openEditDialog]);
+  const onEdit = useCallback(
+    (item: EmpresaConvenio) => navigate(paths.empresaConvenios.edit(item.convenio_id)),
+    [navigate]
+  );
 
   const columns = useMemo(
     (): GridColDef<EmpresaConvenio>[] => [
@@ -40,27 +58,16 @@ export const useEmpresaConvenioListTable = () => {
         valueFormatter: (value) => empresasIndex.get(value as string) ?? (value as string),
       },
       {
-        field: 'tipo_codigo',
-        headerName: 'Tipo',
-        flex: 2,
-        valueFormatter: (value) => tiposIndex.get(value as string) ?? (value as string),
-      },
-      {
         field: 'modalidade_execucao',
-        headerName: 'Modalidade',
+        headerName: 'Modalidade de execução',
         flex: 1,
+        valueFormatter: (value) => modalidadeLabels[value as string] ?? (value as string),
       },
       {
-        field: 'quantitativos_profissoes',
-        headerName: 'Vagas (total)',
+        field: 'max_reeducandos',
+        headerName: 'Máx. reeducandos',
         flex: 1,
-        valueGetter: (params: any) => {
-          const items = params?.row?.quantitativos_profissoes || [];
-          return items.reduce(
-            (sum: number, it: { quantidade?: number }) => sum + (it?.quantidade || 0),
-            0
-          );
-        },
+        valueFormatter: (value) => (value != null && value !== '' ? String(value) : '—'),
       },
       {
         field: 'data_inicio',
@@ -72,9 +79,16 @@ export const useEmpresaConvenioListTable = () => {
         field: 'data_fim',
         headerName: 'Fim',
         flex: 1,
-        valueFormatter: (value) => (value ? formatDateToDDMMYYYY(value as string) : '-'),
+        valueFormatter: (value) => (value ? formatDateToDDMMYYYY(value as string) : '—'),
       },
-      { field: 'status', headerName: 'Status', flex: 1 },
+      {
+        field: 'vigencia',
+        headerName: 'Vigência',
+        flex: 1,
+        sortable: false,
+        filterable: false,
+        valueGetter: (_value, row) => (isConvenioAtivo(row.data_fim) ? 'ATIVO' : 'ENCERRADO'),
+      },
       {
         type: 'actions',
         field: 'actions',
@@ -123,15 +137,7 @@ export const useEmpresaConvenioListTable = () => {
         },
       },
     ],
-    [
-      empresasIndex,
-      tiposIndex,
-      isLoading,
-      hasPermission,
-      onDelete,
-      onEdit,
-      theme.vars.palette.error.main,
-    ]
+    [empresasIndex, isLoading, hasPermission, onDelete, onEdit, theme.vars.palette.error.main]
   );
 
   return { columns };

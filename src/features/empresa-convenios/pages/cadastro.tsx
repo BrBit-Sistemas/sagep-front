@@ -1,6 +1,7 @@
 import type { GridSortModel, GridFilterModel, GridPaginationModel } from '@mui/x-data-grid/models';
 
 import { useCallback } from 'react';
+import { useNavigate } from 'react-router';
 
 import { Card, Button } from '@mui/material';
 
@@ -14,19 +15,14 @@ import CustomDataGrid from 'src/components/custom-data-grid/custom-data-grid';
 
 import { PermissionGuard } from 'src/auth/guard';
 
-import { empresaConvenioToFormValues } from '../helper';
 import { useEmpresaConvenioList } from '../hooks/use-empresa-convenio-list';
 import { useEmpresaConvenioListTable } from '../hooks/use-empresa-convenio-list-table';
-import { useEmpresaConvenioCadastroStore } from '../stores/empresa-convenio-cadastro-store';
 import { useEmpresaConvenioSearchParams } from '../hooks/use-empresa-convenio-search-params';
-import { EmpresaConvenioFormDialog } from '../components/cadastro/empresa-convenio-form-dialog';
 import { EmpresaConvenioDeleteDialog } from '../components/cadastro/empresa-convenio-delete-dialog';
 
 export default function EmpresaConvenioCadastroPage() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useEmpresaConvenioSearchParams();
-
-  const { selected, isFormDialogOpen, openCreateDialog, closeCreateDialog } =
-    useEmpresaConvenioCadastroStore();
 
   const { data, isLoading } = useEmpresaConvenioList(searchParams);
   const { columns } = useEmpresaConvenioListTable();
@@ -70,7 +66,7 @@ export default function EmpresaConvenioCadastroPage() {
               color="primary"
               variant="contained"
               startIcon={<Iconify icon="mingcute:add-line" />}
-              onClick={openCreateDialog}
+              onClick={() => navigate(paths.empresaConvenios.new)}
             >
               Adicionar
             </Button>
@@ -102,16 +98,6 @@ export default function EmpresaConvenioCadastroPage() {
           onSortModelChange={handleSortModelChange}
           onFilterModelChange={handleFilterModelChange}
           getRowId={(row: any) => row.id}
-        />
-
-        <EmpresaConvenioFormDialog
-          open={isFormDialogOpen}
-          onSuccess={closeCreateDialog}
-          onClose={closeCreateDialog}
-          {...(selected && {
-            defaultValues: empresaConvenioToFormValues(selected),
-            convenioId: selected.convenio_id,
-          })}
         />
 
         <EmpresaConvenioDeleteDialog />
