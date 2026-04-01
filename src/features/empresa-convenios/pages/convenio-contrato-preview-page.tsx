@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import type { ContratoPreviewDto } from 'src/api/empresa-convenios/empresa-convenios';
 import type { CodigoTemplateContrato } from 'src/api/empresa-convenios/convenio-contrato-catalog';
-import type { ResponsavelBeneficio, TipoCalculoRemuneracao } from 'src/api/trabalho-penal/trabalho-penal-catalog';
+import type { ResponsavelBeneficio, TipoCalculoRemuneracao } from 'src/api/empresa-convenios/convenio-enums';
 
 import { useParams, useNavigate } from 'react-router';
 
@@ -101,11 +101,12 @@ const regimeLabel = (code: number): string =>
   regimesOptions.find((o) => Number(o.value) === code)?.label ?? String(code);
 
 const computeSumQuantidadesNivel = (data: ContratoPreviewDto): number =>
-  data.quantidades_nivel.reduce((s, q) => s + (Number(q.quantidade) || 0), 0);
+  (data.quantidade_nivel_i ?? 0) + (data.quantidade_nivel_ii ?? 0) + (data.quantidade_nivel_iii ?? 0);
 
 const quantidadeNoNivel = (data: ContratoPreviewDto, nivel: 'I' | 'II' | 'III'): number => {
-  const row = data.quantidades_nivel.find((q) => q.nivel === nivel);
-  return row != null ? Number(row.quantidade) || 0 : 0;
+  if (nivel === 'I') return data.quantidade_nivel_i ?? 0;
+  if (nivel === 'II') return data.quantidade_nivel_ii ?? 0;
+  return data.quantidade_nivel_iii ?? 0;
 };
 
 const hasJornadaPreenchida = (data: ContratoPreviewDto): boolean =>
@@ -123,16 +124,16 @@ const papelBeneficio = (t: ResponsavelBeneficio): string => {
   return 'não aplicável a este benefício';
 };
 
-const buildResumoBeneficiosJuridico = (politica: ContratoPreviewDto['politica_beneficio']): string => {
-  const variacao = politica.variavel_por_dia
-    ? 'Os valores de referência podem variar conforme os dias efetivamente trabalhados.'
-    : 'Valores tratados como referência fixa na política (sem variação por dia).';
+const buildResumoBeneficiosConvenio = (
+  rb: ContratoPreviewDto['remuneracao_beneficios']
+): string => {
+  const variacao = rb.beneficio_variavel_por_dia
+    ? 'Os valores podem variar conforme os dias efetivamente trabalhados.'
+    : 'Valores tratados como referência fixa (sem variação por dia).';
   return (
-    `Transporte: atribuição prevista em relação à ${papelBeneficio(politica.tipo_transporte)}. ` +
-    `Alimentação: em relação à ${papelBeneficio(politica.tipo_alimentacao)}. ` +
-    `${variacao} Referências monetárias: transporte ${formatBRL(politica.valor_transporte_padrao)}, ` +
-    `alimentação ${formatBRL(politica.valor_alimentacao_padrao)}. ` +
-    `Detalhes adicionais ficam nas observações da política, quando houver.`
+    `Transporte: ${papelBeneficio(rb.transporte_responsavel)}. ` +
+    `Alimentação: ${papelBeneficio(rb.alimentacao_responsavel)}. ` +
+    `${variacao} Valores: transporte ${formatBRL(rb.valor_transporte)}, alimentação ${formatBRL(rb.valor_alimentacao)}.`
   );
 };
 
@@ -244,15 +245,12 @@ function renderPreviewBody(data: ContratoPreviewDto) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {NIVEIS_ORDEM.map((nio) => {
-                const row = data.quantidades_nivel.find((q) => q.nivel === nio);
-                return (
-                  <TableRow key={nio}>
-                    <TableCell>{nio}</TableCell>
-                    <TableCell align="right">{row != null ? row.quantidade : 0}</TableCell>
-                  </TableRow>
-                );
-              })}
+              {NIVEIS_ORDEM.map((nio) => (
+                <TableRow key={nio}>
+                  <TableCell>{nio}</TableCell>
+                  <TableCell align="right">{quantidadeNoNivel(data, nio)}</TableCell>
+                </TableRow>
+              ))}
               <TableRow>
                 <TableCell>
                   <strong>Total (I + II + III)</strong>
@@ -293,6 +291,65 @@ function renderPreviewBody(data: ContratoPreviewDto) {
             </Alert>
           ) : null}
         </Stack>
+      </PreviewSection>
+
+      <PreviewSection title="Distribuição das vagas por profissão">
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Distribuição operacional das vagas conforme cadastrado no convênio (independente de catálogos).
+        </Typography>
+        {data.distribuicao_profissoes.length ? (
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Profissão</TableCell>
+                <TableCell align="right">Qtd.</TableCell>
+                <TableCell>Nível</TableCell>
+                <TableCell>Obs.</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {data.distribuicao_profissoes.map((row) => (
+                <TableRow key={row.convenio_vaga_id}>
+                  <TableCell>{row.profissao_nome ?? row.profissao_id}</TableCell>
+                  <TableCell align="right">{row.quantidade}</TableCell>
+                  <TableCell>{row.nivel ?? '—'}</TableCell>
+                  <TableCell>
+                    <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                      {row.observacao || '—'}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ))}
+              <TableRow>
+                <TableCell>
+                  <strong>Total (linhas)</strong>
+                </TableCell>
+                <TableCell align="right">
+                  <strong>
+                    {data.distribuicao_profissoes.reduce((s, r) => s + r.quantidade, 0)}
+                  </strong>
+                </TableCell>
+                <TableCell colSpan={2} />
+              </TableRow>
+            </TableBody>
+          </Table>
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            Nenhuma profissão informada na distribuição.
+          </Typography>
+        )}
+        {data.observacao_operacional ? (
+          <Box sx={{ mt: 2 }}>
+            <PreviewField
+              label="Observação operacional"
+              value={
+                <Typography component="span" variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                  {data.observacao_operacional}
+                </Typography>
+              }
+            />
+          </Box>
+        ) : null}
       </PreviewSection>
 
       {isIntramuros || hasJornadaPreenchida(data) ? (
@@ -372,89 +429,83 @@ function renderPreviewBody(data: ContratoPreviewDto) {
           ) : null}
           {codigo === 'PADRAO_FUNAP_BENEFICIOS_CONTRATANTE' ? (
             <Alert severity="info">
-              A política de benefícios deve refletir o contratante nas rubricas indicadas; use o resumo para
-              cláusula e as observações por benefício.
+              Os valores abaixo refletem o que foi salvo no convênio (transporte/alimentação e responsáveis).
             </Alert>
           ) : null}
-          <PreviewField label="Modelo de remuneração" value={data.modelo_remuneracao.nome} />
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             <PreviewField
               label="Tipo de cálculo"
-              value={tipoCalculoLabels[data.modelo_remuneracao.tipo_calculo]}
+              value={tipoCalculoLabels[data.remuneracao_beneficios.tipo_calculo_remuneracao]}
             />
             <PreviewField
               label="Usa nível"
-              value={data.modelo_remuneracao.usa_nivel ? 'Sim' : 'Não'}
+              value={data.remuneracao_beneficios.usa_nivel ? 'Sim' : 'Não'}
             />
           </Stack>
-          {data.modelo_remuneracao.niveis?.length ? (
-            <Table size="small" sx={{ maxWidth: 400 }}>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Nível (bolsa)</TableCell>
-                  <TableCell align="right">Valor</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {data.modelo_remuneracao.niveis.map((n) => (
-                  <TableRow key={n.nivel}>
-                    <TableCell>{n.nivel}</TableCell>
-                    <TableCell align="right">{formatBRL(n.valor_bolsa)}</TableCell>
+          <Table size="small" sx={{ maxWidth: 400 }}>
+            <TableHead>
+              <TableRow>
+                <TableCell>Nível</TableCell>
+                <TableCell align="right">Valor (bolsa)</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {NIVEIS_ORDEM.map((nio) => {
+                const v =
+                  nio === 'I'
+                    ? data.remuneracao_beneficios.valor_nivel_i
+                    : nio === 'II'
+                      ? data.remuneracao_beneficios.valor_nivel_ii
+                      : data.remuneracao_beneficios.valor_nivel_iii;
+                return (
+                  <TableRow key={nio}>
+                    <TableCell>{nio}</TableCell>
+                    <TableCell align="right">{v != null ? formatBRL(Number(v)) : '—'}</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : null}
+                );
+              })}
+            </TableBody>
+          </Table>
           <Divider />
           <Typography variant="body2" fontWeight={600}>
-            Política de benefícios
+            Benefícios (dados do convênio)
           </Typography>
           <Alert severity="info" icon={false}>
             <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-              Base para texto de cláusula (benefícios)
+              Resumo para cláusula
             </Typography>
-            <Typography variant="body2">{buildResumoBeneficiosJuridico(data.politica_beneficio)}</Typography>
+            <Typography variant="body2">{buildResumoBeneficiosConvenio(data.remuneracao_beneficios)}</Typography>
           </Alert>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             <PreviewField
-              label="Transporte (papéis)"
-              value={responsavelBeneficioLabels[data.politica_beneficio.tipo_transporte]}
+              label="Transporte"
+              value={responsavelBeneficioLabels[data.remuneracao_beneficios.transporte_responsavel]}
             />
             <PreviewField
-              label="Alimentação (papéis)"
-              value={responsavelBeneficioLabels[data.politica_beneficio.tipo_alimentacao]}
+              label="Alimentação"
+              value={responsavelBeneficioLabels[data.remuneracao_beneficios.alimentacao_responsavel]}
             />
           </Stack>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             <PreviewField
-              label="Valor transporte (referência)"
-              value={formatBRL(data.politica_beneficio.valor_transporte_padrao)}
+              label="Valor transporte"
+              value={formatBRL(data.remuneracao_beneficios.valor_transporte)}
             />
             <PreviewField
-              label="Valor alimentação (referência)"
-              value={formatBRL(data.politica_beneficio.valor_alimentacao_padrao)}
+              label="Valor alimentação"
+              value={formatBRL(data.remuneracao_beneficios.valor_alimentacao)}
             />
           </Stack>
           <PreviewField
             label="Varia conforme dias trabalhados"
-            value={data.politica_beneficio.variavel_por_dia ? 'Sim' : 'Não'}
+            value={data.remuneracao_beneficios.beneficio_variavel_por_dia ? 'Sim' : 'Não'}
           />
-          {data.politica_beneficio.observacao_regra_transporte ? (
+          {data.remuneracao_beneficios.observacao_beneficio ? (
             <PreviewField
-              label="Observações — transporte"
+              label="Observação benefício"
               value={
                 <Typography component="span" variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                  {data.politica_beneficio.observacao_regra_transporte}
-                </Typography>
-              }
-            />
-          ) : null}
-          {data.politica_beneficio.observacao_regra_alimentacao ? (
-            <PreviewField
-              label="Observações — alimentação"
-              value={
-                <Typography component="span" variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                  {data.politica_beneficio.observacao_regra_alimentacao}
+                  {data.remuneracao_beneficios.observacao_beneficio}
                 </Typography>
               }
             />
@@ -468,10 +519,30 @@ function renderPreviewBody(data: ContratoPreviewDto) {
             <PreviewField label="% Gestão" value={data.percentual_gestao ?? '—'} />
             <PreviewField label="% Contrapartida" value={data.percentual_contrapartida ?? '—'} />
           </Stack>
+          {data.bonus_produtividade_descricao ? (
+            <PreviewField
+              label="Descrição do bônus"
+              value={
+                <Typography component="span" variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                  {data.bonus_produtividade_descricao}
+                </Typography>
+              }
+            />
+          ) : null}
+          {data.bonus_produtividade_tabela_json && data.bonus_produtividade_tabela_json.length > 0 ? (
+            <PreviewField
+              label="Tabela JSON (bônus)"
+              value={
+                <Typography component="span" variant="caption" sx={{ fontFamily: 'monospace' }}>
+                  {JSON.stringify(data.bonus_produtividade_tabela_json)}
+                </Typography>
+              }
+            />
+          ) : null}
           {data.tabela_produtividade ? (
             <Stack spacing={1}>
               <Typography variant="caption" color="text.secondary">
-                Tabela: {data.tabela_produtividade.nome}
+                Tabela cadastrada: {data.tabela_produtividade.nome}
               </Typography>
               <Table size="small">
                 <TableHead>

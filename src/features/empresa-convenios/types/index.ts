@@ -1,5 +1,9 @@
 import type { AuditableEntity } from 'src/types';
 import type { CodigoTemplateContrato } from 'src/api/empresa-convenios/convenio-contrato-catalog';
+import type {
+  ResponsavelBeneficio,
+  TipoCalculoRemuneracao,
+} from 'src/api/empresa-convenios/convenio-enums';
 
 export type ModalidadeExecucao = 'INTRAMUROS' | 'EXTRAMUROS';
 
@@ -25,10 +29,13 @@ export type ConvenioResponsavel = {
   telefone?: string | null;
 };
 
-export type ConvenioQuantidadeNivel = {
-  convenio_quantidade_nivel_id?: string;
-  nivel: 'I' | 'II' | 'III';
+export type ConvenioDistribuicaoProfissao = {
+  convenio_vaga_id: string;
+  profissao_id: string;
+  profissao_nome?: string;
   quantidade: number;
+  nivel?: 'I' | 'II' | 'III' | null;
+  observacao?: string;
 };
 
 export type EmpresaConvenio = {
@@ -42,9 +49,23 @@ export type EmpresaConvenio = {
   permite_variacao_quantidade: boolean;
   data_inicio: string;
   data_fim?: string | null;
-  modelo_remuneracao_id: string;
-  politica_beneficio_id: string;
+  tipo_calculo_remuneracao: TipoCalculoRemuneracao;
+  usa_nivel: boolean;
+  valor_nivel_i?: number | null;
+  valor_nivel_ii?: number | null;
+  valor_nivel_iii?: number | null;
+  transporte_responsavel: ResponsavelBeneficio;
+  alimentacao_responsavel: ResponsavelBeneficio;
+  valor_transporte: number;
+  valor_alimentacao: number;
+  beneficio_variavel_por_dia: boolean;
+  observacao_beneficio?: string | null;
+  quantidade_nivel_i?: number | null;
+  quantidade_nivel_ii?: number | null;
+  quantidade_nivel_iii?: number | null;
   permite_bonus_produtividade: boolean;
+  bonus_produtividade_descricao?: string | null;
+  bonus_produtividade_tabela_json?: Record<string, unknown>[] | null;
   percentual_gestao?: number | null;
   percentual_contrapartida?: number | null;
   observacoes?: string;
@@ -65,7 +86,7 @@ export type EmpresaConvenio = {
   observacao_operacional?: string | null;
   tabela_produtividade_id?: string | null;
   responsaveis?: ConvenioResponsavel[];
-  quantidades_nivel?: ConvenioQuantidadeNivel[];
+  distribuicao_profissoes?: ConvenioDistribuicaoProfissao[];
 } & AuditableEntity;
 
 export type EmpresaConvenioListParams = {

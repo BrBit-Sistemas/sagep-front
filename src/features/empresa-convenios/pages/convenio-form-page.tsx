@@ -39,28 +39,25 @@ import { EnderecoSearchDialog } from 'src/components/forms/endereco-search-dialo
 import { regimesOptions } from '../data';
 import { useEmpresasOptions } from '../hooks/use-empresas-options';
 import { useCreateEmpresaConvenio } from '../hooks/use-create-empresa-convenio';
-import { useUpdateEmpresaConvenio } from '../hooks/use-update-empresa-convenio';
 import { useEmpresaConvenioDetail } from '../hooks/use-empresa-convenio-detail';
-import {
-  defaultResponsaveisForm,
-  defaultQuantidadesNivelForm,
-  empresaConvenioToFormValues,
-} from '../helper';
-import {
-  useModelosRemuneracaoCatalog,
-  usePoliticasBeneficioCatalog,
-} from '../hooks/use-trabalho-penal-catalog';
+import { useUpdateEmpresaConvenio } from '../hooks/use-update-empresa-convenio';
+import { ConvenioProfissaoAutocomplete } from '../components/convenio-profissao-autocomplete';
 import {
   useTemplateContratosCatalog,
   useTabelasProdutividadeCatalog,
 } from '../hooks/use-convenio-contrato-catalog';
+import {
+  defaultResponsaveisForm,
+  empresaConvenioToFormValues,
+  defaultDistribuicaoProfissoesForm,
+} from '../helper';
 import {
   buildEmpresaConvenioSchema,
   type CreateEmpresaConvenioSchema,
   type CreateEmpresaConvenioFormValues,
 } from '../schemas';
 
-type TabValue = 'geral' | 'remuneracao' | 'responsaveis' | 'locais';
+type TabValue = 'geral' | 'remuneracao' | 'responsaveis' | 'locais' | 'profissoes';
 
 const INITIAL_VALUES: CreateEmpresaConvenioFormValues = {
   empresa_id: '',
@@ -69,9 +66,23 @@ const INITIAL_VALUES: CreateEmpresaConvenioFormValues = {
   artigos_vedados: [],
   max_reeducandos: undefined,
   permite_variacao_quantidade: true,
-  modelo_remuneracao_id: '',
-  politica_beneficio_id: '',
+  tipo_calculo_remuneracao: 'MENSAL',
+  usa_nivel: true,
+  valor_nivel_i: undefined,
+  valor_nivel_ii: undefined,
+  valor_nivel_iii: undefined,
+  transporte_responsavel: 'FUNAP',
+  alimentacao_responsavel: 'FUNAP',
+  valor_transporte: 0,
+  valor_alimentacao: 0,
+  beneficio_variavel_por_dia: true,
+  observacao_beneficio: '',
+  quantidade_nivel_i: undefined,
+  quantidade_nivel_ii: undefined,
+  quantidade_nivel_iii: undefined,
   permite_bonus_produtividade: false,
+  bonus_produtividade_descricao: '',
+  bonus_produtividade_tabela_json_raw: '',
   percentual_gestao: undefined,
   percentual_contrapartida: undefined,
   locais_execucao: [],
@@ -93,11 +104,12 @@ const INITIAL_VALUES: CreateEmpresaConvenioFormValues = {
   observacao_operacional: '',
   tabela_produtividade_id: '',
   responsaveis: defaultResponsaveisForm(),
-  quantidades_nivel: defaultQuantidadesNivelForm(),
+  distribuicao_profissoes: defaultDistribuicaoProfissoesForm(),
 };
 
 const TAB_GERAL_FIELDS: (keyof CreateEmpresaConvenioFormValues)[] = [
   'empresa_id',
+  'template_contrato_id',
   'modalidade_execucao',
   'regimes_permitidos',
   'artigos_vedados',
@@ -111,7 +123,9 @@ const TAB_GERAL_FIELDS: (keyof CreateEmpresaConvenioFormValues)[] = [
   'escala',
   'horario_inicio',
   'horario_fim',
-  'quantidades_nivel',
+  'quantidade_nivel_i',
+  'quantidade_nivel_ii',
+  'quantidade_nivel_iii',
   'observacao_juridica',
   'clausula_adicional',
   'descricao_complementar_objeto',
@@ -119,19 +133,31 @@ const TAB_GERAL_FIELDS: (keyof CreateEmpresaConvenioFormValues)[] = [
 ];
 
 const TAB_REMUNERACAO_FIELDS: (keyof CreateEmpresaConvenioFormValues)[] = [
-  'modelo_remuneracao_id',
-  'politica_beneficio_id',
+  'tipo_calculo_remuneracao',
+  'usa_nivel',
+  'valor_nivel_i',
+  'valor_nivel_ii',
+  'valor_nivel_iii',
+  'transporte_responsavel',
+  'alimentacao_responsavel',
+  'valor_transporte',
+  'valor_alimentacao',
+  'beneficio_variavel_por_dia',
+  'observacao_beneficio',
   'permite_bonus_produtividade',
+  'bonus_produtividade_descricao',
+  'bonus_produtividade_tabela_json_raw',
   'tabela_produtividade_id',
   'percentual_gestao',
   'percentual_contrapartida',
-  'template_contrato_id',
   'possui_seguro_acidente',
   'tipo_cobertura_seguro',
   'observacao_seguro',
 ];
 
 const TAB_RESPONSAVEIS_FIELDS: (keyof CreateEmpresaConvenioFormValues)[] = ['responsaveis'];
+
+const TAB_PROFISSOES_FIELDS: (keyof CreateEmpresaConvenioFormValues)[] = ['distribuicao_profissoes'];
 
 const LocalExecucaoRow = ({ idx, onRemove }: { idx: number; onRemove: () => void }) => {
   const { setValue, control } = useFormContext();
@@ -313,6 +339,11 @@ const tabNav = [
     icon: <Iconify icon="solar:user-id-bold" />,
   },
   { value: 'locais' as const, label: 'Locais de execução', icon: <Iconify icon="solar:flag-bold" /> },
+  {
+    value: 'profissoes' as const,
+    label: 'Profissões / vagas',
+    icon: <Iconify icon="solar:users-group-rounded-bold" />,
+  },
 ];
 
 function selectTabForErrors(errors: FieldErrors<CreateEmpresaConvenioFormValues>): TabValue {
@@ -320,6 +351,7 @@ function selectTabForErrors(errors: FieldErrors<CreateEmpresaConvenioFormValues>
   if (TAB_REMUNERACAO_FIELDS.some((k) => errors[k] != null)) return 'remuneracao';
   if (TAB_RESPONSAVEIS_FIELDS.some((k) => errors[k] != null)) return 'responsaveis';
   if (errors.locais_execucao != null) return 'locais';
+  if (TAB_PROFISSOES_FIELDS.some((k) => errors[k] != null)) return 'profissoes';
   return 'geral';
 }
 
@@ -332,8 +364,6 @@ export default function EmpresaConvenioFormPage() {
   );
   const { mutateAsync: createItem, isPending: isCreating } = useCreateEmpresaConvenio();
   const { mutateAsync: updateItem, isPending: isUpdating } = useUpdateEmpresaConvenio();
-  const { data: modelos, isLoading: loadingModelos } = useModelosRemuneracaoCatalog();
-  const { data: politicas, isLoading: loadingPoliticas } = usePoliticasBeneficioCatalog();
   const { data: templates, isLoading: loadingTemplates } = useTemplateContratosCatalog();
   const { data: tabelasProd, isLoading: loadingTabelasProd } = useTabelasProdutividadeCatalog();
   const [tab, setTab] = useState<TabValue>('geral');
@@ -359,17 +389,23 @@ export default function EmpresaConvenioFormPage() {
     control: methods.control,
     name: 'permite_bonus_produtividade',
   });
-  const quantidadesWatch = useWatch({ control: methods.control, name: 'quantidades_nivel' });
+  const qNivelI = useWatch({ control: methods.control, name: 'quantidade_nivel_i' });
+  const qNivelII = useWatch({ control: methods.control, name: 'quantidade_nivel_ii' });
+  const qNivelIII = useWatch({ control: methods.control, name: 'quantidade_nivel_iii' });
+  const usaNivelWatch = useWatch({ control: methods.control, name: 'usa_nivel' });
+  const distribuicaoWatch = useWatch({ control: methods.control, name: 'distribuicao_profissoes' });
   const maxReedWatch = useWatch({ control: methods.control, name: 'max_reeducandos' });
   const possuiSeguroWatch = useWatch({
     control: methods.control,
     name: 'possui_seguro_acidente',
   });
   const templateCodigo = templates?.find((t) => t.template_contrato_id === templateIdWatch)?.codigo;
-  const somaNiveis = (quantidadesWatch ?? []).reduce(
-    (s, row) => s + (Number(row?.quantidade) || 0),
-    0
-  );
+  const num = (v: unknown): number => {
+    if (v === '' || v === null || v === undefined) return 0;
+    const n = typeof v === 'number' ? v : Number(v);
+    return Number.isNaN(n) ? 0 : n;
+  };
+  const somaNiveis = num(qNivelI) + num(qNivelII) + num(qNivelIII);
   const maxR = maxReedWatch != null && maxReedWatch !== '' ? Number(maxReedWatch) : NaN;
   const ultrapassaNivel =
     !Number.isNaN(maxR) && maxR > 0 && somaNiveis > maxR;
@@ -380,6 +416,15 @@ export default function EmpresaConvenioFormPage() {
     remove: removeLocal,
   } = useFieldArray({
     name: 'locais_execucao',
+    control: methods.control,
+  });
+
+  const {
+    fields: distFields,
+    append: appendDist,
+    remove: removeDist,
+  } = useFieldArray({
+    name: 'distribuicao_profissoes',
     control: methods.control,
   });
 
@@ -398,14 +443,12 @@ export default function EmpresaConvenioFormPage() {
 
   useEffect(() => {
     if (isEditing || catalogPrefilledRef.current) return;
-    const m0 = modelos?.[0]?.modelo_remuneracao_id;
-    const p0 = politicas?.[0]?.politica_beneficio_id;
     const t0 = templates?.[0]?.template_contrato_id;
-    if (m0) methods.setValue('modelo_remuneracao_id', m0);
-    if (p0) methods.setValue('politica_beneficio_id', p0);
-    if (t0) methods.setValue('template_contrato_id', t0);
-    if (m0 && p0 && t0) catalogPrefilledRef.current = true;
-  }, [isEditing, modelos, politicas, templates, methods]);
+    if (t0) {
+      methods.setValue('template_contrato_id', t0);
+      catalogPrefilledRef.current = true;
+    }
+  }, [isEditing, templates, methods]);
 
   useEffect(() => {
     if (!permiteBonusWatch) {
@@ -413,11 +456,22 @@ export default function EmpresaConvenioFormPage() {
     }
   }, [permiteBonusWatch, methods]);
 
-  const catalogLoading =
-    loadingModelos || loadingPoliticas || loadingTemplates || loadingTabelasProd;
-  const catalogEmpty =
-    !catalogLoading &&
-    (!modelos?.length || !politicas?.length || !templates?.length);
+  const catalogLoading = loadingTemplates || loadingTabelasProd;
+  const catalogEmpty = !catalogLoading && !templates?.length;
+
+  const somaDistProf = (distribuicaoWatch ?? []).reduce((s, row) => {
+    const pid = row?.profissao_id != null ? String(row.profissao_id).trim() : '';
+    if (!pid) return s;
+    return s + num(row?.quantidade);
+  }, 0);
+  const somaDistNivel = (nivel: 'I' | 'II' | 'III'): number =>
+    (distribuicaoWatch ?? []).reduce((s, row) => {
+      const pid = row?.profissao_id != null ? String(row.profissao_id).trim() : '';
+      if (!pid) return s;
+      const nv = row?.nivel === '' || row?.nivel == null ? null : row?.nivel;
+      if (nv !== nivel) return s;
+      return s + num(row?.quantidade);
+    }, 0);
 
   const onSubmit = async (data: CreateEmpresaConvenioSchema) => {
     if (isEditing && convenioId) {
@@ -531,8 +585,7 @@ export default function EmpresaConvenioFormPage() {
 
         {catalogEmpty && (
           <Alert severity="warning" sx={{ mb: 2 }}>
-            Cadastre ao menos um modelo de remuneração, uma política de benefício e rode as
-            migrations (templates de contrato) para habilitar este formulário.
+            Cadastre templates de contrato (migrations / seed) para habilitar o seletor de modelo.
           </Alert>
         )}
 
@@ -557,6 +610,24 @@ export default function EmpresaConvenioFormPage() {
                   </MenuItem>
                 ))}
               </Field.Select>
+            </Grid>
+            <Grid size={{ md: 12, sm: 12 }}>
+              <Field.Select
+                name="template_contrato_id"
+                label="Template contratual"
+                required
+                disabled={catalogLoading || catalogEmpty}
+                slotProps={{ inputLabel: { shrink: true } }}
+              >
+                {(templates ?? []).map((t) => (
+                  <MenuItem key={t.template_contrato_id} value={t.template_contrato_id}>
+                    {t.nome} ({t.codigo})
+                  </MenuItem>
+                ))}
+              </Field.Select>
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                Orienta obrigatoriedade de campos e o PDF futuro.
+              </Typography>
             </Grid>
             <Grid size={{ md: 6, sm: 12 }}>
               <Field.Select required name="modalidade_execucao" label="Modalidade de execução">
@@ -602,7 +673,7 @@ export default function EmpresaConvenioFormPage() {
               <Grid container spacing={1}>
                 <Grid size={{ md: 4, sm: 12 }}>
                   <Field.Text
-                    name="quantidades_nivel.0.quantidade"
+                    name="quantidade_nivel_i"
                     label="Nível I"
                     type="number"
                     slotProps={{ htmlInput: { min: 0 } }}
@@ -610,7 +681,7 @@ export default function EmpresaConvenioFormPage() {
                 </Grid>
                 <Grid size={{ md: 4, sm: 12 }}>
                   <Field.Text
-                    name="quantidades_nivel.1.quantidade"
+                    name="quantidade_nivel_ii"
                     label="Nível II"
                     type="number"
                     slotProps={{ htmlInput: { min: 0 } }}
@@ -618,7 +689,7 @@ export default function EmpresaConvenioFormPage() {
                 </Grid>
                 <Grid size={{ md: 4, sm: 12 }}>
                   <Field.Text
-                    name="quantidades_nivel.2.quantidade"
+                    name="quantidade_nivel_iii"
                     label="Nível III"
                     type="number"
                     slotProps={{ htmlInput: { min: 0 } }}
@@ -704,53 +775,83 @@ export default function EmpresaConvenioFormPage() {
 
         <Box sx={{ display: tab === 'remuneracao' ? 'block' : 'none' }}>
           <Grid container spacing={2}>
+            <Grid size={{ md: 6, sm: 12 }}>
+              <Field.Select name="tipo_calculo_remuneracao" label="Tipo de cálculo da remuneração" required>
+                <MenuItem value="MENSAL">Mensal</MenuItem>
+                <MenuItem value="HORA">Por hora</MenuItem>
+                <MenuItem value="HIBRIDO">Híbrido</MenuItem>
+              </Field.Select>
+            </Grid>
+            <Grid size={{ md: 6, sm: 12 }} sx={{ display: 'flex', alignItems: 'center' }}>
+              <Field.Switch name="usa_nivel" label="Usa níveis I, II e III" />
+            </Grid>
+            <Grid size={{ md: 4, sm: 12 }}>
+              <Field.Text
+                name="valor_nivel_i"
+                label="Valor bolsa — nível I"
+                type="number"
+                slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
+              />
+            </Grid>
+            <Grid size={{ md: 4, sm: 12 }}>
+              <Field.Text
+                name="valor_nivel_ii"
+                label="Valor bolsa — nível II"
+                type="number"
+                slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
+              />
+            </Grid>
+            <Grid size={{ md: 4, sm: 12 }}>
+              <Field.Text
+                name="valor_nivel_iii"
+                label="Valor bolsa — nível III"
+                type="number"
+                slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
+              />
+            </Grid>
+            <Grid size={{ md: 6, sm: 12 }}>
+              <Field.Select name="transporte_responsavel" label="Transporte — responsável" required>
+                <MenuItem value="FUNAP">FUNAP</MenuItem>
+                <MenuItem value="EMPRESA">Empresa (contratante)</MenuItem>
+                <MenuItem value="NENHUM">Não aplicável</MenuItem>
+              </Field.Select>
+            </Grid>
+            <Grid size={{ md: 6, sm: 12 }}>
+              <Field.Select name="alimentacao_responsavel" label="Alimentação — responsável" required>
+                <MenuItem value="FUNAP">FUNAP</MenuItem>
+                <MenuItem value="EMPRESA">Empresa (contratante)</MenuItem>
+                <MenuItem value="NENHUM">Não aplicável</MenuItem>
+              </Field.Select>
+            </Grid>
+            <Grid size={{ md: 6, sm: 12 }}>
+              <Field.Text
+                name="valor_transporte"
+                label="Valor transporte"
+                type="number"
+                slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
+              />
+            </Grid>
+            <Grid size={{ md: 6, sm: 12 }}>
+              <Field.Text
+                name="valor_alimentacao"
+                label="Valor alimentação"
+                type="number"
+                slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
+              />
+            </Grid>
+            <Grid size={{ md: 12, sm: 12 }} sx={{ display: 'flex', alignItems: 'center' }}>
+              <Field.Switch
+                name="beneficio_variavel_por_dia"
+                label="Benefício variável conforme dias trabalhados"
+              />
+            </Grid>
             <Grid size={{ md: 12, sm: 12 }}>
-              <Field.Select
-                name="template_contrato_id"
-                label="Template contratual"
-                required
-                disabled={catalogLoading || catalogEmpty}
-                slotProps={{ inputLabel: { shrink: true } }}
-              >
-                {(templates ?? []).map((t) => (
-                  <MenuItem key={t.template_contrato_id} value={t.template_contrato_id}>
-                    {t.nome} ({t.codigo})
-                  </MenuItem>
-                ))}
-              </Field.Select>
-              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                Define obrigatoriedades de campos e o modelo do PDF futuro.
-              </Typography>
-            </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Select
-                name="modelo_remuneracao_id"
-                label="Modelo de remuneração"
-                required
-                disabled={catalogLoading || catalogEmpty}
-                slotProps={{ inputLabel: { shrink: true } }}
-              >
-                {(modelos ?? []).map((m) => (
-                  <MenuItem key={m.modelo_remuneracao_id} value={m.modelo_remuneracao_id}>
-                    {`${m.nome} (${m.tipo_calculo}${m.usa_nivel ? ', por nível' : ''})`}
-                  </MenuItem>
-                ))}
-              </Field.Select>
-            </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Select
-                name="politica_beneficio_id"
-                label="Política de benefício (transporte / alimentação)"
-                required
-                disabled={catalogLoading || catalogEmpty}
-                slotProps={{ inputLabel: { shrink: true } }}
-              >
-                {(politicas ?? []).map((p) => (
-                  <MenuItem key={p.politica_beneficio_id} value={p.politica_beneficio_id}>
-                    Transporte: {p.tipo_transporte} · Alimentação: {p.tipo_alimentacao}
-                  </MenuItem>
-                ))}
-              </Field.Select>
+              <Field.Text
+                name="observacao_beneficio"
+                label="Observação sobre benefícios"
+                multiline
+                rows={2}
+              />
             </Grid>
             <Grid size={{ md: 6, sm: 12 }} sx={{ display: 'flex', alignItems: 'center' }}>
               <Field.Switch
@@ -761,13 +862,12 @@ export default function EmpresaConvenioFormPage() {
             <Grid size={{ md: 6, sm: 12 }}>
               <Field.Select
                 name="tabela_produtividade_id"
-                label="Tabela de produtividade"
-                required={!!permiteBonusWatch}
+                label="Tabela de produtividade (opcional)"
                 disabled={!permiteBonusWatch || catalogLoading}
                 slotProps={{ inputLabel: { shrink: true } }}
               >
                 <MenuItem value="">
-                  <em>Selecione…</em>
+                  <em>Nenhuma</em>
                 </MenuItem>
                 {(tabelasProd ?? []).map((tb) => (
                   <MenuItem key={tb.tabela_produtividade_id} value={tb.tabela_produtividade_id}>
@@ -775,6 +875,25 @@ export default function EmpresaConvenioFormPage() {
                   </MenuItem>
                 ))}
               </Field.Select>
+            </Grid>
+            <Grid size={{ md: 12, sm: 12 }}>
+              <Field.Text
+                name="bonus_produtividade_descricao"
+                label="Descrição / regras do bônus (se habilitado)"
+                multiline
+                rows={3}
+                disabled={!permiteBonusWatch}
+              />
+            </Grid>
+            <Grid size={{ md: 12, sm: 12 }}>
+              <Field.Text
+                name="bonus_produtividade_tabela_json_raw"
+                label="Tabela JSON do bônus (opcional, array JSON)"
+                multiline
+                rows={4}
+                disabled={!permiteBonusWatch}
+                placeholder='Ex.: [{"faixa":"A","percentual":10}]'
+              />
             </Grid>
             <Grid size={{ md: 3, sm: 6 }}>
               <Field.Text
@@ -813,6 +932,110 @@ export default function EmpresaConvenioFormPage() {
               </Grid>
             </Grid>
           </Grid>
+          {saveFooter}
+        </Box>
+
+        <Box sx={{ display: tab === 'profissoes' ? 'block' : 'none' }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Distribua as vagas por profissão. Tudo é persistido no convênio (sem catálogo de trabalho
+            penal).
+          </Typography>
+          <Stack spacing={1} sx={{ mb: 2 }}>
+            <Typography variant="body2">
+              Soma das quantidades (linhas preenchidas): <strong>{somaDistProf}</strong>
+              {!Number.isNaN(maxR) && maxR > 0 ? (
+                <>
+                  {' '}
+                  · Máximo de reeducandos: <strong>{maxR}</strong> · Restante:{' '}
+                  <strong>{Math.max(0, maxR - somaDistProf)}</strong>
+                </>
+              ) : null}
+            </Typography>
+            {usaNivelWatch ? (
+              <Typography variant="caption" color="text.secondary">
+                Totais por nível (profissões): I = {somaDistNivel('I')} · II = {somaDistNivel('II')} · III
+                = {somaDistNivel('III')}
+              </Typography>
+            ) : null}
+          </Stack>
+          <Stack spacing={2}>
+            {distFields.map((field, idx) => (
+              <Box
+                key={field.id}
+                sx={{
+                  border: (theme) => `1px solid ${theme.palette.divider}`,
+                  borderRadius: 1,
+                  p: 2,
+                }}
+              >
+                <Grid container spacing={2} alignItems="flex-start">
+                  <Grid size={{ md: 5, sm: 12 }}>
+                    <ConvenioProfissaoAutocomplete
+                      name={`distribuicao_profissoes.${idx}.profissao_id`}
+                      label="Profissão"
+                    />
+                  </Grid>
+                  <Grid size={{ md: 2, sm: 6 }}>
+                    <Field.Text
+                      name={`distribuicao_profissoes.${idx}.quantidade`}
+                      label="Quantidade"
+                      type="number"
+                      slotProps={{ htmlInput: { min: 1 } }}
+                    />
+                  </Grid>
+                  <Grid size={{ md: 2, sm: 6 }}>
+                    <Field.Select
+                      name={`distribuicao_profissoes.${idx}.nivel`}
+                      label="Nível"
+                      disabled={!usaNivelWatch}
+                      slotProps={{ inputLabel: { shrink: true } }}
+                    >
+                      <MenuItem value="">
+                        <em>{usaNivelWatch ? 'Obrigatório se usa nível' : '—'}</em>
+                      </MenuItem>
+                      <MenuItem value="I">I</MenuItem>
+                      <MenuItem value="II">II</MenuItem>
+                      <MenuItem value="III">III</MenuItem>
+                    </Field.Select>
+                  </Grid>
+                  <Grid size={{ md: 2, sm: 12 }}>
+                    <Field.Text
+                      name={`distribuicao_profissoes.${idx}.observacao`}
+                      label="Observação"
+                      multiline
+                      rows={2}
+                    />
+                  </Grid>
+                  <Grid size={{ md: 1, sm: 12 }} sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Button
+                      type="button"
+                      color="error"
+                      variant="outlined"
+                      size="small"
+                      onClick={() => removeDist(idx)}
+                      disabled={distFields.length <= 1}
+                    >
+                      Remover
+                    </Button>
+                  </Grid>
+                </Grid>
+              </Box>
+            ))}
+            <Button
+              type="button"
+              variant="outlined"
+              onClick={() =>
+                appendDist({
+                  profissao_id: '',
+                  quantidade: 0,
+                  nivel: '',
+                  observacao: '',
+                })
+              }
+            >
+              Adicionar profissão
+            </Button>
+          </Stack>
           {saveFooter}
         </Box>
 

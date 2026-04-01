@@ -14,6 +14,24 @@ const toOptionalInt = z
   })
   .pipe(z.number().int().min(1).optional());
 
+const optionalNonNegNumber = z
+  .union([z.string(), z.number(), z.null(), z.undefined()])
+  .transform((v) => {
+    if (v === null || v === undefined || v === '') return undefined;
+    const n = typeof v === 'number' ? v : Number(v);
+    return Number.isNaN(n) ? undefined : n;
+  })
+  .pipe(z.number().min(0).optional());
+
+const optionalIntNonNeg = z
+  .union([z.string(), z.number(), z.null(), z.undefined()])
+  .transform((v) => {
+    if (v === null || v === undefined || v === '') return undefined;
+    const n = typeof v === 'number' ? v : Number(v);
+    return Number.isNaN(n) ? undefined : n;
+  })
+  .pipe(z.number().int().min(0).optional());
+
 const optionalPercent = z
   .union([z.string(), z.number(), z.null(), z.undefined()])
   .transform((v) => {
@@ -70,9 +88,17 @@ const responsavelRowSchema = z.object({
   telefone: z.string().optional(),
 });
 
-const quantidadeNivelRowSchema = z.object({
-  nivel: z.enum(['I', 'II', 'III']),
-  quantidade: z.coerce.number().int().min(0),
+const nivelDistribuicaoSchema = z
+  .union([z.literal(''), z.literal('I'), z.literal('II'), z.literal('III')])
+  .optional()
+  .nullable()
+  .transform((v) => (v === '' || v == null ? null : v));
+
+const distribuicaoProfissaoRowSchema = z.object({
+  profissao_id: z.string().uuid().optional().or(z.literal('')),
+  quantidade: z.coerce.number().int().min(0).default(0),
+  nivel: nivelDistribuicaoSchema,
+  observacao: z.string().optional(),
 });
 
 export const empresaConvenioBaseSchema = z.object({
@@ -82,16 +108,28 @@ export const empresaConvenioBaseSchema = z.object({
   }),
   regimes_permitidos: z
     .array(z.union([z.number(), z.string()]))
-    .transform((arr) =>
-      arr.map((x) => Number(x)).filter((n) => !Number.isNaN(n))
-    )
+    .transform((arr) => arr.map((x) => Number(x)).filter((n) => !Number.isNaN(n)))
     .pipe(z.array(z.number()).min(1, 'Selecione ao menos um regime')),
   artigos_vedados: z.array(z.string()).default([]),
   max_reeducandos: toOptionalInt,
   permite_variacao_quantidade: z.boolean().default(true),
-  modelo_remuneracao_id: z.string().uuid('Modelo de remuneração é obrigatório'),
-  politica_beneficio_id: z.string().uuid('Política de benefício é obrigatória'),
+  tipo_calculo_remuneracao: z.enum(['MENSAL', 'HORA', 'HIBRIDO']),
+  usa_nivel: z.boolean().default(true),
+  valor_nivel_i: optionalNonNegNumber,
+  valor_nivel_ii: optionalNonNegNumber,
+  valor_nivel_iii: optionalNonNegNumber,
+  transporte_responsavel: z.enum(['FUNAP', 'EMPRESA', 'NENHUM']),
+  alimentacao_responsavel: z.enum(['FUNAP', 'EMPRESA', 'NENHUM']),
+  valor_transporte: z.coerce.number().min(0),
+  valor_alimentacao: z.coerce.number().min(0),
+  beneficio_variavel_por_dia: z.boolean().default(true),
+  observacao_beneficio: z.string().optional(),
+  quantidade_nivel_i: optionalIntNonNeg,
+  quantidade_nivel_ii: optionalIntNonNeg,
+  quantidade_nivel_iii: optionalIntNonNeg,
   permite_bonus_produtividade: z.boolean().default(false),
+  bonus_produtividade_descricao: z.string().optional(),
+  bonus_produtividade_tabela_json_raw: z.string().optional(),
   percentual_gestao: optionalPercent,
   percentual_contrapartida: optionalPercent,
   data_inicio: z.string().min(1, 'Data de início é obrigatória'),
@@ -130,11 +168,7 @@ export const empresaConvenioBaseSchema = z.object({
       telefone: '',
     },
   ]),
-  quantidades_nivel: z.array(quantidadeNivelRowSchema).default([
-    { nivel: 'I', quantidade: 0 },
-    { nivel: 'II', quantidade: 0 },
-    { nivel: 'III', quantidade: 0 },
-  ]),
+  distribuicao_profissoes: z.array(distribuicaoProfissaoRowSchema).default([]),
 });
 
 export type ReadTemplateContratoLike = {
@@ -142,71 +176,203 @@ export type ReadTemplateContratoLike = {
   codigo: CodigoTemplateContrato;
 };
 
+const parseBonusJson = (
+  raw: string | undefined
+): Record<string, unknown>[] | undefined => {
+  const t = raw?.trim();
+  if (!t) return undefined;
+  try {
+    const p = JSON.parse(t) as unknown;
+    return Array.isArray(p) ? (p as Record<string, unknown>[]) : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
 export const buildEmpresaConvenioSchema = (templates: ReadTemplateContratoLike[]) =>
-  empresaConvenioBaseSchema.superRefine((data, ctx) => {
-    const tpl = templates.find((t) => t.template_contrato_id === data.template_contrato_id);
-    const codigo = tpl?.codigo;
-    const qRows = data.quantidades_nivel ?? [];
-    const sumNivel = qRows.reduce((s, q) => s + (Number(q.quantidade) || 0), 0);
-    if (
-      data.max_reeducandos != null &&
-      data.max_reeducandos > 0 &&
-      sumNivel > data.max_reeducandos
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'A soma por nível não pode ultrapassar a quantidade máxima de reeducandos',
-        path: ['quantidades_nivel'],
-      });
-    }
-    if (data.permite_bonus_produtividade && !String(data.tabela_produtividade_id || '').trim()) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Selecione a tabela de produtividade',
-        path: ['tabela_produtividade_id'],
-      });
-    }
-    if (codigo === 'PADRAO_INTRAMUROS') {
-      const hi = data.horario_inicio != null ? String(data.horario_inicio).trim() : '';
-      const hf = data.horario_fim != null ? String(data.horario_fim).trim() : '';
+  empresaConvenioBaseSchema
+    .transform((data) => {
+      const bonusJson = parseBonusJson(data.bonus_produtividade_tabela_json_raw);
+      const { bonus_produtividade_tabela_json_raw: _r, ...rest } = data;
+      return {
+        ...rest,
+        bonus_produtividade_tabela_json: bonusJson,
+      };
+    })
+    .superRefine((data, ctx) => {
+      const tpl = templates.find((t) => t.template_contrato_id === data.template_contrato_id);
+      const codigo = tpl?.codigo;
+      const qI = data.quantidade_nivel_i ?? 0;
+      const qII = data.quantidade_nivel_ii ?? 0;
+      const qIII = data.quantidade_nivel_iii ?? 0;
+      const sumNivel = qI + qII + qIII;
       if (
-        !data.jornada_tipo?.trim() ||
-        data.carga_horaria_semanal == null ||
-        !data.escala?.trim() ||
-        !hi ||
-        !hf
+        data.max_reeducandos != null &&
+        data.max_reeducandos > 0 &&
+        sumNivel > data.max_reeducandos
       ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message:
-            'Template intramuros exige jornada, carga horária, escala e horários (início e fim)',
-          path: ['jornada_tipo'],
+          message: 'A soma por nível não pode ultrapassar a quantidade máxima de reeducandos',
+          path: ['quantidade_nivel_i'],
         });
       }
-    }
-    if (codigo === 'PADRAO_ORGAO_PUBLICO_GDF') {
-      for (const n of ['I', 'II', 'III'] as const) {
-        const row = qRows.find((x) => x.nivel === n);
-        if (row == null || row.quantidade <= 0) {
+      const permiteBonus = data.permite_bonus_produtividade === true;
+      if (permiteBonus) {
+        const hasTabela = Boolean(String(data.tabela_produtividade_id || '').trim());
+        const hasJson =
+          Array.isArray(data.bonus_produtividade_tabela_json) &&
+          data.bonus_produtividade_tabela_json.length > 0;
+        const hasDesc = Boolean(data.bonus_produtividade_descricao?.trim());
+        if (!hasTabela && !hasJson && !hasDesc) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: `Template GDF exige quantidade maior que zero no nível ${n}`,
-            path: ['quantidades_nivel'],
+            message: 'Informe descrição do bônus, JSON da tabela ou tabela de produtividade cadastrada',
+            path: ['bonus_produtividade_descricao'],
           });
         }
       }
-    }
-    (data.responsaveis ?? []).forEach((r, idx) => {
-      if (!r.nome?.trim()) return;
-      if (r.email && r.email !== '' && !z.string().email().safeParse(r.email).success) {
+      if (codigo === 'PADRAO_INTRAMUROS') {
+        const hi = data.horario_inicio != null ? String(data.horario_inicio).trim() : '';
+        const hf = data.horario_fim != null ? String(data.horario_fim).trim() : '';
+        if (
+          !data.jornada_tipo?.trim() ||
+          data.carga_horaria_semanal == null ||
+          !data.escala?.trim() ||
+          !hi ||
+          !hf
+        ) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message:
+              'Template intramuros exige jornada, carga horária, escala e horários (início e fim)',
+            path: ['jornada_tipo'],
+          });
+        }
+      }
+      if (codigo === 'PADRAO_ORGAO_PUBLICO_GDF') {
+        if ((data.quantidade_nivel_i ?? 0) <= 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Template GDF exige quantidade maior que zero no nível I',
+            path: ['quantidade_nivel_i'],
+          });
+        }
+        if ((data.quantidade_nivel_ii ?? 0) <= 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Template GDF exige quantidade maior que zero no nível II',
+            path: ['quantidade_nivel_ii'],
+          });
+        }
+        if ((data.quantidade_nivel_iii ?? 0) <= 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Template GDF exige quantidade maior que zero no nível III',
+            path: ['quantidade_nivel_iii'],
+          });
+        }
+      }
+      const rows = (data.distribuicao_profissoes ?? []).filter((r) =>
+        String(r.profissao_id || '').trim()
+      );
+      const sumDist = rows.reduce((s, r) => s + (Number(r.quantidade) || 0), 0);
+      if (data.max_reeducandos != null && data.max_reeducandos > 0 && sumDist > data.max_reeducandos) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'E-mail inválido',
-          path: ['responsaveis', idx, 'email'],
+          message: 'A soma das vagas por profissão não pode ultrapassar o máximo de reeducandos',
+          path: ['distribuicao_profissoes'],
         });
       }
+      const keySet = new Set<string>();
+      for (const r of rows) {
+        const nk = r.nivel ?? 'null';
+        const k = `${r.profissao_id}|${nk}`;
+        if (keySet.has(k)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Não repita a mesma profissão com o mesmo nível',
+            path: ['distribuicao_profissoes'],
+          });
+          break;
+        }
+        keySet.add(k);
+      }
+      for (const r of rows) {
+        if (!r.nivel && data.usa_nivel) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Informe o nível em cada linha quando o convênio usa nível',
+            path: ['distribuicao_profissoes'],
+          });
+          break;
+        }
+      }
+      if (data.usa_nivel) {
+        const sI = rows
+          .filter((x) => x.nivel === 'I')
+          .reduce((s, x) => s + x.quantidade, 0);
+        const sII = rows
+          .filter((x) => x.nivel === 'II')
+          .reduce((s, x) => s + x.quantidade, 0);
+        const sIII = rows
+          .filter((x) => x.nivel === 'III')
+          .reduce((s, x) => s + x.quantidade, 0);
+        if (
+          data.quantidade_nivel_i != null &&
+          data.quantidade_nivel_i >= 0 &&
+          sI > data.quantidade_nivel_i
+        ) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Soma das profissões do nível I excede o quantitativo do nível I',
+            path: ['distribuicao_profissoes'],
+          });
+        }
+        if (
+          data.quantidade_nivel_ii != null &&
+          data.quantidade_nivel_ii >= 0 &&
+          sII > data.quantidade_nivel_ii
+        ) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Soma das profissões do nível II excede o quantitativo do nível II',
+            path: ['distribuicao_profissoes'],
+          });
+        }
+        if (
+          data.quantidade_nivel_iii != null &&
+          data.quantidade_nivel_iii >= 0 &&
+          sIII > data.quantidade_nivel_iii
+        ) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Soma das profissões do nível III excede o quantitativo do nível III',
+            path: ['distribuicao_profissoes'],
+          });
+        }
+      }
+      for (const r of rows) {
+        if (r.quantidade < 1) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Quantidade por profissão deve ser maior que zero',
+            path: ['distribuicao_profissoes'],
+          });
+          break;
+        }
+      }
+      (data.responsaveis ?? []).forEach((r, idx) => {
+        if (!r.nome?.trim()) return;
+        if (r.email && r.email !== '' && !z.string().email().safeParse(r.email).success) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'E-mail inválido',
+            path: ['responsaveis', idx, 'email'],
+          });
+        }
+      });
     });
-  });
 
 export type CreateEmpresaConvenioFormValues = z.input<typeof empresaConvenioBaseSchema>;
 export type CreateEmpresaConvenioSchema = z.output<

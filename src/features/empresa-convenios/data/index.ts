@@ -6,10 +6,9 @@ import {
   getEmpresaConvenios,
   type ReadEmpresaConvenioDto,
   type PaginateEmpresaConvenioDto,
+  type CreateEmpresaConvenioDto,
 } from 'src/api/empresa-convenios/empresa-convenios';
 
-// Regimes permitidos - mapeamento numérico (compatível com backend)
-// 1: Fechado, 2: Semiaberto, 3: Aberto, 4: Livramento Condicional, 5: CIME
 export const regimesOptions = [
   { value: '1', label: 'Fechado' },
   { value: '2', label: 'Semiaberto' },
@@ -18,11 +17,7 @@ export const regimesOptions = [
   { value: '5', label: 'CIME' },
 ];
 
-// Artigos vedados (Código Penal - Parte Especial)
-// Mantemos apenas artigos da Parte Especial do CP (faixas com tipos penais),
-// evitando artigos genéricos/parte geral e códigos de outros diplomas (ex.: CTB).
 const artigoDescricao: Record<number, string> = {
-  // Contra a pessoa e honra (faixa 121-154)
   121: 'Homicídio',
   122: 'Induzimento/instigação/auxílio a suicídio',
   123: 'Infanticídio',
@@ -48,11 +43,9 @@ const artigoDescricao: Record<number, string> = {
   168: 'Apropriação indébita',
   171: 'Estelionato',
   180: 'Receptação',
-  // Dignidade sexual (faixa 213-234)
   213: 'Estupro',
   217: 'Estupro de vulnerável',
   218: 'Satisfação de lascívia mediante presença de criança/adolescente',
-  // Paz pública / Fé pública (faixa 286-311)
   286: 'Incitação ao crime',
   287: 'Apologia de crime ou criminoso',
   288: 'Associação criminosa',
@@ -62,7 +55,6 @@ const artigoDescricao: Record<number, string> = {
   298: 'Falsificação de documento particular',
   299: 'Falsidade ideológica',
   304: 'Uso de documento falso',
-  // Administração pública (faixa 312-337)
   312: 'Peculato',
   313: 'Peculato culposo',
   317: 'Corrupção passiva',
@@ -72,13 +64,12 @@ const artigoDescricao: Record<number, string> = {
   333: 'Corrupção ativa',
 };
 
-// Faixas de artigos da Parte Especial do CP (somente números inteiros, sem artigos com letras)
 const cpFaixas: Array<[number, number]> = [
-  [121, 154], // Crimes contra a pessoa (vida, integridade, honra - parte relevante numérica)
-  [155, 180], // Patrimônio
-  [213, 234], // Dignidade sexual (numéricos)
-  [286, 311], // Paz pública, fé pública (numéricos)
-  [312, 337], // Administração pública (numéricos)
+  [121, 154],
+  [155, 180],
+  [213, 234],
+  [286, 311],
+  [312, 337],
 ];
 
 const cpNumeros = new Set<number>();
@@ -93,18 +84,16 @@ export const artigosOptions: { value: string; label: string }[] = Array.from(cpN
     label: artigoDescricao[n] ? `Art. ${n} - ${artigoDescricao[n]}` : `Art. ${n}`,
   }));
 
-// Índice para agrupar por código (por ora, todos CP)
 export const artigosCodigoIndex: Record<number, 'CP' | 'CTB' | 'ECA' | 'LD' | 'Outros'> = {};
 Array.from(cpNumeros).forEach((n) => {
   artigosCodigoIndex[n] = 'CP';
 });
 
-// Estrutura preparada para futuras leis
 export const artigosPorCodigo: Record<'CP' | 'CTB' | 'ECA' | 'LD' | 'Outros', number[]> = {
   CP: Array.from(cpNumeros).sort((a, b) => a - b),
   CTB: [],
   ECA: [],
-  LD: [], // Lei de Drogas (artigos não numéricos puros — normalmente referidos por lei 11.343/06)
+  LD: [],
   Outros: [],
 };
 
@@ -116,11 +105,11 @@ export const empresaConvenioService: CrudService<
 > = {
   paginate: async ({ page, limit, search }) => {
     const api = getEmpresaConvenios();
-    const backendPage = typeof page === 'number' ? Math.max(0, page - 1) : 0; // backend 0-based
+    const backendPage = typeof page === 'number' ? Math.max(0, page - 1) : 0;
     const res: PaginateEmpresaConvenioDto = await api.findAll({ page: backendPage, limit, search });
     return {
       totalPages: res.totalPages,
-      page: (res.page ?? 0) + 1, // converter de volta para 1-based
+      page: (res.page ?? 0) + 1,
       limit: res.limit,
       total: res.total,
       hasNextPage: res.hasNextPage,
@@ -175,7 +164,7 @@ const fromApi = (dto: ReadEmpresaConvenioDto): EmpresaConvenio => ({
     referencia: local.referencia ?? null,
   })),
   responsaveis: dto.responsaveis,
-  quantidades_nivel: dto.quantidades_nivel,
+  distribuicao_profissoes: dto.distribuicao_profissoes,
 });
 
 const serializeDto = (data: CreateEmpresaConvenioSchema | UpdateEmpresaConvenioSchema) => {
@@ -192,8 +181,50 @@ const serializeDto = (data: CreateEmpresaConvenioSchema | UpdateEmpresaConvenioS
       email: r.email?.trim() || undefined,
       telefone: r.telefone?.trim() || undefined,
     }));
-  return {
-    ...data,
+  const distRows = (data.distribuicao_profissoes ?? []).filter((r) =>
+    String(r.profissao_id || '').trim()
+  );
+  const distribuicao_profissoes = distRows.map((r) => ({
+    profissao_id: r.profissao_id as string,
+    quantidade: r.quantidade,
+    nivel: r.nivel ?? null,
+    observacao: r.observacao?.trim() || undefined,
+  }));
+  const bonusJson =
+    data.permite_bonus_produtividade &&
+    Array.isArray(data.bonus_produtividade_tabela_json) &&
+    data.bonus_produtividade_tabela_json.length > 0
+      ? data.bonus_produtividade_tabela_json
+      : undefined;
+  const body: CreateEmpresaConvenioDto = {
+    empresa_id: data.empresa_id,
+    modalidade_execucao: data.modalidade_execucao,
+    regimes_permitidos: data.regimes_permitidos,
+    artigos_vedados: data.artigos_vedados,
+    max_reeducandos: data.max_reeducandos,
+    permite_variacao_quantidade: data.permite_variacao_quantidade,
+    data_inicio: data.data_inicio,
+    data_fim: data.data_fim ?? null,
+    tipo_calculo_remuneracao: data.tipo_calculo_remuneracao,
+    usa_nivel: data.usa_nivel,
+    valor_nivel_i: data.valor_nivel_i,
+    valor_nivel_ii: data.valor_nivel_ii,
+    valor_nivel_iii: data.valor_nivel_iii,
+    transporte_responsavel: data.transporte_responsavel,
+    alimentacao_responsavel: data.alimentacao_responsavel,
+    valor_transporte: data.valor_transporte,
+    valor_alimentacao: data.valor_alimentacao,
+    beneficio_variavel_por_dia: data.beneficio_variavel_por_dia,
+    observacao_beneficio: data.observacao_beneficio?.trim() || undefined,
+    quantidade_nivel_i: data.quantidade_nivel_i,
+    quantidade_nivel_ii: data.quantidade_nivel_ii,
+    quantidade_nivel_iii: data.quantidade_nivel_iii,
+    permite_bonus_produtividade: data.permite_bonus_produtividade,
+    bonus_produtividade_descricao: data.bonus_produtividade_descricao?.trim() || undefined,
+    bonus_produtividade_tabela_json: bonusJson,
+    percentual_gestao: data.percentual_gestao ?? undefined,
+    percentual_contrapartida: data.percentual_contrapartida ?? undefined,
+    observacoes: data.observacoes?.trim() || undefined,
     locais_execucao: data.locais_execucao?.map((local) => ({
       ...local,
       local_id: local.local_id || undefined,
@@ -204,21 +235,22 @@ const serializeDto = (data: CreateEmpresaConvenioSchema | UpdateEmpresaConvenioS
       cep: local.cep ? local.cep.replace(/\D/g, '') : undefined,
       estado: local.estado?.toUpperCase(),
     })),
-    max_reeducandos: data.max_reeducandos,
-    percentual_gestao: data.percentual_gestao ?? undefined,
-    percentual_contrapartida: data.percentual_contrapartida ?? undefined,
+    template_contrato_id: data.template_contrato_id,
+    jornada_tipo: data.jornada_tipo?.trim() || undefined,
+    carga_horaria_semanal: data.carga_horaria_semanal,
+    escala: data.escala?.trim() || undefined,
     horario_inicio: data.horario_inicio ?? null,
     horario_fim: data.horario_fim ?? null,
-    tabela_produtividade_id: tabelaId,
+    possui_seguro_acidente: data.possui_seguro_acidente,
     tipo_cobertura_seguro: data.tipo_cobertura_seguro?.trim() || undefined,
     observacao_seguro: data.observacao_seguro?.trim() || undefined,
     observacao_juridica: data.observacao_juridica?.trim() || undefined,
     clausula_adicional: data.clausula_adicional?.trim() || undefined,
     descricao_complementar_objeto: data.descricao_complementar_objeto?.trim() || undefined,
     observacao_operacional: data.observacao_operacional?.trim() || undefined,
-    jornada_tipo: data.jornada_tipo?.trim() || undefined,
-    escala: data.escala?.trim() || undefined,
+    tabela_produtividade_id: tabelaId,
     responsaveis: responsaveis.length > 0 ? responsaveis : undefined,
-    quantidades_nivel: data.quantidades_nivel,
+    distribuicao_profissoes: distribuicao_profissoes.length > 0 ? distribuicao_profissoes : undefined,
   };
+  return body;
 };

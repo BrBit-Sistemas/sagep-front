@@ -46,9 +46,6 @@ const EmpresaConvenioFormPage = lazy(
 const EmpresaConvenioContratoPreviewPage = lazy(
   () => import('src/features/empresa-convenios/pages/convenio-contrato-preview-page')
 );
-const TrabalhoPenalCatalogosPage = lazy(
-  () => import('src/features/trabalho-penal/pages/catalogos')
-);
 const ProfissaoCadastroPage = lazy(() => import('src/features/profissoes/pages/cadastro'));
 const RegionalCadastroPage = lazy(() => import('src/features/regionais/pages/regional-cadastro'));
 const SecretariaCadastroPage = lazy(
@@ -225,10 +222,6 @@ export const dashboardRoutes: RouteObject[] = [
       {
         path: 'empresa-convenios',
         element: <EmpresaConvenioCadastroPage />,
-      },
-      {
-        path: 'trabalho-penal/catalogos',
-        element: <TrabalhoPenalCatalogosPage />,
       },
       {
         path: 'profissoes',

@@ -1,12 +1,9 @@
+import type { ResponsavelBeneficio, TipoCalculoRemuneracao } from './convenio-enums';
 import type {
   CodigoTemplateContrato,
   ReadTemplateContratoDto,
   ReadTabelaProdutividadeDto,
 } from './convenio-contrato-catalog';
-import type {
-  ReadModeloRemuneracaoCatalogDto,
-  ReadPoliticaBeneficioCatalogDto,
-} from '../trabalho-penal/trabalho-penal-catalog';
 
 import { type BodyType, customInstance } from '../../lib/axios';
 
@@ -31,9 +28,16 @@ export type CreateConvenioResponsavelDto = {
   telefone?: string;
 };
 
-export type CreateConvenioQuantidadeNivelDto = {
-  nivel: 'I' | 'II' | 'III';
+export type CreateConvenioDistribuicaoProfissaoDto = {
+  profissao_id: string;
   quantidade: number;
+  nivel?: 'I' | 'II' | 'III' | null;
+  observacao?: string;
+};
+
+export type ReadConvenioDistribuicaoProfissaoDto = CreateConvenioDistribuicaoProfissaoDto & {
+  convenio_vaga_id: string;
+  profissao_nome?: string;
 };
 
 export type CreateEmpresaConvenioDto = {
@@ -43,13 +47,27 @@ export type CreateEmpresaConvenioDto = {
   artigos_vedados?: string[];
   max_reeducandos?: number;
   permite_variacao_quantidade?: boolean;
-  modelo_remuneracao_id: string;
-  politica_beneficio_id: string;
-  permite_bonus_produtividade?: boolean;
-  percentual_gestao?: number | null;
-  percentual_contrapartida?: number | null;
   data_inicio: string;
   data_fim?: string | null;
+  tipo_calculo_remuneracao: TipoCalculoRemuneracao;
+  usa_nivel: boolean;
+  valor_nivel_i?: number;
+  valor_nivel_ii?: number;
+  valor_nivel_iii?: number;
+  transporte_responsavel: ResponsavelBeneficio;
+  alimentacao_responsavel: ResponsavelBeneficio;
+  valor_transporte: number;
+  valor_alimentacao: number;
+  beneficio_variavel_por_dia: boolean;
+  observacao_beneficio?: string;
+  quantidade_nivel_i?: number;
+  quantidade_nivel_ii?: number;
+  quantidade_nivel_iii?: number;
+  permite_bonus_produtividade?: boolean;
+  bonus_produtividade_descricao?: string;
+  bonus_produtividade_tabela_json?: Record<string, unknown>[];
+  percentual_gestao?: number | null;
+  percentual_contrapartida?: number | null;
   observacoes?: string;
   locais_execucao?: EmpresaConvenioLocalDto[];
   template_contrato_id: string;
@@ -67,7 +85,7 @@ export type CreateEmpresaConvenioDto = {
   observacao_operacional?: string;
   tabela_produtividade_id?: string;
   responsaveis?: CreateConvenioResponsavelDto[];
-  quantidades_nivel?: CreateConvenioQuantidadeNivelDto[];
+  distribuicao_profissoes?: CreateConvenioDistribuicaoProfissaoDto[];
 };
 
 export type UpdateEmpresaConvenioDto = Partial<CreateEmpresaConvenioDto> & {
@@ -78,20 +96,31 @@ export type ReadConvenioResponsavelDto = CreateConvenioResponsavelDto & {
   convenio_responsavel_id: string;
 };
 
-export type ReadConvenioQuantidadeNivelDto = {
-  convenio_quantidade_nivel_id: string;
-  nivel: 'I' | 'II' | 'III';
-  quantidade: number;
-};
-
-export type ReadEmpresaConvenioDto = CreateEmpresaConvenioDto & {
+export type ReadEmpresaConvenioDto = Omit<
+  CreateEmpresaConvenioDto,
+  'distribuicao_profissoes' | 'responsaveis' | 'locais_execucao'
+> & {
   convenio_id: string;
   createdAt: string;
   updatedAt: string;
   locais_execucao?: (EmpresaConvenioLocalDto & { local_id: string })[];
   template_codigo?: CodigoTemplateContrato | null;
   responsaveis?: ReadConvenioResponsavelDto[];
-  quantidades_nivel?: ReadConvenioQuantidadeNivelDto[];
+  distribuicao_profissoes?: ReadConvenioDistribuicaoProfissaoDto[];
+};
+
+export type ContratoPreviewRemuneracaoBeneficiosDto = {
+  tipo_calculo_remuneracao: TipoCalculoRemuneracao;
+  usa_nivel: boolean;
+  valor_nivel_i?: number | null;
+  valor_nivel_ii?: number | null;
+  valor_nivel_iii?: number | null;
+  transporte_responsavel: ResponsavelBeneficio;
+  alimentacao_responsavel: ResponsavelBeneficio;
+  valor_transporte: number;
+  valor_alimentacao: number;
+  beneficio_variavel_por_dia: boolean;
+  observacao_beneficio?: string | null;
 };
 
 export type ContratoPreviewDto = {
@@ -104,7 +133,9 @@ export type ContratoPreviewDto = {
   artigos_vedados: string[];
   max_reeducandos?: number | null;
   permite_variacao_quantidade: boolean;
-  quantidades_nivel: ReadConvenioQuantidadeNivelDto[];
+  quantidade_nivel_i?: number | null;
+  quantidade_nivel_ii?: number | null;
+  quantidade_nivel_iii?: number | null;
   jornada_tipo?: string | null;
   carga_horaria_semanal?: number | null;
   escala?: string | null;
@@ -120,14 +151,16 @@ export type ContratoPreviewDto = {
   observacoes?: string | null;
   data_inicio: string;
   data_fim?: string | null;
-  modelo_remuneracao: ReadModeloRemuneracaoCatalogDto;
-  politica_beneficio: ReadPoliticaBeneficioCatalogDto;
+  remuneracao_beneficios: ContratoPreviewRemuneracaoBeneficiosDto;
   permite_bonus_produtividade: boolean;
+  bonus_produtividade_descricao?: string | null;
+  bonus_produtividade_tabela_json?: Record<string, unknown>[] | null;
   tabela_produtividade?: ReadTabelaProdutividadeDto | null;
   percentual_gestao?: number | null;
   percentual_contrapartida?: number | null;
   responsaveis: ReadConvenioResponsavelDto[];
   locais_execucao: (EmpresaConvenioLocalDto & { local_id: string })[];
+  distribuicao_profissoes: ReadConvenioDistribuicaoProfissaoDto[];
 };
 
 export type PaginateEmpresaConvenioDto = {

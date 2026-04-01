@@ -121,12 +121,6 @@ export const navData: NavSectionProps['data'] = [
         icon: ICONS.file,
         allowedRoles: ['read:empresas_convenio'],
       },
-      {
-        title: 'Catálogo Trabalho Penal',
-        path: paths.trabalhoPenalCatalogos.root,
-        icon: ICONS.label,
-        allowedRoles: ['read:empresas_convenio'],
-      },
     ],
   },
 ];
