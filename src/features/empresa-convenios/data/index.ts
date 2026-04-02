@@ -7,6 +7,7 @@ import {
   type ReadEmpresaConvenioDto,
   type PaginateEmpresaConvenioDto,
   type CreateEmpresaConvenioDto,
+  type CreateConvenioDistribuicaoProfissaoDto,
 } from 'src/api/empresa-convenios/empresa-convenios';
 
 export const regimesOptions = [
@@ -181,15 +182,25 @@ const serializeDto = (data: CreateEmpresaConvenioSchema | UpdateEmpresaConvenioS
       email: r.email?.trim() || undefined,
       telefone: r.telefone?.trim() || undefined,
     }));
-  const distRows = (data.distribuicao_profissoes ?? []).filter((r) =>
-    String(r.profissao_id || '').trim()
-  );
-  const distribuicao_profissoes = distRows.map((r) => ({
-    profissao_id: r.profissao_id as string,
-    quantidade: r.quantidade,
-    nivel: r.nivel ?? null,
-    observacao: r.observacao?.trim() || undefined,
-  }));
+  const distRows = (data.distribuicao_profissoes ?? []).filter((r) => {
+    const q = Number(r.quantidade);
+    return Boolean(String(r.profissao_id || '').trim()) && !Number.isNaN(q) && q >= 1;
+  });
+  const distribuicao_profissoes = distRows.map((r) => {
+    const nivelStr = r.nivel == null ? '' : String(r.nivel).trim();
+    const nivelNorm: CreateConvenioDistribuicaoProfissaoDto['nivel'] =
+      nivelStr === ''
+        ? null
+        : nivelStr === 'I' || nivelStr === 'II' || nivelStr === 'III'
+          ? (nivelStr as 'I' | 'II' | 'III')
+          : null;
+    return {
+      profissao_id: r.profissao_id as string,
+      quantidade: Number(r.quantidade),
+      nivel: nivelNorm,
+      observacao: r.observacao?.trim() || undefined,
+    };
+  });
   const bonusJson =
     data.permite_bonus_produtividade &&
     Array.isArray(data.bonus_produtividade_tabela_json) &&
@@ -201,10 +212,16 @@ const serializeDto = (data: CreateEmpresaConvenioSchema | UpdateEmpresaConvenioS
     modalidade_execucao: data.modalidade_execucao,
     regimes_permitidos: data.regimes_permitidos,
     artigos_vedados: data.artigos_vedados,
-    max_reeducandos: data.max_reeducandos,
+    max_reeducandos:
+      data.max_reeducandos != null && !Number.isNaN(Number(data.max_reeducandos))
+        ? Number(data.max_reeducandos)
+        : undefined,
     permite_variacao_quantidade: data.permite_variacao_quantidade,
     data_inicio: data.data_inicio,
-    data_fim: data.data_fim ?? null,
+    data_fim:
+      data.data_fim != null && String(data.data_fim).trim() !== ''
+        ? String(data.data_fim).trim()
+        : null,
     tipo_calculo_remuneracao: data.tipo_calculo_remuneracao,
     usa_nivel: data.usa_nivel,
     valor_nivel_i: data.valor_nivel_i,
@@ -216,28 +233,48 @@ const serializeDto = (data: CreateEmpresaConvenioSchema | UpdateEmpresaConvenioS
     valor_alimentacao: data.valor_alimentacao,
     beneficio_variavel_por_dia: data.beneficio_variavel_por_dia,
     observacao_beneficio: data.observacao_beneficio?.trim() || undefined,
-    quantidade_nivel_i: data.quantidade_nivel_i,
-    quantidade_nivel_ii: data.quantidade_nivel_ii,
-    quantidade_nivel_iii: data.quantidade_nivel_iii,
+    quantidade_nivel_i:
+      data.quantidade_nivel_i != null && !Number.isNaN(Number(data.quantidade_nivel_i))
+        ? Number(data.quantidade_nivel_i)
+        : undefined,
+    quantidade_nivel_ii:
+      data.quantidade_nivel_ii != null && !Number.isNaN(Number(data.quantidade_nivel_ii))
+        ? Number(data.quantidade_nivel_ii)
+        : undefined,
+    quantidade_nivel_iii:
+      data.quantidade_nivel_iii != null && !Number.isNaN(Number(data.quantidade_nivel_iii))
+        ? Number(data.quantidade_nivel_iii)
+        : undefined,
     permite_bonus_produtividade: data.permite_bonus_produtividade,
     bonus_produtividade_descricao: data.bonus_produtividade_descricao?.trim() || undefined,
     bonus_produtividade_tabela_json: bonusJson,
     percentual_gestao: data.percentual_gestao ?? undefined,
     percentual_contrapartida: data.percentual_contrapartida ?? undefined,
     observacoes: data.observacoes?.trim() || undefined,
-    locais_execucao: data.locais_execucao?.map((local) => ({
-      ...local,
-      local_id: local.local_id || undefined,
-      numero: local.numero || undefined,
-      complemento: local.complemento || undefined,
-      bairro: local.bairro || undefined,
-      referencia: local.referencia || undefined,
-      cep: local.cep ? local.cep.replace(/\D/g, '') : undefined,
-      estado: local.estado?.toUpperCase(),
-    })),
+    locais_execucao: data.locais_execucao?.map((local) => {
+      const estadoNorm = String(local.estado ?? '')
+        .trim()
+        .toUpperCase();
+      return {
+        ...local,
+        logradouro: String(local.logradouro ?? '').trim(),
+        cidade: String(local.cidade ?? '').trim(),
+        estado: estadoNorm,
+        local_id: local.local_id || undefined,
+        numero: local.numero?.trim() || undefined,
+        complemento: local.complemento?.trim() || undefined,
+        bairro: local.bairro?.trim() || undefined,
+        referencia: local.referencia?.trim() || undefined,
+        cep: local.cep ? local.cep.replace(/\D/g, '') : undefined,
+      };
+    }),
     template_contrato_id: data.template_contrato_id,
     jornada_tipo: data.jornada_tipo?.trim() || undefined,
-    carga_horaria_semanal: data.carga_horaria_semanal,
+    carga_horaria_semanal:
+      data.carga_horaria_semanal != null &&
+      !Number.isNaN(Number(data.carga_horaria_semanal))
+        ? Number(data.carga_horaria_semanal)
+        : undefined,
     escala: data.escala?.trim() || undefined,
     horario_inicio: data.horario_inicio ?? null,
     horario_fim: data.horario_fim ?? null,

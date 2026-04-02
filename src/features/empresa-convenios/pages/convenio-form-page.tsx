@@ -6,24 +6,26 @@ import { Icon as SearchIconify } from '@iconify/react';
 import { useRef, useMemo, useState, useEffect } from 'react';
 import { useForm, useWatch, useFieldArray, useFormContext } from 'react-hook-form';
 
-import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
+import Tab from '@mui/material/Tab';
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
 import Tabs from '@mui/material/Tabs';
-import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
+import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
+import Divider from '@mui/material/Divider';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
-import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
 import InputAdornment from '@mui/material/InputAdornment';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { paths } from 'src/routes/paths';
 
 import { formatDateToYYYYMMDD } from 'src/utils/format-date';
+import { formatCepFromStorage } from 'src/utils/input-masks';
 
 import { CONFIG } from 'src/global-config';
 import { DashboardContent } from 'src/layouts/dashboard';
@@ -47,15 +49,16 @@ import {
   useTabelasProdutividadeCatalog,
 } from '../hooks/use-convenio-contrato-catalog';
 import {
-  defaultResponsaveisForm,
-  empresaConvenioToFormValues,
-  defaultDistribuicaoProfissoesForm,
-} from '../helper';
-import {
   buildEmpresaConvenioSchema,
   type CreateEmpresaConvenioSchema,
   type CreateEmpresaConvenioFormValues,
 } from '../schemas';
+import {
+  defaultResponsaveisForm,
+  empresaConvenioToFormValues,
+  defaultDistribuicaoProfissoesForm,
+  clearEmpresaConvenioFieldsHiddenByTemplate,
+} from '../helper';
 
 type TabValue = 'geral' | 'remuneracao' | 'responsaveis' | 'locais' | 'profissoes';
 
@@ -113,8 +116,6 @@ const TAB_GERAL_FIELDS: (keyof CreateEmpresaConvenioFormValues)[] = [
   'modalidade_execucao',
   'regimes_permitidos',
   'artigos_vedados',
-  'max_reeducandos',
-  'permite_variacao_quantidade',
   'data_inicio',
   'data_fim',
   'observacoes',
@@ -123,9 +124,6 @@ const TAB_GERAL_FIELDS: (keyof CreateEmpresaConvenioFormValues)[] = [
   'escala',
   'horario_inicio',
   'horario_fim',
-  'quantidade_nivel_i',
-  'quantidade_nivel_ii',
-  'quantidade_nivel_iii',
   'observacao_juridica',
   'clausula_adicional',
   'descricao_complementar_objeto',
@@ -157,7 +155,14 @@ const TAB_REMUNERACAO_FIELDS: (keyof CreateEmpresaConvenioFormValues)[] = [
 
 const TAB_RESPONSAVEIS_FIELDS: (keyof CreateEmpresaConvenioFormValues)[] = ['responsaveis'];
 
-const TAB_PROFISSOES_FIELDS: (keyof CreateEmpresaConvenioFormValues)[] = ['distribuicao_profissoes'];
+const TAB_PROFISSOES_FIELDS: (keyof CreateEmpresaConvenioFormValues)[] = [
+  'max_reeducandos',
+  'permite_variacao_quantidade',
+  'distribuicao_profissoes',
+  'quantidade_nivel_i',
+  'quantidade_nivel_ii',
+  'quantidade_nivel_iii',
+];
 
 const LocalExecucaoRow = ({ idx, onRemove }: { idx: number; onRemove: () => void }) => {
   const { setValue, control } = useFormContext();
@@ -168,12 +173,8 @@ const LocalExecucaoRow = ({ idx, onRemove }: { idx: number; onRemove: () => void
   const cep: string = useWatch({ control, name: `locais_execucao.${idx}.cep` as const }) as string;
 
   const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/\D/g, '');
-    if (value.length > 8) value = value.slice(0, 8);
-    if (value.length > 5) {
-      value = `${value.slice(0, 5)}-${value.slice(5)}`;
-    }
-    if (value.length < 8) {
+    const onlyDigits = e.target.value.replace(/\D/g, '');
+    if (onlyDigits.length < 8) {
       setValue(`locais_execucao.${idx}.logradouro`, '');
       setValue(`locais_execucao.${idx}.numero`, '');
       setValue(`locais_execucao.${idx}.complemento`, '');
@@ -181,16 +182,7 @@ const LocalExecucaoRow = ({ idx, onRemove }: { idx: number; onRemove: () => void
       setValue(`locais_execucao.${idx}.cidade`, '');
       setValue(`locais_execucao.${idx}.estado`, '');
     }
-    setValue(`locais_execucao.${idx}.cep`, value);
   };
-
-  useEffect(() => {
-    const onlyDigits = (cep || '').replace(/\D/g, '');
-    if (onlyDigits.length === 8 && cep && !cep.includes('-')) {
-      const formatted = `${onlyDigits.slice(0, 5)}-${onlyDigits.slice(5)}`;
-      setValue(`locais_execucao.${idx}.cep`, formatted, { shouldValidate: false });
-    }
-  }, [cep, idx, setValue]);
 
   useEffect(() => {
     const onlyDigits = (cep || '').replace(/\D/g, '');
@@ -221,7 +213,7 @@ const LocalExecucaoRow = ({ idx, onRemove }: { idx: number; onRemove: () => void
   }, [cep, idx, setValue]);
 
   const handleSelecionarCep = (cepSel: string) => {
-    setValue(`locais_execucao.${idx}.cep`, cepSel);
+    setValue(`locais_execucao.${idx}.cep`, formatCepFromStorage(cepSel));
     setOpenBusca(false);
   };
 
@@ -242,8 +234,8 @@ const LocalExecucaoRow = ({ idx, onRemove }: { idx: number; onRemove: () => void
             name={`locais_execucao.${idx}.cep`}
             label="CEP"
             placeholder="00000-000"
+            maskPreset="cep"
             onChange={handleCepChange}
-            inputProps={{ maxLength: 9 }}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
@@ -296,7 +288,7 @@ const LocalExecucaoRow = ({ idx, onRemove }: { idx: number; onRemove: () => void
             name={`locais_execucao.${idx}.estado`}
             label="UF"
             placeholder="RR"
-            inputProps={{ maxLength: 2 }}
+            maskPreset="uf"
           />
         </Grid>
         <Grid size={{ md: 10, sm: 12 }}>
@@ -400,6 +392,8 @@ export default function EmpresaConvenioFormPage() {
     name: 'possui_seguro_acidente',
   });
   const templateCodigo = templates?.find((t) => t.template_contrato_id === templateIdWatch)?.codigo;
+  const isTemplateGdf = templateCodigo === 'PADRAO_ORGAO_PUBLICO_GDF';
+  const isTemplateIntramuros = templateCodigo === 'PADRAO_INTRAMUROS';
   const num = (v: unknown): number => {
     if (v === '' || v === null || v === undefined) return 0;
     const n = typeof v === 'number' ? v : Number(v);
@@ -408,7 +402,7 @@ export default function EmpresaConvenioFormPage() {
   const somaNiveis = num(qNivelI) + num(qNivelII) + num(qNivelIII);
   const maxR = maxReedWatch != null && maxReedWatch !== '' ? Number(maxReedWatch) : NaN;
   const ultrapassaNivel =
-    !Number.isNaN(maxR) && maxR > 0 && somaNiveis > maxR;
+    isTemplateGdf && !Number.isNaN(maxR) && maxR > 0 && somaNiveis > maxR;
 
   const {
     fields: locaisFields,
@@ -429,8 +423,10 @@ export default function EmpresaConvenioFormPage() {
   });
 
   const catalogPrefilledRef = useRef(false);
+  const prevTemplateIdRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
+    prevTemplateIdRef.current = undefined;
     if (isEditing && existing) {
       methods.reset(empresaConvenioToFormValues(existing));
       catalogPrefilledRef.current = true;
@@ -456,6 +452,16 @@ export default function EmpresaConvenioFormPage() {
     }
   }, [permiteBonusWatch, methods]);
 
+  useEffect(() => {
+    if (!templates?.length || !templateIdWatch) return;
+    const cod = templates.find((t) => t.template_contrato_id === templateIdWatch)?.codigo;
+    const prevId = prevTemplateIdRef.current;
+    if (prevId !== undefined && prevId !== templateIdWatch) {
+      clearEmpresaConvenioFieldsHiddenByTemplate(cod, methods);
+    }
+    prevTemplateIdRef.current = templateIdWatch;
+  }, [templates, templateIdWatch, methods]);
+
   const catalogLoading = loadingTemplates || loadingTabelasProd;
   const catalogEmpty = !catalogLoading && !templates?.length;
 
@@ -472,6 +478,12 @@ export default function EmpresaConvenioFormPage() {
       if (nv !== nivel) return s;
       return s + num(row?.quantidade);
     }, 0);
+  const ultrapassaDistProf =
+    !Number.isNaN(maxR) && maxR > 0 && somaDistProf > maxR;
+
+  useEffect(() => {
+    void methods.trigger('distribuicao_profissoes');
+  }, [somaDistProf, maxReedWatch, methods]);
 
   const onSubmit = async (data: CreateEmpresaConvenioSchema) => {
     if (isEditing && convenioId) {
@@ -579,9 +591,11 @@ export default function EmpresaConvenioFormPage() {
           </Box>
         </Card>
 
-        <Typography variant="caption" sx={{ color: 'text.primary', mb: 4, display: 'block' }}>
-          * Campos obrigatórios · Salvar envia todas as abas
-        </Typography>
+        <Alert severity="info" sx={{ mb: 4 }}>
+          <Typography variant="body2" component="div">
+            Campos com asterisco na frente são obrigatórios e devem ser preenchidos. Ao salvar, o sistema envia e valida todas as abas.
+          </Typography>
+        </Alert>
 
         {catalogEmpty && (
           <Alert severity="warning" sx={{ mb: 2 }}>
@@ -625,9 +639,6 @@ export default function EmpresaConvenioFormPage() {
                   </MenuItem>
                 ))}
               </Field.Select>
-              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                Orienta obrigatoriedade de campos e o PDF futuro.
-              </Typography>
             </Grid>
             <Grid size={{ md: 6, sm: 12 }}>
               <Field.Select required name="modalidade_execucao" label="Modalidade de execução">
@@ -651,92 +662,53 @@ export default function EmpresaConvenioFormPage() {
             <Grid size={{ md: 12, sm: 12 }}>
               <ArticlesSelector name="artigos_vedados" label="Artigos vedados" />
             </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text
-                name="max_reeducandos"
-                label="Quantidade máxima de reeducandos"
-                type="number"
-                slotProps={{ htmlInput: { min: 1 } }}
-              />
-            </Grid>
-            <Grid size={{ md: 6, sm: 12 }} sx={{ display: 'flex', alignItems: 'center' }}>
-              <Field.Switch name="permite_variacao_quantidade" label="Permite variar quantidade" />
-            </Grid>
-            <hr className="my-4" />
-            <Grid size={{ md: 12, sm: 12 }}>
-              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                Quantitativo por nível (I, II, III)
-              </Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                Template órgão público GDF exige os três níveis. Soma não pode ultrapassar o máximo.
-              </Typography>
-              <Grid container spacing={1}>
-                <Grid size={{ md: 4, sm: 12 }}>
-                  <Field.Text
-                    name="quantidade_nivel_i"
-                    label="Nível I"
-                    type="number"
-                    slotProps={{ htmlInput: { min: 0 } }}
-                  />
-                </Grid>
-                <Grid size={{ md: 4, sm: 12 }}>
-                  <Field.Text
-                    name="quantidade_nivel_ii"
-                    label="Nível II"
-                    type="number"
-                    slotProps={{ htmlInput: { min: 0 } }}
-                  />
-                </Grid>
-                <Grid size={{ md: 4, sm: 12 }}>
-                  <Field.Text
-                    name="quantidade_nivel_iii"
-                    label="Nível III"
-                    type="number"
-                    slotProps={{ htmlInput: { min: 0 } }}
-                  />
-                </Grid>
-              </Grid>
-              <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
-                Soma dos níveis: <strong>{somaNiveis}</strong>
-                {ultrapassaNivel ? (
-                  <Typography component="span" color="error.main" sx={{ ml: 1 }}>
-                    Ultrapassa o máximo informado.
-                  </Typography>
-                ) : null}
-              </Typography>
-            </Grid>
-            <Grid size={{ md: 12, sm: 12 }}>
-              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                Jornada e horários
-              </Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                Obrigatório se o template for Intramuros (
-                {templateCodigo === 'PADRAO_INTRAMUROS' ? 'ativo para este convênio' : 'será validado ao salvar'}
-                ).
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Text name="jornada_tipo" label="Tipo de jornada" placeholder="Ex.: 44h semanais" />
-                </Grid>
-                <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Text
-                    name="carga_horaria_semanal"
-                    label="Carga horária semanal (h)"
-                    type="number"
-                    slotProps={{ htmlInput: { min: 1, max: 168 } }}
-                  />
-                </Grid>
-                <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Text name="escala" label="Escala" placeholder="Ex.: 12x36" />
-                </Grid>
-                <Grid size={{ md: 3, sm: 6 }}>
-                  <Field.Text name="horario_inicio" label="Horário início (HH:MM)" placeholder="06:30" />
-                </Grid>
-                <Grid size={{ md: 3, sm: 6 }}>
-                  <Field.Text name="horario_fim" label="Horário fim (HH:MM)" placeholder="18:30" />
+            {isTemplateIntramuros ? (
+              <Grid size={{ md: 12, sm: 12 }}>
+                <Divider sx={{ mt: 4, mb: 4, width: '100%' }} />
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                  Jornada e horários
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid size={{ md: 6, sm: 12 }}>
+                    <Field.Text name="jornada_tipo" label="Tipo de jornada" placeholder="Ex.: 44h semanais" />
+                  </Grid>
+                  <Grid size={{ md: 6, sm: 12 }}>
+                    <Field.Text
+                      name="carga_horaria_semanal"
+                      label="Carga horária semanal (h)"
+                      maskPreset="positiveInt3"
+                      placeholder="168"
+                      helperText="1 a 168 h"
+                    />
+                  </Grid>
+                  <Grid size={{ md: 6, sm: 12 }}>
+                    <Field.Text
+                      name="escala"
+                      label="Escala"
+                      placeholder="Ex.: 12x36"
+                      maskPreset="escalaTurnos"
+                      helperText="Ex.: 12x36 (até 3 dígitos de cada lado)"
+                    />
+                  </Grid>
+                  <Grid size={{ md: 3, sm: 6 }}>
+                    <Field.Text
+                      name="horario_inicio"
+                      label="Horário início (HH:MM)"
+                      placeholder="06:30"
+                      maskPreset="timeHm"
+                    />
+                  </Grid>
+                  <Grid size={{ md: 3, sm: 6 }}>
+                    <Field.Text
+                      name="horario_fim"
+                      label="Horário fim (HH:MM)"
+                      placeholder="18:30"
+                      maskPreset="timeHm"
+                    />
+                  </Grid>
                 </Grid>
               </Grid>
-            </Grid>
+            ) : null}
             <Grid size={{ md: 6, sm: 12 }}>
               <Field.DatePicker name="data_inicio" label="Data início" />
             </Grid>
@@ -747,6 +719,7 @@ export default function EmpresaConvenioFormPage() {
               <Field.Text name="observacoes" label="Observações gerais" multiline rows={2} />
             </Grid>
             <Grid size={{ md: 12, sm: 12 }}>
+              <Divider sx={{ mt: 4, mb: 4, width: '100%' }} />
               <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
                 Textos complementares (contrato / PDF futuro)
               </Typography>
@@ -785,30 +758,34 @@ export default function EmpresaConvenioFormPage() {
             <Grid size={{ md: 6, sm: 12 }} sx={{ display: 'flex', alignItems: 'center' }}>
               <Field.Switch name="usa_nivel" label="Usa níveis I, II e III" />
             </Grid>
-            <Grid size={{ md: 4, sm: 12 }}>
-              <Field.Text
-                name="valor_nivel_i"
-                label="Valor bolsa — nível I"
-                type="number"
-                slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
-              />
-            </Grid>
-            <Grid size={{ md: 4, sm: 12 }}>
-              <Field.Text
-                name="valor_nivel_ii"
-                label="Valor bolsa — nível II"
-                type="number"
-                slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
-              />
-            </Grid>
-            <Grid size={{ md: 4, sm: 12 }}>
-              <Field.Text
-                name="valor_nivel_iii"
-                label="Valor bolsa — nível III"
-                type="number"
-                slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
-              />
-            </Grid>
+            {usaNivelWatch ? (
+              <>
+                <Grid size={{ md: 4, sm: 12 }}>
+                  <Field.Text
+                    name="valor_nivel_i"
+                    label="Valor bolsa — nível I"
+                    type="number"
+                    slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
+                  />
+                </Grid>
+                <Grid size={{ md: 4, sm: 12 }}>
+                  <Field.Text
+                    name="valor_nivel_ii"
+                    label="Valor bolsa — nível II"
+                    type="number"
+                    slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
+                  />
+                </Grid>
+                <Grid size={{ md: 4, sm: 12 }}>
+                  <Field.Text
+                    name="valor_nivel_iii"
+                    label="Valor bolsa — nível III"
+                    type="number"
+                    slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
+                  />
+                </Grid>
+              </>
+            ) : null}
             <Grid size={{ md: 6, sm: 12 }}>
               <Field.Select name="transporte_responsavel" label="Transporte — responsável" required>
                 <MenuItem value="FUNAP">FUNAP</MenuItem>
@@ -859,42 +836,44 @@ export default function EmpresaConvenioFormPage() {
                 label="Permite bônus por produtividade"
               />
             </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Select
-                name="tabela_produtividade_id"
-                label="Tabela de produtividade (opcional)"
-                disabled={!permiteBonusWatch || catalogLoading}
-                slotProps={{ inputLabel: { shrink: true } }}
-              >
-                <MenuItem value="">
-                  <em>Nenhuma</em>
-                </MenuItem>
-                {(tabelasProd ?? []).map((tb) => (
-                  <MenuItem key={tb.tabela_produtividade_id} value={tb.tabela_produtividade_id}>
-                    {tb.nome}
-                  </MenuItem>
-                ))}
-              </Field.Select>
-            </Grid>
-            <Grid size={{ md: 12, sm: 12 }}>
-              <Field.Text
-                name="bonus_produtividade_descricao"
-                label="Descrição / regras do bônus (se habilitado)"
-                multiline
-                rows={3}
-                disabled={!permiteBonusWatch}
-              />
-            </Grid>
-            <Grid size={{ md: 12, sm: 12 }}>
-              <Field.Text
-                name="bonus_produtividade_tabela_json_raw"
-                label="Tabela JSON do bônus (opcional, array JSON)"
-                multiline
-                rows={4}
-                disabled={!permiteBonusWatch}
-                placeholder='Ex.: [{"faixa":"A","percentual":10}]'
-              />
-            </Grid>
+            {permiteBonusWatch ? (
+              <>
+                <Grid size={{ md: 6, sm: 12 }}>
+                  <Field.Select
+                    name="tabela_produtividade_id"
+                    label="Tabela de produtividade (opcional)"
+                    disabled={catalogLoading}
+                    slotProps={{ inputLabel: { shrink: true } }}
+                  >
+                    <MenuItem value="">
+                      <em>Nenhuma</em>
+                    </MenuItem>
+                    {(tabelasProd ?? []).map((tb) => (
+                      <MenuItem key={tb.tabela_produtividade_id} value={tb.tabela_produtividade_id}>
+                        {tb.nome}
+                      </MenuItem>
+                    ))}
+                  </Field.Select>
+                </Grid>
+                <Grid size={{ md: 12, sm: 12 }}>
+                  <Field.Text
+                    name="bonus_produtividade_descricao"
+                    label="Descrição / regras do bônus"
+                    multiline
+                    rows={3}
+                  />
+                </Grid>
+                <Grid size={{ md: 12, sm: 12 }}>
+                  <Field.Text
+                    name="bonus_produtividade_tabela_json_raw"
+                    label="Tabela JSON do bônus (opcional, array JSON)"
+                    multiline
+                    rows={4}
+                    placeholder='Ex.: [{"faixa":"A","percentual":10}]'
+                  />
+                </Grid>
+              </>
+            ) : null}
             <Grid size={{ md: 3, sm: 6 }}>
               <Field.Text
                 name="percentual_gestao"
@@ -936,21 +915,103 @@ export default function EmpresaConvenioFormPage() {
         </Box>
 
         <Box sx={{ display: tab === 'profissoes' ? 'block' : 'none' }}>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Distribua as vagas por profissão. Tudo é persistido no convênio (sem catálogo de trabalho
-            penal).
+          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+            Capacidade e vagas
           </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Defina o teto de reeducandos e distribua as vagas por profissão.
+          </Typography>
+          <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid size={{ md: 12, sm: 12 }}>
+              <Field.Switch name="permite_variacao_quantidade" label="Permite variar quantidade" />
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, maxWidth: 800 }}>
+                Declaração para fins contratuais: indica se a lotação de reeducandos pode oscilar durante a
+                vigência do convênio ou se deve ser tratada como quantitativo fixo. Esse registro orienta
+                cláusulas e o preview do instrumento; não suspende a conferência das somas de vagas neste
+                formulário em relação ao máximo informado no campo seguinte.
+              </Typography>
+            </Grid>
+            <Grid size={{ md: 6, sm: 12 }}>
+              <Field.Text
+                name="max_reeducandos"
+                label="Quantidade máxima de reeducandos"
+                maskPreset="positiveInt7"
+                placeholder="0"
+              />
+            </Grid>
+          </Grid>
+          {isTemplateGdf ? (
+            <Box sx={{ mb: 3 }}>
+              <Divider sx={{ mb: 2, width: '100%' }} />
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                Quantitativo por nível (I, II, III)
+              </Typography>
+              <Grid container spacing={1}>
+                <Grid size={{ md: 4, sm: 12 }}>
+                  <Field.Text
+                    name="quantidade_nivel_i"
+                    label="Nível I"
+                    maskPreset="positiveInt5"
+                    placeholder="0"
+                  />
+                </Grid>
+                <Grid size={{ md: 4, sm: 12 }}>
+                  <Field.Text
+                    name="quantidade_nivel_ii"
+                    label="Nível II"
+                    maskPreset="positiveInt5"
+                    placeholder="0"
+                  />
+                </Grid>
+                <Grid size={{ md: 4, sm: 12 }}>
+                  <Field.Text
+                    name="quantidade_nivel_iii"
+                    label="Nível III"
+                    maskPreset="positiveInt5"
+                    placeholder="0"
+                  />
+                </Grid>
+              </Grid>
+              <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
+                Soma dos níveis: <strong>{somaNiveis}</strong>
+                {ultrapassaNivel ? (
+                  <Typography component="span" color="error.main" sx={{ ml: 1 }}>
+                    Ultrapassa o máximo informado.
+                  </Typography>
+                ) : null}
+              </Typography>
+            </Box>
+          ) : null}
           <Stack spacing={1} sx={{ mb: 2 }}>
-            <Typography variant="body2">
+            <Typography
+              variant="body2"
+              color={ultrapassaDistProf ? 'error.main' : 'text.primary'}
+              component="div"
+            >
               Soma das quantidades (linhas preenchidas): <strong>{somaDistProf}</strong>
               {!Number.isNaN(maxR) && maxR > 0 ? (
                 <>
                   {' '}
-                  · Máximo de reeducandos: <strong>{maxR}</strong> · Restante:{' '}
-                  <strong>{Math.max(0, maxR - somaDistProf)}</strong>
+                  · Máximo de reeducandos: <strong>{maxR}</strong>
+                  {ultrapassaDistProf ? (
+                    <>
+                      {' '}
+                      · Ultrapassa o máximo em <strong>{somaDistProf - maxR}</strong>
+                    </>
+                  ) : (
+                    <>
+                      {' '}
+                      · Restante: <strong>{maxR - somaDistProf}</strong>
+                    </>
+                  )}
                 </>
               ) : null}
             </Typography>
+            {ultrapassaDistProf ? (
+              <Alert severity="error">
+                A soma das vagas por profissão não pode ultrapassar a quantidade máxima de reeducandos.
+              </Alert>
+            ) : null}
             {usaNivelWatch ? (
               <Typography variant="caption" color="text.secondary">
                 Totais por nível (profissões): I = {somaDistNivel('I')} · II = {somaDistNivel('II')} · III
@@ -968,8 +1029,8 @@ export default function EmpresaConvenioFormPage() {
                   p: 2,
                 }}
               >
-                <Grid container spacing={2} alignItems="flex-start">
-                  <Grid size={{ md: 5, sm: 12 }}>
+                <Grid container spacing={2} alignItems="flex-end">
+                  <Grid size={{ md: 3, sm: 12 }}>
                     <ConvenioProfissaoAutocomplete
                       name={`distribuicao_profissoes.${idx}.profissao_id`}
                       label="Profissão"
@@ -979,41 +1040,44 @@ export default function EmpresaConvenioFormPage() {
                     <Field.Text
                       name={`distribuicao_profissoes.${idx}.quantidade`}
                       label="Quantidade"
-                      type="number"
-                      slotProps={{ htmlInput: { min: 1 } }}
+                      maskPreset="positiveInt5"
+                      placeholder="0"
                     />
                   </Grid>
-                  <Grid size={{ md: 2, sm: 6 }}>
-                    <Field.Select
-                      name={`distribuicao_profissoes.${idx}.nivel`}
-                      label="Nível"
-                      disabled={!usaNivelWatch}
-                      slotProps={{ inputLabel: { shrink: true } }}
-                    >
-                      <MenuItem value="">
-                        <em>{usaNivelWatch ? 'Obrigatório se usa nível' : '—'}</em>
-                      </MenuItem>
-                      <MenuItem value="I">I</MenuItem>
-                      <MenuItem value="II">II</MenuItem>
-                      <MenuItem value="III">III</MenuItem>
-                    </Field.Select>
-                  </Grid>
-                  <Grid size={{ md: 2, sm: 12 }}>
+                  {usaNivelWatch ? (
+                    <Grid size={{ md: 2, sm: 6 }}>
+                      <Field.Select
+                        name={`distribuicao_profissoes.${idx}.nivel`}
+                        label="Nível"
+                        slotProps={{ inputLabel: { shrink: true } }}
+                      >
+                        <MenuItem value="">
+                          <em>Obrigatório</em>
+                        </MenuItem>
+                        <MenuItem value="I">I</MenuItem>
+                        <MenuItem value="II">II</MenuItem>
+                        <MenuItem value="III">III</MenuItem>
+                      </Field.Select>
+                    </Grid>
+                  ) : null}
+                  <Grid size={{ md: 4, sm: 12 }}>
                     <Field.Text
                       name={`distribuicao_profissoes.${idx}.observacao`}
                       label="Observação"
                       multiline
-                      rows={2}
+                      rows={1}
                     />
                   </Grid>
-                  <Grid size={{ md: 1, sm: 12 }} sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Grid size={{ md: 1, sm: 12 }} sx={{ display: 'flex', alignItems: 'flex-end' }}>
                     <Button
                       type="button"
+                      fullWidth
                       color="error"
                       variant="outlined"
-                      size="small"
+                      size="medium"
                       onClick={() => removeDist(idx)}
                       disabled={distFields.length <= 1}
+                      sx={{ height: 56, py: 0, whiteSpace: 'nowrap' }}
                     >
                       Remover
                     </Button>
@@ -1024,6 +1088,7 @@ export default function EmpresaConvenioFormPage() {
             <Button
               type="button"
               variant="outlined"
+              sx={{ py: 2, minHeight: 52 }}
               onClick={() =>
                 appendDist({
                   profissao_id: '',
@@ -1051,15 +1116,26 @@ export default function EmpresaConvenioFormPage() {
               <Field.Text name="responsaveis.0.cargo" label="Cargo" />
             </Grid>
             <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="responsaveis.0.documento" label="Documento" />
+              <Field.Text
+                name="responsaveis.0.documento"
+                label="CPF ou CNPJ"
+                maskPreset="documentoBr"
+                placeholder="CPF ou CNPJ"
+              />
             </Grid>
             <Grid size={{ md: 6, sm: 12 }}>
               <Field.Text name="responsaveis.0.email" label="E-mail" type="email" />
             </Grid>
             <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="responsaveis.0.telefone" label="Telefone" />
+              <Field.Text
+                name="responsaveis.0.telefone"
+                label="Telefone"
+                maskPreset="phoneBrMobile"
+                placeholder="(00) 00000-0000"
+              />
             </Grid>
           </Grid>
+          <Divider sx={{ mt: 4, mb: 4, width: '100%' }} />
           <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600 }}>
             Preposto / responsável operacional
           </Typography>
@@ -1071,7 +1147,12 @@ export default function EmpresaConvenioFormPage() {
               <Field.Text name="responsaveis.1.email" label="E-mail" type="email" />
             </Grid>
             <Grid size={{ md: 6, sm: 12 }}>
-              <Field.Text name="responsaveis.1.telefone" label="Telefone" />
+              <Field.Text
+                name="responsaveis.1.telefone"
+                label="Telefone"
+                maskPreset="phoneBrMobile"
+                placeholder="(00) 00000-0000"
+              />
             </Grid>
           </Grid>
           {saveFooter}
@@ -1087,8 +1168,11 @@ export default function EmpresaConvenioFormPage() {
             ))}
             <Grid size={{ md: 12, sm: 12 }} sx={{ mt: 1 }}>
               <Button
+                fullWidth
+                size="large"
                 type="button"
                 variant="outlined"
+                sx={{ py: 2, minHeight: 52 }}
                 onClick={() =>
                   appendLocal({
                     logradouro: '',

@@ -5,6 +5,17 @@ import { z } from 'zod';
 
 export const modalidadesExecucao: ModalidadeExecucao[] = ['INTRAMUROS', 'EXTRAMUROS'];
 
+function isHorarioHmValid(s: string): boolean {
+  const t = s.trim();
+  if (!/^\d{2}:\d{2}$/.test(t)) {
+    return false;
+  }
+  const [hs, ms] = t.split(':');
+  const h = Number(hs);
+  const m = Number(ms);
+  return h >= 0 && h <= 23 && m >= 0 && m <= 59;
+}
+
 const toOptionalInt = z
   .union([z.string(), z.number(), z.null(), z.undefined()])
   .transform((v) => {
@@ -39,7 +50,13 @@ const optionalPercent = z
     const n = typeof v === 'number' ? v : Number(v);
     return Number.isNaN(n) ? undefined : n;
   })
-  .pipe(z.number().min(0).max(100).optional());
+  .pipe(
+    z
+      .number()
+      .min(0, 'Informe um percentual maior ou igual a 0')
+      .max(100, 'Informe um percentual menor ou igual a 100')
+      .optional(),
+  );
 
 const optionalIntMeta = z
   .union([z.string(), z.number(), z.null(), z.undefined()])
@@ -207,6 +224,7 @@ export const buildEmpresaConvenioSchema = (templates: ReadTemplateContratoLike[]
       const qIII = data.quantidade_nivel_iii ?? 0;
       const sumNivel = qI + qII + qIII;
       if (
+        codigo === 'PADRAO_ORGAO_PUBLICO_GDF' &&
         data.max_reeducandos != null &&
         data.max_reeducandos > 0 &&
         sumNivel > data.max_reeducandos
@@ -247,6 +265,20 @@ export const buildEmpresaConvenioSchema = (templates: ReadTemplateContratoLike[]
             message:
               'Template intramuros exige jornada, carga horária, escala e horários (início e fim)',
             path: ['jornada_tipo'],
+          });
+        }
+        if (hi && !isHorarioHmValid(hi)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Horário de início inválido (use 00:00 a 23:59)',
+            path: ['horario_inicio'],
+          });
+        }
+        if (hf && !isHorarioHmValid(hf)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Horário de fim inválido (use 00:00 a 23:59)',
+            path: ['horario_fim'],
           });
         }
       }
@@ -308,7 +340,7 @@ export const buildEmpresaConvenioSchema = (templates: ReadTemplateContratoLike[]
           break;
         }
       }
-      if (data.usa_nivel) {
+      if (data.usa_nivel && codigo === 'PADRAO_ORGAO_PUBLICO_GDF') {
         const sI = rows
           .filter((x) => x.nivel === 'I')
           .reduce((s, x) => s + x.quantidade, 0);

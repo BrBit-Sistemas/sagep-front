@@ -4,8 +4,8 @@ import { RHFTextField } from './rhf-text-field';
 
 // ----------------------------------------------------------------------
 
-export type RHFCpfFieldProps = Omit<RHFTextFieldProps, 'mask' | 'maskChar' | 'type'>;
+export type RHFCpfFieldProps = Omit<RHFTextFieldProps, 'mask' | 'replacement' | 'maskPreset' | 'type'>;
 
 export function RHFCpfField(props: RHFCpfFieldProps) {
-  return <RHFTextField {...props} mask="___.___.___-__" replacement={{ _: /\d/ }} />;
+  return <RHFTextField {...props} maskPreset="cpf" />;
 }
