@@ -121,6 +121,12 @@ export const navData: NavSectionProps['data'] = [
         icon: ICONS.file,
         allowedRoles: ['read:empresas_convenio'],
       },
+      {
+        title: 'Telão de Vagas',
+        path: paths.laboral.telaoVagas,
+        icon: ICONS.kanban,
+        allowedRoles: ['read:telao_vagas_fila'],
+      },
     ],
   },
 ];

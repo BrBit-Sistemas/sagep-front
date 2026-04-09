@@ -46,6 +46,9 @@ const EmpresaConvenioFormPage = lazy(
 const EmpresaConvenioContratoPreviewPage = lazy(
   () => import('src/features/empresa-convenios/pages/convenio-contrato-preview-page')
 );
+const TelaoVagasFilaPage = lazy(
+  () => import('src/features/telao-vagas-fila/pages/telao-vagas-fila-page')
+);
 const ProfissaoCadastroPage = lazy(() => import('src/features/profissoes/pages/cadastro'));
 const RegionalCadastroPage = lazy(() => import('src/features/regionais/pages/regional-cadastro'));
 const SecretariaCadastroPage = lazy(
@@ -222,6 +225,17 @@ export const dashboardRoutes: RouteObject[] = [
       {
         path: 'empresa-convenios',
         element: <EmpresaConvenioCadastroPage />,
+      },
+      {
+        path: 'laboral/telao-vagas',
+        element: (
+          <PermissionGuard
+            required={{ action: 'read', subject: 'telao_vagas_fila' }}
+            hasContent={false}
+          >
+            <TelaoVagasFilaPage />
+          </PermissionGuard>
+        ),
       },
       {
         path: 'profissoes',

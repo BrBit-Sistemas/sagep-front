@@ -7,6 +7,7 @@ const ROOTS = {
   SECRETARIAS: '/secretarias',
   EMPRESAS: '/empresas',
   EMPRESA_CONVENIOS: '/empresa-convenios',
+  LABORAL: '/laboral',
   REGIONAIS: '/regionais',
   DASHBOARD: '/dashboard',
   USERS: '/users',
@@ -53,6 +54,10 @@ export const paths = {
     edit: (convenioId: string) => `${ROOTS.EMPRESA_CONVENIOS}/${convenioId}/edit`,
     contratoPreview: (convenioId: string) =>
       `${ROOTS.EMPRESA_CONVENIOS}/${convenioId}/contrato-preview`,
+  },
+  laboral: {
+    root: ROOTS.LABORAL,
+    telaoVagas: `${ROOTS.LABORAL}/telao-vagas`,
   },
   profissoes: {
     root: '/profissoes',

@@ -10,7 +10,7 @@ import { getAutenticação } from 'src/api/autenticação/autenticação';
 type Props = {
   children: React.ReactNode;
   requireAdmin?: boolean;
-  required?: { action: string; subject: string } | { action: string; subject: string }[];
+  required?: { action: string ; subject: string } | { action: string; subject: string }[];
   hasContent?: boolean;
   sx?: SxProps<Theme>;
 };
@@ -30,8 +30,8 @@ export function PermissionGuard({
   const isAdmin = Boolean(me?.isAdmin);
 
   const hasPermission = (req: { action: string; subject: string }) => {
+    if (isAdmin) return true;
     if (!me || !me.roles) return false;
-
     return Boolean(
       me.roles.some((role: any) =>
         role?.permissions?.some(
@@ -73,6 +73,7 @@ export function usePermissionCheck() {
   const isAdmin = Boolean(me?.isAdmin);
 
   const hasPermission = (req: { action: string; subject: string }) => {
+    if (isAdmin) return true;
     if (!me || !me.roles) return false;
 
     return Boolean(
