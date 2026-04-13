@@ -3,6 +3,7 @@ import type { NavSectionProps } from 'src/components/nav-section';
 import { paths } from 'src/routes/paths';
 
 import { CONFIG } from 'src/global-config';
+import { validacoesAllowedRoles } from 'src/features/fichas-cadastrais-validacoes/constants/permissions';
 
 import { SvgColor } from 'src/components/svg-color';
 
@@ -120,6 +121,12 @@ export const navData: NavSectionProps['data'] = [
         path: paths.empresaConvenios.root,
         icon: ICONS.file,
         allowedRoles: ['read:empresas_convenio'],
+      },
+      {
+        title: 'Validação de Fichas',
+        path: paths.laboral.fichasCadastraisValidacoes,
+        icon: ICONS.invoice,
+        allowedRoles: [validacoesAllowedRoles.read],
       },
       {
         title: 'Telão de Vagas',

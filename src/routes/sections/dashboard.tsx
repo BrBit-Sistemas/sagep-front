@@ -5,6 +5,7 @@ import { lazy, Suspense } from 'react';
 
 import { CONFIG } from 'src/global-config';
 import { DashboardLayout } from 'src/layouts/dashboard';
+import { validacoesPermissions } from 'src/features/fichas-cadastrais-validacoes/constants/permissions';
 
 import { LoadingScreen } from 'src/components/loading-screen';
 
@@ -48,6 +49,9 @@ const EmpresaConvenioContratoPreviewPage = lazy(
 );
 const TelaoVagasFilaPage = lazy(
   () => import('src/features/telao-vagas-fila/pages/telao-vagas-fila-page')
+);
+const FichaCadastralValidacoesPage = lazy(
+  () => import('src/features/fichas-cadastrais-validacoes/pages/cadastro')
 );
 const ProfissaoCadastroPage = lazy(() => import('src/features/profissoes/pages/cadastro'));
 const RegionalCadastroPage = lazy(() => import('src/features/regionais/pages/regional-cadastro'));
@@ -234,6 +238,14 @@ export const dashboardRoutes: RouteObject[] = [
             hasContent={false}
           >
             <TelaoVagasFilaPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: 'laboral/fichas-cadastrais-validacoes',
+        element: (
+          <PermissionGuard required={validacoesPermissions.read}>
+            <FichaCadastralValidacoesPage />
           </PermissionGuard>
         ),
       },

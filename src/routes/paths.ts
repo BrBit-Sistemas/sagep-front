@@ -58,6 +58,7 @@ export const paths = {
   laboral: {
     root: ROOTS.LABORAL,
     telaoVagas: `${ROOTS.LABORAL}/telao-vagas`,
+    fichasCadastraisValidacoes: `${ROOTS.LABORAL}/fichas-cadastrais-validacoes`,
   },
   profissoes: {
     root: '/profissoes',
