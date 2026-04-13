@@ -133,3 +133,9 @@ test-results/
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# graphify — artefatos locais (não versionar)
+graphify-out/cache/
+graphify-out/manifest.json
+graphify-out/cost.json
+graphify-out/.graphify_*
