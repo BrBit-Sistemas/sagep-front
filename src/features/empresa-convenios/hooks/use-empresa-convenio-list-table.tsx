@@ -45,12 +45,12 @@ export const useEmpresaConvenioListTable = () => {
   );
 
   const onEdit = useCallback(
-    (item: EmpresaConvenio) => navigate(paths.empresaConvenios.edit(item.convenio_id)),
+    (item: EmpresaConvenio) => navigate(paths.laboral.convenios.edit(item.convenio_id)),
     [navigate]
   );
 
   const onContratoPreview = useCallback(
-    (item: EmpresaConvenio) => navigate(paths.empresaConvenios.contratoPreview(item.convenio_id)),
+    (item: EmpresaConvenio) => navigate(paths.laboral.convenios.contratoPreview(item.convenio_id)),
     [navigate]
   );
 

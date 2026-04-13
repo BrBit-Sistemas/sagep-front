@@ -97,8 +97,8 @@ export default function DetentoCadastroPage() {
       <CustomBreadcrumbs
         heading="Cadastro de Reeducandos"
         links={[
-          { name: 'Reeducandos' },
-          { name: 'Cadastro de Reeducandos', href: paths.detentos.root },
+          { name: 'Carceragem' },
+          { name: 'Reeducandos', href: paths.carceragem.reeducandos.root },
         ]}
         action={
           <PermissionGuard

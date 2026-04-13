@@ -44,14 +44,14 @@ export const useDetentoListTable = () => {
 
   const onView = useCallback(
     (detento: Detento) => {
-      navigate.push(paths.detentos.detalhes(detento.id));
+      navigate.push(paths.carceragem.reeducandos.detalhes(detento.id));
     },
     [navigate]
   );
 
   const onQuickFichaCreate = useCallback(
     (detento: Detento) => {
-      navigate.push(paths.detentos.fichaCadastralNew(detento.id));
+      navigate.push(paths.carceragem.reeducandos.fichaCadastralNew(detento.id));
     },
     [navigate]
   );

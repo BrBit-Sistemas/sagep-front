@@ -1,26 +1,22 @@
 /**
- * Permissões da feature de Validação de Fichas Cadastrais.
+ * Permissões da tela de Validação de Fichas.
  *
- * Padrão do admin: `{ action, subject }` consumido por `PermissionGuard`
- * e `usePermissionCheck().hasPermission(...)`. Navegação usa a string
- * `action:subject` em `allowedRoles`.
- *
- * Back-end precisa seedar as 3 linhas no catálogo `auth_permissions`
- * (a tela /permissions lista tudo que o GET /auth/permissions devolve).
+ * Back-end reaproveita o catálogo existente — não inventamos novos subjects.
+ * Endpoints de leitura aceitam `read:ficha_cadastral_interno` OU `read:ficha_cadastral_externo`.
+ * Transições de status (`POST /:id/status/*`) exigem `update:ficha_cadastral_interno`.
  */
 
 export const validacoesPermissions = {
-  read: { action: 'read', subject: 'ficha_cadastral_validacao' } as const,
-  validar: { action: 'update', subject: 'ficha_cadastral_validacao' } as const,
-  revalidar: {
-    action: 'update',
-    subject: 'ficha_cadastral_validacao_revalidar',
-  } as const,
+  /** Acesso de leitura à tela — interno ou externo basta. */
+  read: [
+    { action: 'read', subject: 'ficha_cadastral_interno' } as const,
+    { action: 'read', subject: 'ficha_cadastral_externo' } as const,
+  ],
+  /** Todas as ações de validação (aprovar/requerer-correcao/iniciar-analise/fila-disponivel). */
+  validar: { action: 'update', subject: 'ficha_cadastral_interno' } as const,
 } as const;
 
-/** String `action:subject` para uso em `allowedRoles` do nav. */
+/** Strings `action:subject` pra `allowedRoles` do nav. */
 export const validacoesAllowedRoles = {
-  read: `${validacoesPermissions.read.action}:${validacoesPermissions.read.subject}`,
-  validar: `${validacoesPermissions.validar.action}:${validacoesPermissions.validar.subject}`,
-  revalidar: `${validacoesPermissions.revalidar.action}:${validacoesPermissions.revalidar.subject}`,
+  read: ['read:ficha_cadastral_interno', 'read:ficha_cadastral_externo'],
 } as const;

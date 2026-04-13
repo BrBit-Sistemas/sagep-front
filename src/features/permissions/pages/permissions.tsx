@@ -283,7 +283,7 @@ export default function PermissionsPage() {
     <DashboardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
       <CustomBreadcrumbs
         heading="Permissões"
-        links={[{ name: 'Configurações' }, { name: 'Permissões', href: paths.permissions.root }]}
+        links={[{ name: 'Core' }, { name: 'Permissões', href: paths.core.permissoes.root }]}
         sx={{ mb: { xs: 3, md: 5 } }}
       />
 

@@ -491,7 +491,7 @@ export default function EmpresaConvenioFormPage() {
     } else {
       await createItem(data);
     }
-    navigate(paths.empresaConvenios.root);
+    navigate(paths.laboral.convenios.root);
   };
 
   const onInvalid = (errors: FieldErrors<CreateEmpresaConvenioFormValues>) => {
@@ -519,7 +519,7 @@ export default function EmpresaConvenioFormPage() {
         type="button"
         variant="outlined"
         color="inherit"
-        onClick={() => navigate(paths.empresaConvenios.root)}
+        onClick={() => navigate(paths.laboral.convenios.root)}
       >
         Voltar
       </Button>
@@ -535,7 +535,7 @@ export default function EmpresaConvenioFormPage() {
         heading={title}
         links={[
           { name: 'Laboral' },
-          { name: 'Convênios', href: paths.empresaConvenios.root },
+          { name: 'Convênios', href: paths.laboral.convenios.root },
           { name: title },
         ]}
         action={
@@ -544,7 +544,7 @@ export default function EmpresaConvenioFormPage() {
               variant="outlined"
               color="inherit"
               startIcon={<Iconify icon="solar:file-text-bold" />}
-              onClick={() => navigate(paths.empresaConvenios.contratoPreview(convenioId))}
+              onClick={() => navigate(paths.laboral.convenios.contratoPreview(convenioId))}
             >
               Preview do contrato
             </Button>

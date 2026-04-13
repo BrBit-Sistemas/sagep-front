@@ -36,7 +36,7 @@ export default function DetentoFichaCadastralFormPage() {
     [fichasCadastrais, fichaCadastralId]
   );
 
-  const detalhesPath = `${paths.detentos.detalhes(detentoId)}?t=ficha_cadastral`;
+  const detalhesPath = `${paths.carceragem.reeducandos.detalhes(detentoId)}?t=ficha_cadastral`;
 
   const handleBackToDetails = () => {
     navigate.push(detalhesPath);
@@ -47,8 +47,8 @@ export default function DetentoFichaCadastralFormPage() {
       <CustomBreadcrumbs
         heading={isEditing ? 'Editar Ficha Cadastral' : 'Nova Ficha Cadastral'}
         links={[
-          { name: 'Reeducandos' },
-          { name: 'Cadastro de Reeducandos', href: paths.detentos.root },
+          { name: 'Carceragem' },
+          { name: 'Reeducandos', href: paths.carceragem.reeducandos.root },
           { name: 'Detalhes', href: detalhesPath },
           { name: isEditing ? 'Editar ficha' : 'Nova ficha' },
         ]}

@@ -11,17 +11,17 @@ import {
   DialogContent,
 } from '@mui/material';
 
-import { useRevalidar } from '../hooks/use-revalidar';
 import { useValidacaoStore } from '../stores/validacao-store';
+import { useRequererCorrecao } from '../hooks/use-requerer-correcao';
 
 type Props = {
   fichaId: string;
   detentoNome: string;
 };
 
-export const RevalidarMotivoDialog = ({ fichaId, detentoNome }: Props) => {
-  const { isRevalidarOpen, closeRevalidar, closeDetails } = useValidacaoStore();
-  const { mutateAsync, isPending } = useRevalidar();
+export const RequererCorrecaoDialog = ({ fichaId, detentoNome }: Props) => {
+  const { isReprovarOpen, closeReprovar, closeDetails } = useValidacaoStore();
+  const { mutateAsync, isPending } = useRequererCorrecao();
 
   const [motivo, setMotivo] = useState('');
   const [touched, setTouched] = useState(false);
@@ -33,50 +33,56 @@ export const RevalidarMotivoDialog = ({ fichaId, detentoNome }: Props) => {
       setTouched(true);
       return;
     }
-    await mutateAsync({ fichaId, data: { motivo: motivo.trim() } });
+    await mutateAsync({ fichaId, motivo: motivo.trim() });
     setMotivo('');
     setTouched(false);
-    closeRevalidar();
+    closeReprovar();
     closeDetails();
   };
 
   const handleClose = () => {
     setMotivo('');
     setTouched(false);
-    closeRevalidar();
+    closeReprovar();
   };
 
   return (
-    <Dialog open={isRevalidarOpen} onClose={handleClose} fullWidth maxWidth="sm">
-      <DialogTitle>Revalidar ficha</DialogTitle>
+    <Dialog open={isReprovarOpen} onClose={handleClose} fullWidth maxWidth="sm">
+      <DialogTitle>Requerer correção</DialogTitle>
       <DialogContent>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Reeducando: <Box component="span" sx={{ fontWeight: 600 }}>{detentoNome}</Box>
+          Reeducando:{' '}
+          <Box component="span" sx={{ fontWeight: 600 }}>
+            {detentoNome}
+          </Box>
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Revalidar reabre a validação: a ficha volta para <b>PENDENTE</b> e sai da fila se estiver
-          aprovada.
+          A ficha volta para <b>REQUER_CORRECAO</b>. O motivo fica registrado no histórico.
         </Typography>
         <TextField
           autoFocus
           fullWidth
           multiline
           minRows={3}
-          label="Motivo da revalidação"
-          placeholder="Ex.: atualização de artigos penais; nova decisão judicial."
+          label="Motivo da correção"
+          placeholder="Ex.: documentação incompleta; artigo vedado para trabalho externo."
           value={motivo}
           onChange={(e) => setMotivo(e.target.value)}
           onBlur={() => setTouched(true)}
           error={error}
-          helperText={error ? 'Motivo é obrigatório (mín. 3 caracteres).' : 'Registrado no histórico.'}
+          helperText={
+            error
+              ? 'Motivo é obrigatório (mín. 3 caracteres).'
+              : 'Visível na listagem e no detalhe da ficha.'
+          }
         />
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} variant="outlined" disabled={isPending}>
           Cancelar
         </Button>
-        <Button onClick={handleConfirm} variant="contained" color="warning" loading={isPending}>
-          Revalidar
+        <Button onClick={handleConfirm} variant="contained" color="error" loading={isPending}>
+          Requerer correção
         </Button>
       </DialogActions>
     </Dialog>

@@ -7,6 +7,7 @@ export const validacoesMetricsQueryOptions = () =>
   queryOptions({
     queryKey: validacoesKeys.metrics(),
     queryFn: () => validacoesService.metrics(),
+    retry: false,
     staleTime: 30_000,
   });
 

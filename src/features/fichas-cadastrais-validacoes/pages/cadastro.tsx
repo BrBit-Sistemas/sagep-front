@@ -1,15 +1,9 @@
 import type { GridSortModel, GridFilterModel, GridPaginationModel } from '@mui/x-data-grid/models';
-import type { ValidacaoStatus } from '../types';
+import type { StatusValidacaoFicha } from '../types';
 
 import { useMemo, useCallback } from 'react';
 
-import {
-  Box,
-  Card,
-  Stack,
-  MenuItem,
-  TextField,
-} from '@mui/material';
+import { Box, Card, Stack, MenuItem, TextField } from '@mui/material';
 
 import { paths } from 'src/routes/paths';
 
@@ -25,12 +19,12 @@ import { useValidacoesListTable } from '../hooks/use-validacoes-list-table';
 import { ValidacaoDetailsDialog } from '../components/validacao-details-dialog';
 import { useValidacoesSearchParams } from '../hooks/use-validacoes-search-params';
 
-const STATUS_OPTIONS: { value: ValidacaoStatus | ''; label: string }[] = [
+const STATUS_OPTIONS: { value: StatusValidacaoFicha | ''; label: string }[] = [
   { value: '', label: 'Todos' },
-  { value: 'PENDENTE', label: 'Pendente' },
-  { value: 'APROVADO', label: 'Aprovado' },
-  { value: 'ALERTA', label: 'Alerta' },
-  { value: 'REPROVADO', label: 'Reprovado' },
+  { value: 'AGUARDANDO_VALIDACAO', label: 'Pendente' },
+  { value: 'VALIDADO', label: 'Aprovado' },
+  { value: 'REQUER_CORRECAO', label: 'Requer correção' },
+  { value: 'FILA_DISPONIVEL', label: 'Na fila' },
 ];
 
 export default function FichaCadastralValidacoesPage() {
@@ -124,7 +118,7 @@ export default function FichaCadastralValidacoesPage() {
       >
         <MetricCard
           label="Fichas ativas"
-          value={metrics?.totalAtivas}
+          value={metrics?.ativas}
           icon="solar:file-bold-duotone"
           tone="neutral"
           loading={metricsLoading}
@@ -166,11 +160,14 @@ export default function FichaCadastralValidacoesPage() {
             select
             size="small"
             label="Status"
-            value={searchParams.status}
+            value={searchParams.status_validacao}
             onChange={(e) =>
-              setSearchParams({ status: e.target.value as ValidacaoStatus | '', page: 1 })
+              setSearchParams({
+                status_validacao: e.target.value as StatusValidacaoFicha | '',
+                page: 1,
+              })
             }
-            sx={{ minWidth: 180 }}
+            sx={{ minWidth: 220 }}
           >
             {STATUS_OPTIONS.map((o) => (
               <MenuItem key={o.value || 'all'} value={o.value}>
@@ -182,9 +179,17 @@ export default function FichaCadastralValidacoesPage() {
             size="small"
             label="Motivo da reprovação"
             placeholder="ex.: artigo vedado"
-            value={searchParams.motivo_rejeicao}
-            onChange={(e) => setSearchParams({ motivo_rejeicao: e.target.value, page: 1 })}
+            value={searchParams.motivo_reprovacao}
+            onChange={(e) => setSearchParams({ motivo_reprovacao: e.target.value, page: 1 })}
             sx={{ flex: 1, maxWidth: { md: 360 } }}
+          />
+          <TextField
+            size="small"
+            label="CPF"
+            placeholder="somente dígitos"
+            value={searchParams.cpf}
+            onChange={(e) => setSearchParams({ cpf: e.target.value, page: 1 })}
+            sx={{ minWidth: 180 }}
           />
         </Stack>
       </Card>

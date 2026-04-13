@@ -55,8 +55,8 @@ export default function EmpresaConvenioCadastroPage() {
   return (
     <DashboardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
       <CustomBreadcrumbs
-        heading="Convênios de Empresas"
-        links={[{ name: 'Laboral' }, { name: 'Convênios', href: paths.empresaConvenios.root }]}
+        heading="Convênios"
+        links={[{ name: 'Laboral' }, { name: 'Convênios', href: paths.laboral.convenios.root }]}
         action={
           <PermissionGuard
             hasContent={false}
@@ -66,7 +66,7 @@ export default function EmpresaConvenioCadastroPage() {
               color="primary"
               variant="contained"
               startIcon={<Iconify icon="mingcute:add-line" />}
-              onClick={() => navigate(paths.empresaConvenios.new)}
+              onClick={() => navigate(paths.laboral.convenios.new)}
             >
               Adicionar
             </Button>

@@ -97,8 +97,8 @@ export default function UnidadePrisionalCadastroPage() {
       <CustomBreadcrumbs
         heading="Cadastro de Unidades Prisionais"
         links={[
-          { name: 'Unidades Prisionais' },
-          { name: 'Cadastro de Unidades Prisionais', href: paths.unidadesPrisionais.root },
+          { name: 'Core' },
+          { name: 'Unidades Prisionais', href: paths.core.unidadesPrisionais.root },
         ]}
         action={
           <PermissionGuard

@@ -24,13 +24,13 @@ export const useValidacoesListTable = () => {
   const { isLoading, hasPermission } = usePermissionCheck();
 
   const onView = useCallback(
-    (row: FichaCadastralValidacao) => openDetails(row.ficha_cadastral_id),
+    (row: FichaCadastralValidacao) => openDetails(row.id),
     [openDetails]
   );
 
-  const onReprovar = useCallback(
+  const onRequererCorrecao = useCallback(
     (row: FichaCadastralValidacao) => {
-      openDetails(row.ficha_cadastral_id);
+      openDetails(row.id);
       openReprovar();
     },
     [openDetails, openReprovar]
@@ -38,7 +38,7 @@ export const useValidacoesListTable = () => {
 
   const onRevalidar = useCallback(
     (row: FichaCadastralValidacao) => {
-      openDetails(row.ficha_cadastral_id);
+      openDetails(row.id);
       openRevalidar();
     },
     [openDetails, openRevalidar]
@@ -50,60 +50,58 @@ export const useValidacoesListTable = () => {
         field: 'detento_nome',
         headerName: 'Reeducando',
         flex: 2,
-        minWidth: 220,
+        minWidth: 240,
+        sortable: false,
+        valueGetter: (_v, row) => row.detento?.nome ?? row.nome ?? '',
         renderCell: ({ row }) => (
-          <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              height: '100%',
+            }}
+          >
             <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.3 }}>
-              {row.detento_nome}
+              {row.detento?.nome ?? row.nome ?? '—'}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              Matrícula: {row.matricula || '—'}
+              Prontuário: {row.detento?.prontuario ?? row.prontuario ?? '—'}
             </Typography>
           </Box>
         ),
       },
       {
-        field: 'matricula',
-        headerName: 'Matrícula',
-        flex: 1,
-        minWidth: 120,
-        valueGetter: (_v, row) => row.matricula || '',
-      },
-      {
-        field: 'ficha_cadastral_numero',
-        headerName: 'Ficha',
-        flex: 1,
-        minWidth: 140,
-        renderCell: ({ row }) => (
-          <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
-            <Typography variant="body2">{row.ficha_cadastral_numero || '—'}</Typography>
-            <Typography
-              variant="caption"
-              sx={{
-                color: row.ficha_cadastral_status === 'ATIVA' ? 'success.main' : 'text.disabled',
-                fontWeight: 600,
-              }}
-            >
-              {row.ficha_cadastral_status}
-            </Typography>
-          </Box>
-        ),
-      },
-      {
-        field: 'status',
-        headerName: 'Validação',
+        field: 'prontuario',
+        headerName: 'Prontuário',
         flex: 1,
         minWidth: 130,
-        renderCell: ({ row }) => <StatusChip status={row.status} />,
+        sortable: false,
+        valueGetter: (_v, row) => row.detento?.prontuario ?? row.prontuario ?? '',
       },
       {
-        field: 'motivo_rejeicao',
+        field: 'cpf',
+        headerName: 'CPF',
+        flex: 1,
+        minWidth: 140,
+        sortable: false,
+        valueGetter: (_v, row) => row.detento?.cpf ?? row.cpf ?? '',
+      },
+      {
+        field: 'status_validacao',
+        headerName: 'Validação',
+        flex: 1,
+        minWidth: 150,
+        renderCell: ({ row }) => <StatusChip status={row.status_validacao} />,
+      },
+      {
+        field: 'motivo_reprovacao',
         headerName: 'Motivo',
         flex: 2,
-        minWidth: 220,
+        minWidth: 240,
         renderCell: ({ row }) =>
-          row.motivo_rejeicao ? (
-            <Tooltip title={row.motivo_rejeicao} placement="top-start">
+          row.motivo_reprovacao ? (
+            <Tooltip title={row.motivo_reprovacao} placement="top-start">
               <Typography
                 variant="body2"
                 sx={{
@@ -113,11 +111,13 @@ export const useValidacoesListTable = () => {
                   color: 'error.main',
                 }}
               >
-                {row.motivo_rejeicao}
+                {row.motivo_reprovacao}
               </Typography>
             </Tooltip>
           ) : (
-            <Typography variant="body2" color="text.disabled">—</Typography>
+            <Typography variant="body2" color="text.disabled">
+              —
+            </Typography>
           ),
       },
       {
@@ -142,7 +142,6 @@ export const useValidacoesListTable = () => {
           const actions: React.ReactElement<GridActionsCellItemProps>[] = [];
 
           const canValidar = hasPermission(validacoesPermissions.validar);
-          const canRevalidar = hasPermission(validacoesPermissions.revalidar);
 
           actions.push(
             (
@@ -155,37 +154,37 @@ export const useValidacoesListTable = () => {
             ) as unknown as React.ReactElement<GridActionsCellItemProps>
           );
 
-          if (canValidar && params.row.status === 'PENDENTE') {
-            actions.push(
-              (
-                <CustomGridActionsCellItem
-                  showInMenu
-                  label="Reprovar"
-                  icon={<Iconify icon="solar:close-circle-bold" />}
-                  onClick={() => onReprovar(params.row)}
-                />
-              ) as unknown as React.ReactElement<GridActionsCellItemProps>
-            );
-          }
-
-          if (canRevalidar && params.row.status !== 'PENDENTE') {
-            actions.push(
-              (
-                <CustomGridActionsCellItem
-                  showInMenu
-                  label="Revalidar"
-                  icon={<Iconify icon="solar:restart-bold" />}
-                  onClick={() => onRevalidar(params.row)}
-                />
-              ) as unknown as React.ReactElement<GridActionsCellItemProps>
-            );
+          if (canValidar) {
+            if (params.row.status_validacao === 'AGUARDANDO_VALIDACAO') {
+              actions.push(
+                (
+                  <CustomGridActionsCellItem
+                    showInMenu
+                    label="Requerer correção"
+                    icon={<Iconify icon="solar:close-circle-bold" />}
+                    onClick={() => onRequererCorrecao(params.row)}
+                  />
+                ) as unknown as React.ReactElement<GridActionsCellItemProps>
+              );
+            } else {
+              actions.push(
+                (
+                  <CustomGridActionsCellItem
+                    showInMenu
+                    label="Reabrir análise"
+                    icon={<Iconify icon="solar:restart-bold" />}
+                    onClick={() => onRevalidar(params.row)}
+                  />
+                ) as unknown as React.ReactElement<GridActionsCellItemProps>
+              );
+            }
           }
 
           return actions;
         },
       },
     ],
-    [isLoading, hasPermission, onView, onReprovar, onRevalidar]
+    [isLoading, hasPermission, onView, onRequererCorrecao, onRevalidar]
   );
 
   return { columns };

@@ -96,8 +96,8 @@ export default function ProfissaoCadastroPage() {
       <CustomBreadcrumbs
         heading="Cadastro de Profissões"
         links={[
-          { name: 'Profissões' },
-          { name: 'Cadastro de Profissões', href: paths.profissoes.root },
+          { name: 'Core' },
+          { name: 'Profissões', href: paths.core.profissoes.root },
         ]}
         action={
           <PermissionGuard

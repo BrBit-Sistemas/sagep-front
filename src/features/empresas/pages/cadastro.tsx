@@ -96,7 +96,7 @@ export default function EmpresaCadastroPage() {
     <DashboardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
       <CustomBreadcrumbs
         heading="Cadastro de Empresas"
-        links={[{ name: 'Empresas' }, { name: 'Cadastro de Empresas', href: paths.empresas.root }]}
+        links={[{ name: 'Laboral' }, { name: 'Empresas', href: paths.laboral.empresas.root }]}
         action={
           <PermissionGuard hasContent={false} required={{ action: 'create', subject: 'empresas' }}>
             <Button
