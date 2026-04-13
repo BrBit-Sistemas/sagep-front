@@ -128,12 +128,14 @@ export const navData: NavSectionProps['data'] = [
         title: 'Empresas',
         path: paths.laboral.empresas.root,
         icon: ICONS.ecommerce,
+        info: BetaChip,
         allowedRoles: ['read:empresas'],
       },
       {
         title: 'Convênios',
         path: paths.laboral.convenios.root,
         icon: ICONS.file,
+        info: BetaChip,
         allowedRoles: ['read:empresas_convenio'],
       },
       {
