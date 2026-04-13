@@ -21,6 +21,41 @@ export interface ReadDetentoDto {
   updated_by: string;
   ficha_cadastral_created_at?: string | null;
   ficha_cadastral_created_by_name?: string | null;
+  /** Status da ficha cadastral ATIVA (vem do join no back). null = sem ficha. */
+  status_validacao?:
+    | 'AGUARDANDO_VALIDACAO'
+    | 'VALIDADO'
+    | 'REQUER_CORRECAO'
+    | 'FILA_DISPONIVEL'
+    | null;
+  /** Motivo da reprovação da ficha ativa (preenchido quando REQUER_CORRECAO). */
+  motivo_reprovacao?: string | null;
+}
+
+export interface DetentoIndicadoresValidacaoDto {
+  total: number;
+  aprovados: number;
+  aguardando: number;
+  requer_correcao: number;
+  sem_ficha: number;
+}
+
+export type DetentoStatusValidacaoFilter =
+  | 'AGUARDANDO_VALIDACAO'
+  | 'VALIDADO'
+  | 'REQUER_CORRECAO'
+  | 'FILA_DISPONIVEL'
+  | 'SEM_FICHA';
+
+export interface PaginateDetentosParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sort?: string;
+  order?: 'asc' | 'desc';
+  cpf?: string;
+  status_validacao?: DetentoStatusValidacaoFilter;
+  motivo_reprovacao?: string;
 }
 
 export interface CreateDetentoDto {
@@ -64,9 +99,19 @@ export const getDetentos = () => {
     );
 
   const findAll = (
-    params?: Record<string, any>,
+    params?: PaginateDetentosParams,
     options?: SecondParameter<typeof customInstance>
   ) => customInstance<PaginateDetentoDto>({ url: `/detentos`, method: 'GET', params }, options);
+
+  const indicadoresValidacao = (options?: SecondParameter<typeof customInstance>) =>
+    customInstance<DetentoIndicadoresValidacaoDto>(
+      {
+        url: `/detentos/indicadores-validacao`,
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      },
+      options
+    );
 
   const findOne = (id: string, options?: SecondParameter<typeof customInstance>) =>
     customInstance<ReadDetentoDto>({ url: `/detentos/${id}`, method: 'GET' }, options);
@@ -89,7 +134,7 @@ export const getDetentos = () => {
   const remove = (id: string, options?: SecondParameter<typeof customInstance>) =>
     customInstance<void>({ url: `/detentos/${id}`, method: 'DELETE' }, options);
 
-  return { create, findAll, findOne, update, remove };
+  return { create, findAll, findOne, update, remove, indicadoresValidacao };
 };
 
 export type CreateResult = NonNullable<

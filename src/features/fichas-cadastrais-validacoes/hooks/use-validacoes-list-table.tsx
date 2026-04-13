@@ -9,11 +9,11 @@ import { Box, Tooltip, Typography } from '@mui/material';
 import { formatDateToDDMMYYYY } from 'src/utils/format-date';
 
 import { Iconify } from 'src/components/iconify';
+import { StatusChip } from 'src/components/status-chip';
 import { CustomGridActionsCellItem } from 'src/components/custom-data-grid';
 
 import { usePermissionCheck } from 'src/auth/guard/permission-guard';
 
-import { StatusChip } from '../components/status-chip';
 import { useValidacaoStore } from '../stores/validacao-store';
 import { validacoesPermissions } from '../constants/permissions';
 

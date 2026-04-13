@@ -16,10 +16,10 @@ import {
 import { formatDateToDDMMYYYY } from 'src/utils/format-date';
 
 import { Iconify } from 'src/components/iconify';
+import { StatusChip } from 'src/components/status-chip';
 
 import { usePermissionCheck } from 'src/auth/guard/permission-guard';
 
-import { StatusChip } from './status-chip';
 import { useAprovar } from '../hooks/use-aprovar';
 import { RevalidarDialog } from './revalidar-dialog';
 import { useValidacaoStore } from '../stores/validacao-store';

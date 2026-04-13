@@ -4,7 +4,6 @@ import type { Detento } from '../types';
 import { useMemo, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
-import Chip from '@mui/material/Chip';
 import Avatar from '@mui/material/Avatar';
 import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
@@ -16,6 +15,7 @@ import { fDateTime } from 'src/utils/format-time';
 import { formatCpf } from 'src/utils/format-string';
 
 import { Iconify } from 'src/components/iconify';
+import { StatusChip } from 'src/components/status-chip';
 import { CustomGridActionsCellItem } from 'src/components/custom-data-grid';
 
 import { usePermissionCheck } from 'src/auth/guard/permission-guard';
@@ -111,34 +111,23 @@ export const useDetentoListTable = () => {
     }
 
     if (canReadFichaInterno) {
-      // Coluna: Status da Ficha (badge)
       cols.push({
         field: 'status_validacao',
         headerName: 'Status da Ficha',
         flex: 1,
-        minWidth: 160,
+        minWidth: 170,
         sortable: false,
         renderCell: ({ row }) => {
-          const raw =
-            (row as any).status_validacao ||
-            (row as any).ficha_status_validacao ||
-            (row as any).ficha_status ||
-            '';
-          const status = String(raw).toUpperCase();
-          const map: Record<
-            string,
-            { label: string; color: 'default' | 'success' | 'warning' | 'error' | 'info' }
-          > = {
-            VALIDADO: { label: 'Validada', color: 'success' },
-            AGUARDANDO_VALIDACAO: { label: 'Aguardando validação', color: 'info' },
-            REQUER_CORRECAO: { label: 'Requer correção', color: 'warning' },
-            REJEITADA: { label: 'Rejeitada', color: 'error' },
-            FILA_DISPONIVEL: { label: 'Na fila', color: 'info' },
-          };
-          const conf = map[status] || { label: '-', color: 'default' as const };
+          const raw = (row as any).status_validacao as string | null | undefined;
+          const status = (raw ? String(raw).toUpperCase() : null) as
+            | 'AGUARDANDO_VALIDACAO'
+            | 'VALIDADO'
+            | 'REQUER_CORRECAO'
+            | 'FILA_DISPONIVEL'
+            | null;
           return (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Chip size="small" label={conf.label} color={conf.color} variant="soft" />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: '100%' }}>
+              {status ? <StatusChip status={status} /> : <StatusChip status="SEM_FICHA" />}
               {status === 'FILA_DISPONIVEL' && (row as any)?.posicao_fila ? (
                 <Typography variant="caption" color="text.secondary">
                   #{(row as any).posicao_fila}

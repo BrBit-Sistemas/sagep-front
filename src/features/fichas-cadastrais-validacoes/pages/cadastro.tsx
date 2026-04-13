@@ -9,10 +9,10 @@ import { paths } from 'src/routes/paths';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
+import { MetricCard } from 'src/components/metric-card';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import CustomDataGrid from 'src/components/custom-data-grid/custom-data-grid';
 
-import { MetricCard } from '../components/metric-card';
 import { useValidacoesList } from '../hooks/use-validacoes-list';
 import { useValidacoesMetrics } from '../hooks/use-validacoes-metrics';
 import { useValidacoesListTable } from '../hooks/use-validacoes-list-table';
@@ -57,6 +57,13 @@ export default function FichaCadastralValidacoesPage() {
     },
     [setSearchParams]
   );
+
+  const setStatusFilter = (status: StatusValidacaoFicha) => {
+    setSearchParams({
+      status_validacao: searchParams.status_validacao === status ? '' : status,
+      page: 1,
+    });
+  };
 
   const dataGridProps = useMemo(
     () => ({
@@ -122,6 +129,8 @@ export default function FichaCadastralValidacoesPage() {
           icon="solar:file-bold-duotone"
           tone="neutral"
           loading={metricsLoading}
+          active={searchParams.status_validacao === ''}
+          onClick={() => setSearchParams({ status_validacao: '', page: 1 })}
         />
         <MetricCard
           label="Aprovadas"
@@ -129,6 +138,8 @@ export default function FichaCadastralValidacoesPage() {
           icon="solar:file-check-bold-duotone"
           tone="success"
           loading={metricsLoading}
+          active={searchParams.status_validacao === 'VALIDADO'}
+          onClick={() => setStatusFilter('VALIDADO')}
         />
         <MetricCard
           label="Alertas"
@@ -143,13 +154,17 @@ export default function FichaCadastralValidacoesPage() {
           icon="solar:file-corrupted-bold-duotone"
           tone="error"
           loading={metricsLoading}
+          active={searchParams.status_validacao === 'REQUER_CORRECAO'}
+          onClick={() => setStatusFilter('REQUER_CORRECAO')}
         />
         <MetricCard
           label="Pendentes"
           value={metrics?.pendentes}
           icon="solar:clock-circle-bold"
-          tone="neutral"
+          tone="warning"
           loading={metricsLoading}
+          active={searchParams.status_validacao === 'AGUARDANDO_VALIDACAO'}
+          onClick={() => setStatusFilter('AGUARDANDO_VALIDACAO')}
         />
       </Box>
 
