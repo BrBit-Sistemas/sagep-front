@@ -1,11 +1,33 @@
 import type { NavSectionProps } from 'src/components/nav-section';
 
+import { Chip } from '@mui/material';
+
 import { paths } from 'src/routes/paths';
 
 import { CONFIG } from 'src/global-config';
 import { validacoesAllowedRoles } from 'src/features/fichas-cadastrais-validacoes/constants/permissions';
 
 import { SvgColor } from 'src/components/svg-color';
+
+// ----------------------------------------------------------------------
+
+/** Chip de "beta" pra sinalizar telas ainda em teste no menu lateral. */
+const BetaChip = (
+  <Chip
+    size="small"
+    label="BETA"
+    color="warning"
+    variant="outlined"
+    sx={{
+      height: 18,
+      fontSize: 10,
+      fontWeight: 700,
+      letterSpacing: 0.4,
+      borderRadius: 0.75,
+      '& .MuiChip-label': { px: 0.75 },
+    }}
+  />
+);
 
 // ----------------------------------------------------------------------
 
@@ -124,12 +146,14 @@ export const navData: NavSectionProps['data'] = [
         title: 'Validação de Fichas',
         path: paths.laboral.fichasCadastraisValidacoes,
         icon: ICONS.invoice,
+        info: BetaChip,
         allowedRoles: [...validacoesAllowedRoles.read],
       },
       {
         title: 'Telão de Vagas',
         path: paths.laboral.telaoVagas,
         icon: ICONS.kanban,
+        info: BetaChip,
         allowedRoles: ['read:telao_vagas_fila'],
       },
     ],
