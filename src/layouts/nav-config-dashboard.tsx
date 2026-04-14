@@ -139,7 +139,7 @@ export const navData: NavSectionProps['data'] = [
         allowedRoles: ['read:empresas_convenio'],
       },
       {
-        title: 'Ficha Cadastral',
+        title: 'Ficha Cadastral Externa',
         path: paths.laboral.fichaCadastral,
         icon: ICONS.file,
         allowedRoles: ['read:ficha_cadastral_externo'],
