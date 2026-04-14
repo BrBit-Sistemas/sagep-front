@@ -30,6 +30,15 @@ export const useFichasCadastraisListTable = () => {
     [router]
   );
 
+  const onAddNew = useCallback(
+    (row: FichaCadastral) => {
+      if (row.detento_id) {
+        router.push(paths.carceragem.reeducandos.fichaCadastralNew(row.detento_id));
+      }
+    },
+    [router]
+  );
+
   const onViewDetento = useCallback(
     (row: FichaCadastral) => {
       if (row.detento_id) {
@@ -127,13 +136,24 @@ export const useFichasCadastraisListTable = () => {
                 />
               ) as unknown as React.ReactElement<GridActionsCellItemProps>
             );
+
+            actions.push(
+              (
+                <CustomGridActionsCellItem
+                  showInMenu
+                  label="Adicionar ficha"
+                  icon={<Iconify icon="mingcute:add-line" />}
+                  onClick={() => onAddNew(params.row)}
+                />
+              ) as unknown as React.ReactElement<GridActionsCellItemProps>
+            );
           }
 
           return actions;
         },
       },
     ],
-    [isLoading, hasPermission, onEdit, onViewDetento]
+    [isLoading, hasPermission, onEdit, onAddNew, onViewDetento]
   );
 
   return { columns };

@@ -38,8 +38,8 @@ export default function DetentoFichaCadastralFormPage() {
 
   const detalhesPath = `${paths.carceragem.reeducandos.detalhes(detentoId)}?t=ficha_cadastral`;
 
-  const handleBackToDetails = () => {
-    navigate.push(detalhesPath);
+  const handleBack = () => {
+    navigate.back();
   };
 
   return (
@@ -53,8 +53,8 @@ export default function DetentoFichaCadastralFormPage() {
           { name: isEditing ? 'Editar ficha' : 'Nova ficha' },
         ]}
         action={
-          <Button variant="outlined" onClick={handleBackToDetails}>
-            Voltar para detalhes
+          <Button variant="outlined" onClick={handleBack}>
+            Voltar
           </Button>
         }
         sx={{ mb: { xs: 3, md: 5 } }}
@@ -64,7 +64,7 @@ export default function DetentoFichaCadastralFormPage() {
         <Alert
           severity="error"
           action={
-            <Button color="inherit" size="small" onClick={handleBackToDetails}>
+            <Button color="inherit" size="small" onClick={handleBack}>
               Voltar
             </Button>
           }
@@ -84,8 +84,8 @@ export default function DetentoFichaCadastralFormPage() {
             defaultValues={
               selectedFichaCadastral ? fichaCadastralToFormValues(selectedFichaCadastral) : undefined
             }
-            onCancel={handleBackToDetails}
-            onSuccess={handleBackToDetails}
+            onCancel={handleBack}
+            onSuccess={handleBack}
           />
         </Box>
       )}

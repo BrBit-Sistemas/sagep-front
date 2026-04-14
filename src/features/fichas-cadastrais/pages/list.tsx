@@ -1,9 +1,9 @@
-import type { GridSortModel, GridFilterModel, GridPaginationModel } from '@mui/x-data-grid/models';
-import type { StatusValidacaoFicha } from '../types';
+import type { GridCellParams, GridSortModel, GridFilterModel, GridPaginationModel } from '@mui/x-data-grid/models';
+import type { FichaCadastral, StatusValidacaoFicha } from '../types';
 
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useState } from 'react';
 
-import { Box, Card, Stack, Button, MenuItem, TextField } from '@mui/material';
+import { Alert, Box, Card, Stack, Button, MenuItem, TextField } from '@mui/material';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
@@ -30,12 +30,41 @@ const STATUS_OPTIONS: { value: StatusValidacaoFicha | ''; label: string }[] = [
 
 export default function FichasCadastraisListPage() {
   const router = useRouter();
+  const [addMode, setAddMode] = useState(false);
+  const [selectedDetentoId, setSelectedDetentoId] = useState<string | null>(null);
+  const [selectedRowId, setSelectedRowId] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useFichasCadastraisSearchParams();
 
   const { data, isLoading } = useFichasCadastraisList(searchParams);
   const { data: metrics, isLoading: metricsLoading } = useFichasCadastraisMetrics();
 
   const { columns } = useFichasCadastraisListTable();
+
+  const handleAddClick = () => {
+    if (addMode && selectedDetentoId) {
+      router.push(paths.carceragem.reeducandos.fichaCadastralNew(selectedDetentoId));
+    } else {
+      setAddMode(true);
+      setSelectedDetentoId(null);
+      setSelectedRowId(null);
+    }
+  };
+
+  const handleCellClick = useCallback(
+    (params: GridCellParams<FichaCadastral>) => {
+      if (!addMode) return;
+      if (params.field === 'actions') return;
+      setSelectedDetentoId(params.row.detento_id);
+      setSelectedRowId(params.row.id);
+    },
+    [addMode]
+  );
+
+  const handleCancelAdd = () => {
+    setAddMode(false);
+    setSelectedDetentoId(null);
+    setSelectedRowId(null);
+  };
 
   const handlePaginationModelChange = useCallback(
     (newModel: GridPaginationModel) => {
@@ -83,6 +112,18 @@ export default function FichasCadastraisListPage() {
       onSortModelChange: handleSortModelChange,
       onFilterModelChange: handleFilterModelChange,
       getRowId: (row: any) => row.id,
+      onCellClick: handleCellClick,
+      getRowClassName: (params: { id: string | number }) =>
+        String(params.id) === selectedRowId ? 'row--add-selected' : '',
+      sx: addMode
+        ? {
+            cursor: 'pointer',
+            '& .row--add-selected': {
+              backgroundColor: 'action.selected',
+              '&:hover': { backgroundColor: 'action.selected' },
+            },
+          }
+        : undefined,
     }),
     [
       data?.hasNextPage,
@@ -98,6 +139,9 @@ export default function FichasCadastraisListPage() {
       handlePaginationModelChange,
       handleSortModelChange,
       handleFilterModelChange,
+      handleCellClick,
+      selectedRowId,
+      addMode,
     ]
   );
 
@@ -112,10 +156,11 @@ export default function FichasCadastraisListPage() {
         action={
           <Button
             variant="contained"
+            color={addMode && selectedDetentoId ? 'success' : 'primary'}
             startIcon={<Iconify icon="mingcute:add-line" />}
-            onClick={() => router.push(paths.carceragem.reeducandos.root)}
+            onClick={handleAddClick}
           >
-            Novo via Reeducando
+            Adicionar
           </Button>
         }
         sx={{ mb: { xs: 2, md: 3 } }}
@@ -211,6 +256,19 @@ export default function FichasCadastraisListPage() {
           />
         </Stack>
       </Card>
+
+      {/* ---------- Add mode alert ---------- */}
+      {addMode && (
+        <Alert
+          severity={selectedDetentoId ? 'success' : 'info'}
+          onClose={handleCancelAdd}
+          sx={{ mb: 2 }}
+        >
+          {selectedDetentoId
+            ? 'Reeducando selecionado. Clique em + Adicionar para continuar.'
+            : 'Selecione um reeducando na lista abaixo e clique novamente em + Adicionar.'}
+        </Alert>
+      )}
 
       {/* ---------- Table ---------- */}
       <Card

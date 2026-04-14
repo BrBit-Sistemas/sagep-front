@@ -162,6 +162,8 @@ export default function CustomDataGrid(props: CustomDataGridProps) {
       rows={props.rows}
       columns={props.columns}
       loading={props.loading}
+      onCellClick={props.onCellClick}
+      getRowClassName={props.getRowClassName}
       slotProps={{
         ...props.slotProps,
         toolbar: {
