@@ -39,6 +39,9 @@ export const paths = {
   // --------------------------------- Carceragem
   carceragem: {
     root: ROOTS.CARCERAGEM,
+    fichasCadastrais: {
+      root: `${ROOTS.CARCERAGEM}/fichas-cadastrais`,
+    },
     reeducandos: {
       root: `${ROOTS.CARCERAGEM}/reeducandos`,
       detalhes: (detentoId: string) =>

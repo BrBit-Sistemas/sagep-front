@@ -5,6 +5,7 @@ import { lazy, Suspense } from 'react';
 
 import { CONFIG } from 'src/global-config';
 import { DashboardLayout } from 'src/layouts/dashboard';
+import { fichasCadastraisPermissions } from 'src/features/fichas-cadastrais/constants/permissions';
 import { validacoesPermissions } from 'src/features/fichas-cadastrais-validacoes/constants/permissions';
 
 import { LoadingScreen } from 'src/components/loading-screen';
@@ -26,6 +27,10 @@ const dashboardLayout = () => (
   <DashboardLayout>
     <SuspenseOutlet />
   </DashboardLayout>
+);
+
+const FichasCadastraisListPage = lazy(
+  () => import('src/features/fichas-cadastrais/pages/list')
 );
 
 const DetentoCadastroPage = lazy(() => import('src/features/detento/pages/cadastro'));
@@ -82,6 +87,14 @@ export const dashboardRoutes: RouteObject[] = [
         path: 'carceragem',
         element: <SuspenseOutlet />,
         children: [
+          {
+            path: 'fichas-cadastrais',
+            element: (
+              <PermissionGuard required={fichasCadastraisPermissions.read} hasContent={false}>
+                <FichasCadastraisListPage />
+              </PermissionGuard>
+            ),
+          },
           {
             path: 'reeducandos',
             element: (

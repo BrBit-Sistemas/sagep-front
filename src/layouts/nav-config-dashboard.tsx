@@ -5,6 +5,7 @@ import { Chip } from '@mui/material';
 import { paths } from 'src/routes/paths';
 
 import { CONFIG } from 'src/global-config';
+import { fichasCadastraisAllowedRoles } from 'src/features/fichas-cadastrais/constants/permissions';
 import { validacoesAllowedRoles } from 'src/features/fichas-cadastrais-validacoes/constants/permissions';
 
 import { SvgColor } from 'src/components/svg-color';
@@ -77,6 +78,12 @@ export const navData: NavSectionProps['data'] = [
         path: paths.carceragem.reeducandos.root,
         icon: ICONS.user,
         allowedRoles: ['read:detentos', 'read:ficha_cadastral_interno'],
+      },
+      {
+        title: 'Fichas Cadastrais',
+        path: paths.carceragem.fichasCadastrais.root,
+        icon: ICONS.invoice,
+        allowedRoles: [...fichasCadastraisAllowedRoles.read],
       },
     ],
   },
