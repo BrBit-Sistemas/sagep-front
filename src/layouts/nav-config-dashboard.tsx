@@ -79,12 +79,6 @@ export const navData: NavSectionProps['data'] = [
         icon: ICONS.user,
         allowedRoles: ['read:detentos', 'read:ficha_cadastral_interno'],
       },
-      {
-        title: 'Fichas Cadastrais',
-        path: paths.carceragem.fichasCadastrais.root,
-        icon: ICONS.invoice,
-        allowedRoles: [...fichasCadastraisAllowedRoles.read],
-      },
     ],
   },
   {
@@ -144,6 +138,12 @@ export const navData: NavSectionProps['data'] = [
         icon: ICONS.file,
         info: BetaChip,
         allowedRoles: ['read:empresas_convenio'],
+      },
+      {
+        title: 'Fichas Cadastrais',
+        path: paths.laboral.fichasCadastrais.root,
+        icon: ICONS.invoice,
+        allowedRoles: [...fichasCadastraisAllowedRoles.read],
       },
       {
         title: 'Ficha Cadastral Externa',

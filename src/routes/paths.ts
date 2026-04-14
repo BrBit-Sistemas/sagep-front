@@ -39,9 +39,6 @@ export const paths = {
   // --------------------------------- Carceragem
   carceragem: {
     root: ROOTS.CARCERAGEM,
-    fichasCadastrais: {
-      root: `${ROOTS.CARCERAGEM}/fichas-cadastrais`,
-    },
     reeducandos: {
       root: `${ROOTS.CARCERAGEM}/reeducandos`,
       detalhes: (detentoId: string) =>
@@ -74,6 +71,9 @@ export const paths = {
       edit: (convenioId: string) => `${ROOTS.LABORAL}/convenios/${convenioId}/edit`,
       contratoPreview: (convenioId: string) =>
         `${ROOTS.LABORAL}/convenios/${convenioId}/contrato-preview`,
+    },
+    fichasCadastrais: {
+      root: `${ROOTS.LABORAL}/fichas-cadastrais`,
     },
     fichaCadastral: `${ROOTS.LABORAL}/ficha-cadastral`,
     fichasCadastraisValidacoes: `${ROOTS.LABORAL}/fichas-cadastrais-validacoes`,

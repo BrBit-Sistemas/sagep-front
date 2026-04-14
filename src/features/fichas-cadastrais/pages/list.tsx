@@ -106,8 +106,8 @@ export default function FichasCadastraisListPage() {
       <CustomBreadcrumbs
         heading="Fichas Cadastrais"
         links={[
-          { name: 'Carceragem' },
-          { name: 'Fichas Cadastrais', href: paths.carceragem.fichasCadastrais.root },
+          { name: 'Laboral' },
+          { name: 'Fichas Cadastrais', href: paths.laboral.fichasCadastrais.root },
         ]}
         action={
           <Button

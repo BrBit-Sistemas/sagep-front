@@ -88,14 +88,6 @@ export const dashboardRoutes: RouteObject[] = [
         element: <SuspenseOutlet />,
         children: [
           {
-            path: 'fichas-cadastrais',
-            element: (
-              <PermissionGuard required={fichasCadastraisPermissions.read} hasContent={false}>
-                <FichasCadastraisListPage />
-              </PermissionGuard>
-            ),
-          },
-          {
             path: 'reeducandos',
             element: (
               <PermissionGuard
@@ -274,6 +266,14 @@ export const dashboardRoutes: RouteObject[] = [
                 hasContent={false}
               >
                 <TelaoVagasFilaPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: 'fichas-cadastrais',
+            element: (
+              <PermissionGuard required={fichasCadastraisPermissions.read} hasContent={false}>
+                <FichasCadastraisListPage />
               </PermissionGuard>
             ),
           },
