@@ -2,7 +2,8 @@ import type { GridSortModel, GridFilterModel, GridPaginationModel } from '@mui/x
 
 import { useMemo, useCallback } from 'react';
 
-import { Card, Button } from '@mui/material';
+import { Box, Card, Button } from '@mui/material';
+import { MetricCard } from 'src/components/metric-card';
 
 import { paths } from 'src/routes/paths';
 
@@ -19,6 +20,7 @@ import { useEmpresaList } from '../hooks/use-empresa-list';
 import { useEmpresaListTable } from '../hooks/use-empresa-list-table';
 import { useEmpresaCadastroStore } from '../stores/empresa-cadastro-store';
 import { useEmpresaSearchParams } from '../hooks/use-empresa-search-params';
+import { useEmpresaMetrics } from '../hooks/use-empresa-metrics';
 import { EmpresaFormDialog } from '../components/cadastro/empresa-form-dialog';
 import { EmpresaDeleteDialog } from '../components/cadastro/empresa-delete-dialog';
 
@@ -29,6 +31,7 @@ export default function EmpresaCadastroPage() {
     useEmpresaCadastroStore();
 
   const { data, isLoading } = useEmpresaList(searchParams);
+  const { data: metrics, isLoading: metricsLoading } = useEmpresaMetrics();
 
   const { columns } = useEmpresaListTable();
 
@@ -110,8 +113,50 @@ export default function EmpresaCadastroPage() {
             </Button>
           </PermissionGuard>
         }
-        sx={{ mb: { xs: 3, md: 5 } }}
+        sx={{ mb: { xs: 2, md: 3 } }}
       />
+
+      <Box
+        sx={{
+          display: 'grid',
+          gap: 2,
+          mb: 3,
+          gridTemplateColumns: { xs: 'repeat(1, 1fr)', sm: 'repeat(3, 1fr)' },
+        }}
+      >
+        <MetricCard
+          label="Total de empresas"
+          value={metrics?.total}
+          icon="solar:suitcase-tag-bold"
+          tone="neutral"
+          loading={metricsLoading}
+          active={!searchParams.tipo}
+          onClick={() => setSearchParams({ tipo: '', page: 1 })}
+        />
+        <MetricCard
+          label="Privadas"
+          value={metrics?.privadas}
+          icon="solar:bill-list-bold-duotone"
+          tone="primary"
+          loading={metricsLoading}
+          active={searchParams.tipo === 'PRIVADA'}
+          onClick={() =>
+            setSearchParams({ tipo: searchParams.tipo === 'PRIVADA' ? '' : 'PRIVADA', page: 1 })
+          }
+        />
+        <MetricCard
+          label="Públicas"
+          value={metrics?.publicas}
+          icon="solar:notebook-bold-duotone"
+          tone="success"
+          loading={metricsLoading}
+          active={searchParams.tipo === 'PUBLICA'}
+          onClick={() =>
+            setSearchParams({ tipo: searchParams.tipo === 'PUBLICA' ? '' : 'PUBLICA', page: 1 })
+          }
+        />
+      </Box>
+
       <Card
         sx={{
           minHeight: 640,

@@ -3,7 +3,8 @@ import type { GridSortModel, GridFilterModel, GridPaginationModel } from '@mui/x
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router';
 
-import { Card, Button } from '@mui/material';
+import { Box, Card, Button } from '@mui/material';
+import { MetricCard } from 'src/components/metric-card';
 
 import { paths } from 'src/routes/paths';
 
@@ -18,6 +19,7 @@ import { PermissionGuard } from 'src/auth/guard';
 import { useEmpresaConvenioList } from '../hooks/use-empresa-convenio-list';
 import { useEmpresaConvenioListTable } from '../hooks/use-empresa-convenio-list-table';
 import { useEmpresaConvenioSearchParams } from '../hooks/use-empresa-convenio-search-params';
+import { useEmpresaConvenioMetrics } from '../hooks/use-empresa-convenio-metrics';
 import { EmpresaConvenioDeleteDialog } from '../components/cadastro/empresa-convenio-delete-dialog';
 
 export default function EmpresaConvenioCadastroPage() {
@@ -25,6 +27,7 @@ export default function EmpresaConvenioCadastroPage() {
   const [searchParams, setSearchParams] = useEmpresaConvenioSearchParams();
 
   const { data, isLoading } = useEmpresaConvenioList(searchParams);
+  const { data: metrics, isLoading: metricsLoading } = useEmpresaConvenioMetrics();
   const { columns } = useEmpresaConvenioListTable();
 
   const handlePaginationModelChange = useCallback(
@@ -72,8 +75,71 @@ export default function EmpresaConvenioCadastroPage() {
             </Button>
           </PermissionGuard>
         }
-        sx={{ mb: { xs: 3, md: 5 } }}
+        sx={{ mb: { xs: 2, md: 3 } }}
       />
+
+      <Box
+        sx={{
+          display: 'grid',
+          gap: 2,
+          mb: 3,
+          gridTemplateColumns: {
+            xs: 'repeat(1, 1fr)',
+            sm: 'repeat(2, 1fr)',
+            md: 'repeat(4, 1fr)',
+          },
+        }}
+      >
+        <MetricCard
+          label="Total de convênios"
+          value={metrics?.total}
+          icon="solar:file-text-bold"
+          tone="neutral"
+          loading={metricsLoading}
+          active={!searchParams.status && !searchParams.modalidade}
+          onClick={() => setSearchParams({ status: '', modalidade: '', page: 1 })}
+        />
+        <MetricCard
+          label="Ativos"
+          value={metrics?.ativos}
+          icon="solar:check-circle-bold"
+          tone="success"
+          loading={metricsLoading}
+          active={searchParams.status === 'ativo'}
+          onClick={() =>
+            setSearchParams({ status: searchParams.status === 'ativo' ? '' : 'ativo', page: 1 })
+          }
+        />
+        <MetricCard
+          label="Intramuros"
+          value={metrics?.intramuros}
+          icon="solar:home-angle-bold-duotone"
+          tone="primary"
+          loading={metricsLoading}
+          active={searchParams.modalidade === 'INTRAMUROS'}
+          onClick={() =>
+            setSearchParams({
+              modalidade: searchParams.modalidade === 'INTRAMUROS' ? '' : 'INTRAMUROS',
+              page: 1,
+            })
+          }
+        />
+        <MetricCard
+          label="Extramuros"
+          value={metrics?.extramuros}
+          icon="solar:forward-bold"
+          tone="warning"
+          loading={metricsLoading}
+          active={searchParams.modalidade === 'EXTRAMUROS'}
+          onClick={() =>
+            setSearchParams({
+              modalidade: searchParams.modalidade === 'EXTRAMUROS' ? '' : 'EXTRAMUROS',
+              page: 1,
+            })
+          }
+        />
+      </Box>
+
       <Card
         sx={{
           minHeight: 640,

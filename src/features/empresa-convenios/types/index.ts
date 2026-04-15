@@ -94,4 +94,6 @@ export type EmpresaConvenioListParams = {
   page: number;
   limit: number;
   search?: string;
+  modalidade?: string;
+  status?: string;
 };

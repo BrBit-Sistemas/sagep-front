@@ -5,4 +5,5 @@ export const empresaConvenioKeys = {
   list: (params: PaginatedParams) => [...empresaConvenioKeys.all, params] as const,
   detail: (id: string) => [...empresaConvenioKeys.all, 'detail', id] as const,
   contratoPreview: (id: string) => [...empresaConvenioKeys.all, 'contrato-preview', id] as const,
+  metrics: () => [...empresaConvenioKeys.all, 'metrics'] as const,
 };

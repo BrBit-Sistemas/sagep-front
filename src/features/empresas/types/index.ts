@@ -20,6 +20,7 @@ export type EmpresaListParams = {
   page: number;
   limit: number;
   search?: string;
+  tipo?: string;
   sort?: string;
   order?: 'asc' | 'desc';
 };

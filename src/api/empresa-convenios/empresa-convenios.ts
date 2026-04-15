@@ -174,7 +174,21 @@ export type PaginateEmpresaConvenioDto = {
   hasPrevPage: boolean;
 };
 
-export type ListParams = { page?: number; limit?: number; search?: string };
+export type ListParams = {
+  page?: number;
+  limit?: number;
+  search?: string;
+  modalidade?: string;
+  status?: 'ativo' | 'encerrado';
+};
+
+export type EmpresaConvenioMetricsDto = {
+  total: number;
+  ativos: number;
+  encerrados: number;
+  intramuros: number;
+  extramuros: number;
+};
 
 export const getEmpresaConvenios = () => {
   const base = '/empresa-convenios';
@@ -215,5 +229,8 @@ export const getEmpresaConvenios = () => {
   const remove = (id: string, options?: Parameters<typeof customInstance>[1]) =>
     customInstance<void>({ url: `${base}/${id}`, method: 'DELETE' }, options);
 
-  return { create, findAll, findOne, getContratoPreview, update, remove };
+  const metrics = (options?: Parameters<typeof customInstance>[1]) =>
+    customInstance<EmpresaConvenioMetricsDto>({ url: `${base}/metrics`, method: 'GET' }, options);
+
+  return { create, findAll, findOne, getContratoPreview, update, remove, metrics };
 };

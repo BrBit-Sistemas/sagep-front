@@ -1,4 +1,4 @@
-import type { EmpresaConvenio } from '../types';
+import type { EmpresaConvenio, EmpresaConvenioListParams } from '../types';
 import type { CrudService, PaginatedParams } from 'src/types';
 import type { CreateEmpresaConvenioSchema, UpdateEmpresaConvenioSchema } from '../schemas';
 
@@ -8,6 +8,7 @@ import {
   type PaginateEmpresaConvenioDto,
   type CreateEmpresaConvenioDto,
   type CreateConvenioDistribuicaoProfissaoDto,
+  type EmpresaConvenioMetricsDto,
 } from 'src/api/empresa-convenios/empresa-convenios';
 
 export const regimesOptions = [
@@ -102,12 +103,18 @@ export const empresaConvenioService: CrudService<
   EmpresaConvenio,
   CreateEmpresaConvenioSchema,
   UpdateEmpresaConvenioSchema,
-  PaginatedParams
+  EmpresaConvenioListParams
 > = {
-  paginate: async ({ page, limit, search }) => {
+  paginate: async ({ page, limit, search, modalidade, status }) => {
     const api = getEmpresaConvenios();
     const backendPage = typeof page === 'number' ? Math.max(0, page - 1) : 0;
-    const res: PaginateEmpresaConvenioDto = await api.findAll({ page: backendPage, limit, search });
+    const res: PaginateEmpresaConvenioDto = await api.findAll({
+      page: backendPage,
+      limit,
+      search,
+      ...(modalidade ? { modalidade } : {}),
+      ...(status ? { status: status as 'ativo' | 'encerrado' } : {}),
+    });
     return {
       totalPages: res.totalPages,
       page: (res.page ?? 0) + 1,
@@ -295,4 +302,9 @@ const serializeDto = (data: CreateEmpresaConvenioSchema | UpdateEmpresaConvenioS
     distribuicao_profissoes: distribuicao_profissoes.length > 0 ? distribuicao_profissoes : undefined,
   };
   return body;
+};
+
+export const empresaConvenioMetrics = async (): Promise<EmpresaConvenioMetricsDto> => {
+  const api = getEmpresaConvenios();
+  return api.metrics();
 };

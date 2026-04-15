@@ -9,6 +9,7 @@ import {
 
 export const empresaSearchQueryParsers = {
   search: parseAsString.withDefault(''),
+  tipo: parseAsString.withDefault(''),
   page: parseAsInteger.withDefault(1),
   limit: parseAsInteger.withDefault(10),
   sort: parseAsString.withDefault(''),
@@ -17,6 +18,7 @@ export const empresaSearchQueryParsers = {
 
 export const empresaSearchQueryUrlKeys: UrlKeys<typeof empresaSearchQueryParsers> = {
   search: 'q',
+  tipo: 't',
   page: 'p',
   limit: 'l',
   sort: 's',
