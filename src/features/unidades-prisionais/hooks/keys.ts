@@ -3,4 +3,5 @@ import type { UnidadePrisionalListParams } from 'src/features/unidades-prisionai
 export const unidadePrisionalKeys = {
   all: ['unidades-prisionais'] as const,
   list: (params: UnidadePrisionalListParams) => [...unidadePrisionalKeys.all, params] as const,
+  metrics: () => [...unidadePrisionalKeys.all, 'metrics'] as const,
 };

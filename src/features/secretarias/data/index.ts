@@ -6,7 +6,7 @@ import type {
   UpdateSecretariaDto,
 } from 'src/api/generated.schemas';
 
-import { getSecretarias } from 'src/api/secretarias/secretarias';
+import { getSecretarias, type SecretariaMetricsDto } from 'src/api/secretarias/secretarias';
 
 const api = getSecretarias();
 
@@ -37,3 +37,5 @@ export const secretariaService: CrudService<
   update: async (id: string, data: UpdateSecretariaDto) => api.update(id, data),
   delete: async (id: string) => api.remove(id),
 };
+
+export const secretariaMetrics = (): Promise<SecretariaMetricsDto> => api.metrics();

@@ -6,7 +6,7 @@ import type {
   UpdateUnidadePrisionalDto,
 } from 'src/api/generated.schemas';
 
-import { getUnidadesPrisionais } from 'src/api/unidades-prisionais/unidades-prisionais';
+import { getUnidadesPrisionais, type UnidadePrisionalMetricsDto } from 'src/api/unidades-prisionais/unidades-prisionais';
 
 const api = getUnidadesPrisionais();
 
@@ -37,3 +37,5 @@ export const unidadePrisionalService: CrudService<
   update: async (id, data) => api.update(id, data),
   delete: async (id) => api.remove(id),
 };
+
+export const unidadePrisionalMetrics = (): Promise<UnidadePrisionalMetricsDto> => api.metrics();

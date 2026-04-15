@@ -75,8 +75,17 @@ export const getUnidadesPrisionais = () => {
    */
   const remove = (id: string, options?: SecondParameter<typeof customInstance>) =>
     customInstance<void>({ url: `/unidades-prisionais/${id}`, method: 'DELETE' }, options);
-  return { create, findAll, findOne, update, remove };
+
+  const metrics = (options?: SecondParameter<typeof customInstance>) =>
+    customInstance<UnidadePrisionalMetricsDto>(
+      { url: `/unidades-prisionais/metrics`, method: 'GET' },
+      options
+    );
+
+  return { create, findAll, findOne, update, remove, metrics };
 };
+
+export type UnidadePrisionalMetricsDto = { total: number };
 export type CreateResult = NonNullable<
   Awaited<ReturnType<ReturnType<typeof getUnidadesPrisionais>['create']>>
 >;

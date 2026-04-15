@@ -69,8 +69,14 @@ export const getSecretarias = () => {
    */
   const remove = (id: string, options?: SecondParameter<typeof customInstance>) =>
     customInstance<void>({ url: `/secretarias/${id}`, method: 'DELETE' }, options);
-  return { create, findAll, findOne, update, remove };
+
+  const metrics = (options?: SecondParameter<typeof customInstance>) =>
+    customInstance<SecretariaMetricsDto>({ url: `/secretarias/metrics`, method: 'GET' }, options);
+
+  return { create, findAll, findOne, update, remove, metrics };
 };
+
+export type SecretariaMetricsDto = { total: number; totalRegionais: number };
 export type CreateResult = NonNullable<
   Awaited<ReturnType<ReturnType<typeof getSecretarias>['create']>>
 >;

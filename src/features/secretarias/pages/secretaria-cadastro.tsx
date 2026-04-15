@@ -2,7 +2,8 @@ import type { GridSortModel, GridFilterModel, GridPaginationModel } from '@mui/x
 
 import { useMemo, useCallback } from 'react';
 
-import { Card, Button } from '@mui/material';
+import { Box, Card, Button } from '@mui/material';
+import { MetricCard } from 'src/components/metric-card';
 
 import { paths } from 'src/routes/paths';
 
@@ -17,6 +18,7 @@ import { PermissionGuard } from 'src/auth/guard';
 
 import { useSecretariaCadastroStore } from '../stores';
 import { useListSecretarias } from '../hooks/use-list-secretaria';
+import { useSecretariaMetrics } from '../hooks/use-secretaria-metrics';
 import { useSecretariaListTable } from '../hooks/use-secretaria-list-table';
 import { SecretariaFormDialog } from '../components/secretaria-form-dialog';
 import { SecretariaDeleteDialog } from '../components/secretaria-delete-dialog';
@@ -29,6 +31,7 @@ export default function SecretariaCadastroPage() {
     useSecretariaCadastroStore();
 
   const { data, isLoading } = useListSecretarias(searchParams);
+  const { data: metrics, isLoading: metricsLoading } = useSecretariaMetrics();
 
   const { columns } = useSecretariaListTable();
 
@@ -103,8 +106,33 @@ export default function SecretariaCadastroPage() {
             </Button>
           </PermissionGuard>
         }
-        sx={{ mb: { xs: 3, md: 5 } }}
+        sx={{ mb: { xs: 2, md: 3 } }}
       />
+
+      <Box
+        sx={{
+          display: 'grid',
+          gap: 2,
+          mb: 3,
+          gridTemplateColumns: { xs: 'repeat(1, 1fr)', sm: 'repeat(2, 1fr)' },
+        }}
+      >
+        <MetricCard
+          label="Total de secretarias"
+          value={metrics?.total}
+          icon="solar:list-bold"
+          tone="neutral"
+          loading={metricsLoading}
+        />
+        <MetricCard
+          label="Regionais vinculadas"
+          value={metrics?.totalRegionais}
+          icon="solar:bill-list-bold-duotone"
+          tone="primary"
+          loading={metricsLoading}
+        />
+      </Box>
+
       <Card
         sx={{
           minHeight: 640,
