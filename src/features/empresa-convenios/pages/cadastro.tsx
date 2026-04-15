@@ -4,22 +4,22 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router';
 
 import { Box, Card, Button } from '@mui/material';
-import { MetricCard } from 'src/components/metric-card';
 
 import { paths } from 'src/routes/paths';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
+import { MetricCard } from 'src/components/metric-card';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import CustomDataGrid from 'src/components/custom-data-grid/custom-data-grid';
 
 import { PermissionGuard } from 'src/auth/guard';
 
 import { useEmpresaConvenioList } from '../hooks/use-empresa-convenio-list';
+import { useEmpresaConvenioMetrics } from '../hooks/use-empresa-convenio-metrics';
 import { useEmpresaConvenioListTable } from '../hooks/use-empresa-convenio-list-table';
 import { useEmpresaConvenioSearchParams } from '../hooks/use-empresa-convenio-search-params';
-import { useEmpresaConvenioMetrics } from '../hooks/use-empresa-convenio-metrics';
 import { EmpresaConvenioDeleteDialog } from '../components/cadastro/empresa-convenio-delete-dialog';
 
 export default function EmpresaConvenioCadastroPage() {

@@ -5,8 +5,8 @@ import type { CreateEmpresaSchema, UpdateEmpresaSchema } from '../schemas';
 import {
   getEmpresas,
   type ReadEmpresaDto,
-  type PaginateEmpresaDto,
   type EmpresaMetricsDto,
+  type PaginateEmpresaDto,
 } from 'src/api/empresas/empresas';
 
 const sanitizeCnpj = (value: string) => value.replace(/\D/g, '');

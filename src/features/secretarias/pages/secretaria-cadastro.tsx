@@ -3,7 +3,6 @@ import type { GridSortModel, GridFilterModel, GridPaginationModel } from '@mui/x
 import { useMemo, useCallback } from 'react';
 
 import { Box, Card, Button } from '@mui/material';
-import { MetricCard } from 'src/components/metric-card';
 
 import { paths } from 'src/routes/paths';
 
@@ -11,6 +10,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { secretariaToFormValues } from 'src/features/secretarias/helper';
 
 import { Iconify } from 'src/components/iconify';
+import { MetricCard } from 'src/components/metric-card';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import CustomDataGrid from 'src/components/custom-data-grid/custom-data-grid';
 

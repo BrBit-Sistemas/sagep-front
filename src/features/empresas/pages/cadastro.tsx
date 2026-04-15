@@ -3,13 +3,13 @@ import type { GridSortModel, GridFilterModel, GridPaginationModel } from '@mui/x
 import { useMemo, useCallback } from 'react';
 
 import { Box, Card, Button } from '@mui/material';
-import { MetricCard } from 'src/components/metric-card';
 
 import { paths } from 'src/routes/paths';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
+import { MetricCard } from 'src/components/metric-card';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import CustomDataGrid from 'src/components/custom-data-grid/custom-data-grid';
 
@@ -17,10 +17,10 @@ import { PermissionGuard } from 'src/auth/guard';
 
 import { empresaToFormValues } from '../helper';
 import { useEmpresaList } from '../hooks/use-empresa-list';
+import { useEmpresaMetrics } from '../hooks/use-empresa-metrics';
 import { useEmpresaListTable } from '../hooks/use-empresa-list-table';
 import { useEmpresaCadastroStore } from '../stores/empresa-cadastro-store';
 import { useEmpresaSearchParams } from '../hooks/use-empresa-search-params';
-import { useEmpresaMetrics } from '../hooks/use-empresa-metrics';
 import { EmpresaFormDialog } from '../components/cadastro/empresa-form-dialog';
 import { EmpresaDeleteDialog } from '../components/cadastro/empresa-delete-dialog';
 

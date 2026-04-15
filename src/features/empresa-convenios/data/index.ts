@@ -1,14 +1,14 @@
+import type { CrudService } from 'src/types';
 import type { EmpresaConvenio, EmpresaConvenioListParams } from '../types';
-import type { CrudService, PaginatedParams } from 'src/types';
 import type { CreateEmpresaConvenioSchema, UpdateEmpresaConvenioSchema } from '../schemas';
 
 import {
   getEmpresaConvenios,
   type ReadEmpresaConvenioDto,
-  type PaginateEmpresaConvenioDto,
   type CreateEmpresaConvenioDto,
-  type CreateConvenioDistribuicaoProfissaoDto,
   type EmpresaConvenioMetricsDto,
+  type PaginateEmpresaConvenioDto,
+  type CreateConvenioDistribuicaoProfissaoDto,
 } from 'src/api/empresa-convenios/empresa-convenios';
 
 export const regimesOptions = [
