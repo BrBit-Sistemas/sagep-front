@@ -39,7 +39,29 @@ export function clearEmpresaConvenioFieldsHiddenByTemplate(
   }
 }
 
-export const empresaConvenioToFormValues = (x: EmpresaConvenio): CreateEmpresaConvenioFormValues => {
+export const empresaConvenioToFormValues = (
+  x: EmpresaConvenio
+): CreateEmpresaConvenioFormValues => {
+  const parseNumeroContrato = (
+    numeroContrato?: string | null
+  ): {
+    sequencial: string;
+    ano: string;
+  } => {
+    const fallbackAno = String(new Date().getFullYear());
+    const raw = String(numeroContrato ?? '').trim();
+    if (!raw) {
+      return { sequencial: '', ano: fallbackAno };
+    }
+    const m = raw.match(/^(\d+)\/(\d{4})$/u);
+    if (m) {
+      return { sequencial: m[1], ano: m[2] };
+    }
+    const trailingYear = raw.match(/(\d{4})$/u)?.[1] ?? fallbackAno;
+    const seq = raw.replace(/\D/g, '');
+    return { sequencial: seq, ano: trailingYear };
+  };
+  const numeroContratoParsed = parseNumeroContrato(x.numero_contrato);
   const rep = x.responsaveis?.find((r) => r.tipo === 'REPRESENTANTE_LEGAL');
   const prep = x.responsaveis?.find((r) => r.tipo === 'PREPOSTO_OPERACIONAL');
   const responsaveis: CreateEmpresaConvenioFormValues['responsaveis'] = [
@@ -110,6 +132,11 @@ export const empresaConvenioToFormValues = (x: EmpresaConvenio): CreateEmpresaCo
     data_inicio: x.data_inicio,
     data_fim: x.data_fim ?? null,
     observacoes: x.observacoes ?? '',
+    numero_contrato_sequencial: numeroContratoParsed.sequencial,
+    ano_contrato: numeroContratoParsed.ano,
+    processo_sei: x.processo_sei ?? '',
+    doc_sei: x.doc_sei ?? '',
+    siggo_numero: x.siggo_numero ?? '',
     template_contrato_id: x.template_contrato_id,
     jornada_tipo: x.jornada_tipo ?? '',
     carga_horaria_semanal: x.carga_horaria_semanal ?? undefined,
@@ -151,6 +178,7 @@ export const defaultResponsaveisForm = (): CreateEmpresaConvenioFormValues['resp
   },
 ];
 
-export const defaultDistribuicaoProfissoesForm = (): CreateEmpresaConvenioFormValues['distribuicao_profissoes'] => [
-  { profissao_id: '', quantidade: 0, nivel: '', observacao: '' },
-];
+export const defaultDistribuicaoProfissoesForm =
+  (): CreateEmpresaConvenioFormValues['distribuicao_profissoes'] => [
+    { profissao_id: '', quantidade: 0, nivel: '', observacao: '' },
+  ];

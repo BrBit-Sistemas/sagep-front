@@ -55,7 +55,7 @@ const optionalPercent = z
       .number()
       .min(0, 'Informe um percentual maior ou igual a 0')
       .max(100, 'Informe um percentual menor ou igual a 100')
-      .optional(),
+      .optional()
   );
 
 const optionalIntMeta = z
@@ -120,9 +120,12 @@ const distribuicaoProfissaoRowSchema = z.object({
 
 export const empresaConvenioBaseSchema = z.object({
   empresa_id: z.string().min(1, 'Empresa é obrigatória'),
-  modalidade_execucao: z.enum(modalidadesExecucao as [ModalidadeExecucao, ...ModalidadeExecucao[]], {
-    message: 'Modalidade é obrigatória',
-  }),
+  modalidade_execucao: z.enum(
+    modalidadesExecucao as [ModalidadeExecucao, ...ModalidadeExecucao[]],
+    {
+      message: 'Modalidade é obrigatória',
+    }
+  ),
   regimes_permitidos: z
     .array(z.union([z.number(), z.string()]))
     .transform((arr) => arr.map((x) => Number(x)).filter((n) => !Number.isNaN(n)))
@@ -152,6 +155,14 @@ export const empresaConvenioBaseSchema = z.object({
   data_inicio: z.string().min(1, 'Data de início é obrigatória'),
   data_fim: z.string().optional().nullable(),
   observacoes: z.string().optional(),
+  numero_contrato_sequencial: z.string().optional(),
+  ano_contrato: z
+    .string()
+    .regex(/^\d{4}$/u, 'Ano do contrato deve ter 4 dígitos')
+    .default(String(new Date().getFullYear())),
+  processo_sei: z.string().optional(),
+  doc_sei: z.string().optional(),
+  siggo_numero: z.string().optional(),
   locais_execucao: z.array(localExecucaoSchema).optional().default([]),
   template_contrato_id: z.string().uuid('Template de contrato é obrigatório'),
   jornada_tipo: z.string().optional(),
@@ -167,24 +178,27 @@ export const empresaConvenioBaseSchema = z.object({
   descricao_complementar_objeto: z.string().optional(),
   observacao_operacional: z.string().optional(),
   tabela_produtividade_id: z.string().uuid().optional().or(z.literal('')),
-  responsaveis: z.array(responsavelRowSchema).max(2).default([
-    {
-      tipo: 'REPRESENTANTE_LEGAL',
-      nome: '',
-      cargo: '',
-      documento: '',
-      email: '',
-      telefone: '',
-    },
-    {
-      tipo: 'PREPOSTO_OPERACIONAL',
-      nome: '',
-      cargo: '',
-      documento: '',
-      email: '',
-      telefone: '',
-    },
-  ]),
+  responsaveis: z
+    .array(responsavelRowSchema)
+    .max(2)
+    .default([
+      {
+        tipo: 'REPRESENTANTE_LEGAL',
+        nome: '',
+        cargo: '',
+        documento: '',
+        email: '',
+        telefone: '',
+      },
+      {
+        tipo: 'PREPOSTO_OPERACIONAL',
+        nome: '',
+        cargo: '',
+        documento: '',
+        email: '',
+        telefone: '',
+      },
+    ]),
   distribuicao_profissoes: z.array(distribuicaoProfissaoRowSchema).default([]),
 });
 
@@ -193,9 +207,7 @@ export type ReadTemplateContratoLike = {
   codigo: CodigoTemplateContrato;
 };
 
-const parseBonusJson = (
-  raw: string | undefined
-): Record<string, unknown>[] | undefined => {
+const parseBonusJson = (raw: string | undefined): Record<string, unknown>[] | undefined => {
   const t = raw?.trim();
   if (!t) return undefined;
   try {
@@ -210,10 +222,33 @@ export const buildEmpresaConvenioSchema = (templates: ReadTemplateContratoLike[]
   empresaConvenioBaseSchema
     .transform((data) => {
       const bonusJson = parseBonusJson(data.bonus_produtividade_tabela_json_raw);
-      const { bonus_produtividade_tabela_json_raw: _r, ...rest } = data;
+      const numeroSequencial = String(data.numero_contrato_sequencial ?? '')
+        .replace(/\D/g, '')
+        .trim();
+      const anoContrato = String(data.ano_contrato ?? '').trim();
+      const numeroContrato =
+        numeroSequencial !== '' && anoContrato !== ''
+          ? `${numeroSequencial}/${anoContrato}`
+          : undefined;
+      const processoSei = String(data.processo_sei ?? '').trim() || undefined;
+      const docSei = String(data.doc_sei ?? '').trim() || undefined;
+      const siggoNumero = String(data.siggo_numero ?? '').trim() || undefined;
+      const {
+        bonus_produtividade_tabela_json_raw: bonusRaw,
+        numero_contrato_sequencial: numeroSequencialIgnorado,
+        ano_contrato: anoContratoIgnorado,
+        ...rest
+      } = data;
+      void bonusRaw;
+      void numeroSequencialIgnorado;
+      void anoContratoIgnorado;
       return {
         ...rest,
         bonus_produtividade_tabela_json: bonusJson,
+        numero_contrato: numeroContrato,
+        processo_sei: processoSei,
+        doc_sei: docSei,
+        siggo_numero: siggoNumero,
       };
     })
     .superRefine((data, ctx) => {
@@ -245,7 +280,8 @@ export const buildEmpresaConvenioSchema = (templates: ReadTemplateContratoLike[]
         if (!hasTabela && !hasJson && !hasDesc) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: 'Informe descrição do bônus, JSON da tabela ou tabela de produtividade cadastrada',
+            message:
+              'Informe descrição do bônus, JSON da tabela ou tabela de produtividade cadastrada',
             path: ['bonus_produtividade_descricao'],
           });
         }
@@ -309,7 +345,11 @@ export const buildEmpresaConvenioSchema = (templates: ReadTemplateContratoLike[]
         String(r.profissao_id || '').trim()
       );
       const sumDist = rows.reduce((s, r) => s + (Number(r.quantidade) || 0), 0);
-      if (data.max_reeducandos != null && data.max_reeducandos > 0 && sumDist > data.max_reeducandos) {
+      if (
+        data.max_reeducandos != null &&
+        data.max_reeducandos > 0 &&
+        sumDist > data.max_reeducandos
+      ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: 'A soma das vagas por profissão não pode ultrapassar o máximo de reeducandos',
@@ -341,15 +381,9 @@ export const buildEmpresaConvenioSchema = (templates: ReadTemplateContratoLike[]
         }
       }
       if (data.usa_nivel && codigo === 'PADRAO_ORGAO_PUBLICO_GDF') {
-        const sI = rows
-          .filter((x) => x.nivel === 'I')
-          .reduce((s, x) => s + x.quantidade, 0);
-        const sII = rows
-          .filter((x) => x.nivel === 'II')
-          .reduce((s, x) => s + x.quantidade, 0);
-        const sIII = rows
-          .filter((x) => x.nivel === 'III')
-          .reduce((s, x) => s + x.quantidade, 0);
+        const sI = rows.filter((x) => x.nivel === 'I').reduce((s, x) => s + x.quantidade, 0);
+        const sII = rows.filter((x) => x.nivel === 'II').reduce((s, x) => s + x.quantidade, 0);
+        const sIII = rows.filter((x) => x.nivel === 'III').reduce((s, x) => s + x.quantidade, 0);
         if (
           data.quantidade_nivel_i != null &&
           data.quantidade_nivel_i >= 0 &&
@@ -407,8 +441,6 @@ export const buildEmpresaConvenioSchema = (templates: ReadTemplateContratoLike[]
     });
 
 export type CreateEmpresaConvenioFormValues = z.input<typeof empresaConvenioBaseSchema>;
-export type CreateEmpresaConvenioSchema = z.output<
-  ReturnType<typeof buildEmpresaConvenioSchema>
->;
+export type CreateEmpresaConvenioSchema = z.output<ReturnType<typeof buildEmpresaConvenioSchema>>;
 export type UpdateEmpresaConvenioSchema = CreateEmpresaConvenioSchema;
 export type EmpresaConvenioLocalSchema = z.infer<typeof localExecucaoSchema>;

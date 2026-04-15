@@ -69,6 +69,10 @@ export type CreateEmpresaConvenioDto = {
   percentual_gestao?: number | null;
   percentual_contrapartida?: number | null;
   observacoes?: string;
+  numero_contrato?: string;
+  processo_sei?: string;
+  doc_sei?: string;
+  siggo_numero?: string;
   locais_execucao?: EmpresaConvenioLocalDto[];
   template_contrato_id: string;
   jornada_tipo?: string;
@@ -149,6 +153,10 @@ export type ContratoPreviewDto = {
   descricao_complementar_objeto?: string | null;
   observacao_operacional?: string | null;
   observacoes?: string | null;
+  numero_contrato?: string | null;
+  processo_sei?: string | null;
+  doc_sei?: string | null;
+  siggo_numero?: string | null;
   data_inicio: string;
   data_fim?: string | null;
   remuneracao_beneficios: ContratoPreviewRemuneracaoBeneficiosDto;
@@ -161,6 +169,12 @@ export type ContratoPreviewDto = {
   responsaveis: ReadConvenioResponsavelDto[];
   locais_execucao: (EmpresaConvenioLocalDto & { local_id: string })[];
   distribuicao_profissoes: ReadConvenioDistribuicaoProfissaoDto[];
+};
+
+export type GerarContratoPdfResponseDto = {
+  url: string;
+  filename: string;
+  pdf_id: string;
 };
 
 export type PaginateEmpresaConvenioDto = {
@@ -194,7 +208,16 @@ export const getEmpresaConvenios = () => {
     customInstance<ReadEmpresaConvenioDto>({ url: `${base}/${id}`, method: 'GET' }, options);
 
   const getContratoPreview = (id: string, options?: Parameters<typeof customInstance>[1]) =>
-    customInstance<ContratoPreviewDto>({ url: `${base}/${id}/contrato-preview`, method: 'GET' }, options);
+    customInstance<ContratoPreviewDto>(
+      { url: `${base}/${id}/contrato-preview`, method: 'GET' },
+      options
+    );
+
+  const gerarContratoPdf = (id: string, options?: Parameters<typeof customInstance>[1]) =>
+    customInstance<GerarContratoPdfResponseDto>(
+      { url: `${base}/${id}/gerar-contrato-pdf`, method: 'POST' },
+      options
+    );
 
   const update = (
     id: string,
@@ -214,5 +237,5 @@ export const getEmpresaConvenios = () => {
   const remove = (id: string, options?: Parameters<typeof customInstance>[1]) =>
     customInstance<void>({ url: `${base}/${id}`, method: 'DELETE' }, options);
 
-  return { create, findAll, findOne, getContratoPreview, update, remove };
+  return { create, findAll, findOne, getContratoPreview, gerarContratoPdf, update, remove };
 };

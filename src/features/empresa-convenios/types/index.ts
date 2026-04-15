@@ -69,6 +69,10 @@ export type EmpresaConvenio = {
   percentual_gestao?: number | null;
   percentual_contrapartida?: number | null;
   observacoes?: string;
+  numero_contrato?: string | null;
+  processo_sei?: string | null;
+  doc_sei?: string | null;
+  siggo_numero?: string | null;
   locais_execucao?: EmpresaConvenioLocal[];
   template_contrato_id: string;
   template_codigo?: CodigoTemplateContrato | null;

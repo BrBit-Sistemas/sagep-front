@@ -5,8 +5,8 @@ import type { CreateEmpresaConvenioSchema, UpdateEmpresaConvenioSchema } from '.
 import {
   getEmpresaConvenios,
   type ReadEmpresaConvenioDto,
-  type PaginateEmpresaConvenioDto,
   type CreateEmpresaConvenioDto,
+  type PaginateEmpresaConvenioDto,
   type CreateConvenioDistribuicaoProfissaoDto,
 } from 'src/api/empresa-convenios/empresa-convenios';
 
@@ -251,6 +251,10 @@ const serializeDto = (data: CreateEmpresaConvenioSchema | UpdateEmpresaConvenioS
     percentual_gestao: data.percentual_gestao ?? undefined,
     percentual_contrapartida: data.percentual_contrapartida ?? undefined,
     observacoes: data.observacoes?.trim() || undefined,
+    numero_contrato: data.numero_contrato?.trim() || undefined,
+    processo_sei: data.processo_sei?.trim() || undefined,
+    doc_sei: data.doc_sei?.trim() || undefined,
+    siggo_numero: data.siggo_numero?.trim() || undefined,
     locais_execucao: data.locais_execucao?.map((local) => {
       const estadoNorm = String(local.estado ?? '')
         .trim()
@@ -271,8 +275,7 @@ const serializeDto = (data: CreateEmpresaConvenioSchema | UpdateEmpresaConvenioS
     template_contrato_id: data.template_contrato_id,
     jornada_tipo: data.jornada_tipo?.trim() || undefined,
     carga_horaria_semanal:
-      data.carga_horaria_semanal != null &&
-      !Number.isNaN(Number(data.carga_horaria_semanal))
+      data.carga_horaria_semanal != null && !Number.isNaN(Number(data.carga_horaria_semanal))
         ? Number(data.carga_horaria_semanal)
         : undefined,
     escala: data.escala?.trim() || undefined,
@@ -287,7 +290,8 @@ const serializeDto = (data: CreateEmpresaConvenioSchema | UpdateEmpresaConvenioS
     observacao_operacional: data.observacao_operacional?.trim() || undefined,
     tabela_produtividade_id: tabelaId,
     responsaveis: responsaveis.length > 0 ? responsaveis : undefined,
-    distribuicao_profissoes: distribuicao_profissoes.length > 0 ? distribuicao_profissoes : undefined,
+    distribuicao_profissoes:
+      distribuicao_profissoes.length > 0 ? distribuicao_profissoes : undefined,
   };
   return body;
 };

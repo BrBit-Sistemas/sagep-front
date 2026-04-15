@@ -1,8 +1,12 @@
 import type { ReactNode } from 'react';
 import type { ContratoPreviewDto } from 'src/api/empresa-convenios/empresa-convenios';
 import type { CodigoTemplateContrato } from 'src/api/empresa-convenios/convenio-contrato-catalog';
-import type { ResponsavelBeneficio, TipoCalculoRemuneracao } from 'src/api/empresa-convenios/convenio-enums';
+import type {
+  ResponsavelBeneficio,
+  TipoCalculoRemuneracao,
+} from 'src/api/empresa-convenios/convenio-enums';
 
+import { toast } from 'sonner';
 import { useParams, useNavigate } from 'react-router';
 
 import Box from '@mui/material/Box';
@@ -18,6 +22,7 @@ import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import Typography from '@mui/material/Typography';
+import CircularProgress from '@mui/material/CircularProgress';
 
 import { paths } from 'src/routes/paths';
 
@@ -32,6 +37,7 @@ import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
 import { regimesOptions } from '../data';
 import { useContratoPreview } from '../hooks/use-contrato-preview';
+import { useGerarContratoPdf } from '../hooks/use-gerar-contrato-pdf';
 
 const formatBRL = (value: number): string =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -66,10 +72,7 @@ const tipoResponsavelLabels: Record<string, string> = {
 
 const NIVEIS_ORDEM: Array<'I' | 'II' | 'III'> = ['I', 'II', 'III'];
 
-const templatePorCodigo: Record<
-  CodigoTemplateContrato,
-  { titulo: string; descricao: string }
-> = {
+const templatePorCodigo: Record<CodigoTemplateContrato, { titulo: string; descricao: string }> = {
   PADRAO_FUNAP: {
     titulo: 'Padrão FUNAP',
     descricao:
@@ -101,7 +104,9 @@ const regimeLabel = (code: number): string =>
   regimesOptions.find((o) => Number(o.value) === code)?.label ?? String(code);
 
 const computeSumQuantidadesNivel = (data: ContratoPreviewDto): number =>
-  (data.quantidade_nivel_i ?? 0) + (data.quantidade_nivel_ii ?? 0) + (data.quantidade_nivel_iii ?? 0);
+  (data.quantidade_nivel_i ?? 0) +
+  (data.quantidade_nivel_ii ?? 0) +
+  (data.quantidade_nivel_iii ?? 0);
 
 const quantidadeNoNivel = (data: ContratoPreviewDto, nivel: 'I' | 'II' | 'III'): number => {
   if (nivel === 'I') return data.quantidade_nivel_i ?? 0;
@@ -115,7 +120,7 @@ const hasJornadaPreenchida = (data: ContratoPreviewDto): boolean =>
       data.carga_horaria_semanal != null ||
       data.escala?.trim() ||
       data.horario_inicio?.trim() ||
-      data.horario_fim?.trim(),
+      data.horario_fim?.trim()
   );
 
 const papelBeneficio = (t: ResponsavelBeneficio): string => {
@@ -146,7 +151,7 @@ const PreviewSection = ({
   chip?: ReactNode;
   children: ReactNode;
 }) => (
-  <Stack spacing={1.5} sx={{ mb: 3 }}>
+  <Stack spacing={1.5} sx={{ py: 3 }}>
     <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
       <Typography variant="subtitle1" fontWeight={600}>
         {title}
@@ -158,7 +163,7 @@ const PreviewSection = ({
 );
 
 const PreviewField = ({ label, value }: { label: string; value: ReactNode }) => (
-  <Stack spacing={0.25}>
+  <Stack spacing={0.5}>
     <Typography variant="caption" color="text.secondary">
       {label}
     </Typography>
@@ -176,7 +181,7 @@ function renderPreviewBody(data: ContratoPreviewDto) {
   const maxNum = maxR != null && maxR > 0 ? maxR : null;
   const gdfNivelInvalido = isGdf && NIVEIS_ORDEM.some((nio) => quantidadeNoNivel(data, nio) <= 0);
   return (
-    <Stack divider={<Divider flexItem />} spacing={0}>
+    <Stack divider={<Divider flexItem />} spacing={3}>
       <PreviewSection title="Modelo de contrato">
         <Alert severity="info" sx={{ mb: 1 }}>
           <Typography variant="subtitle2" gutterBottom>
@@ -206,8 +211,28 @@ function renderPreviewBody(data: ContratoPreviewDto) {
               value={modalidadeLabels[data.modalidade_execucao] ?? data.modalidade_execucao}
             />
             <PreviewField
+              label="Número do contrato"
+              value={
+                data.numero_contrato && data.numero_contrato.trim() ? data.numero_contrato : '—'
+              }
+            />
+            <PreviewField
               label="Vigência"
               value={`${formatDateToDDMMYYYY(data.data_inicio)} — ${data.data_fim ? formatDateToDDMMYYYY(data.data_fim) : 'Sem data fim'}`}
+            />
+          </Stack>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+            <PreviewField
+              label="Processo SEI"
+              value={data.processo_sei && data.processo_sei.trim() ? data.processo_sei : '—'}
+            />
+            <PreviewField
+              label="Doc. SEI"
+              value={data.doc_sei && data.doc_sei.trim() ? data.doc_sei : '—'}
+            />
+            <PreviewField
+              label="SIGGO"
+              value={data.siggo_numero && data.siggo_numero.trim() ? data.siggo_numero : '—'}
             />
           </Stack>
           <PreviewField
@@ -237,7 +262,7 @@ function renderPreviewBody(data: ContratoPreviewDto) {
               );
             })}
           </Stack>
-          <Table size="small" sx={{ maxWidth: 480 }}>
+          <Table size="small" sx={{ mt: 1, mb: 1, maxWidth: 480 }}>
             <TableHead>
               <TableRow>
                 <TableCell>Nível</TableCell>
@@ -268,14 +293,14 @@ function renderPreviewBody(data: ContratoPreviewDto) {
               </Typography>
               {somaNiveis > maxNum ? (
                 <Alert severity="error">
-                  A soma dos níveis ({somaNiveis}) ultrapassa o máximo ({maxNum}). Corrija no cadastro —
-                  estado inconsistente para cláusula contratual.
+                  A soma dos níveis ({somaNiveis}) ultrapassa o máximo ({maxNum}). Corrija no
+                  cadastro — estado inconsistente para cláusula contratual.
                 </Alert>
               ) : null}
               {somaNiveis < maxNum ? (
                 <Alert severity="warning">
-                  A soma dos níveis ({somaNiveis}) é menor que o máximo ({maxNum}). Se o contrato exigir
-                  aderência exata, ajuste os quantitativos ou o teto.
+                  A soma dos níveis ({somaNiveis}) é menor que o máximo ({maxNum}). Se o contrato
+                  exigir aderência exata, ajuste os quantitativos ou o teto.
                 </Alert>
               ) : null}
               {somaNiveis === maxNum ? (
@@ -295,10 +320,11 @@ function renderPreviewBody(data: ContratoPreviewDto) {
 
       <PreviewSection title="Distribuição das vagas por profissão">
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Distribuição operacional das vagas conforme cadastrado no convênio (independente de catálogos).
+          Distribuição operacional das vagas conforme cadastrado no convênio (independente de
+          catálogos).
         </Typography>
         {data.distribuicao_profissoes.length ? (
-          <Table size="small">
+          <Table size="small" sx={{ mt: 1, mb: 1 }}>
             <TableHead>
               <TableRow>
                 <TableCell>Profissão</TableCell>
@@ -364,8 +390,8 @@ function renderPreviewBody(data: ContratoPreviewDto) {
           <Stack spacing={2}>
             {isIntramuros && !hasJornadaPreenchida(data) ? (
               <Alert severity="warning">
-                Template intramuros exige tipo de jornada, carga horária semanal, escala e horários de
-                início e fim — dados ausentes no cadastro.
+                Template intramuros exige tipo de jornada, carga horária semanal, escala e horários
+                de início e fim — dados ausentes no cadastro.
               </Alert>
             ) : null}
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
@@ -391,8 +417,8 @@ function renderPreviewBody(data: ContratoPreviewDto) {
       ) : (
         <PreviewSection title="Jornada, escala e horários">
           <Typography variant="body2" color="text.secondary">
-            Não preenchido para este modelo. No template <strong>Intramuros</strong>, estes campos são
-            obrigatórios.
+            Não preenchido para este modelo. No template <strong>Intramuros</strong>, estes campos
+            são obrigatórios.
           </Typography>
         </PreviewSection>
       )}
@@ -423,13 +449,14 @@ function renderPreviewBody(data: ContratoPreviewDto) {
         <Stack spacing={2}>
           {codigo === 'PADRAO_BONIFICACAO' ? (
             <Alert severity="info">
-              Confira bônus por produtividade, percentuais e tabela abaixo — este modelo prioriza a cláusula
-              de bonificação quando habilitada.
+              Confira bônus por produtividade, percentuais e tabela abaixo — este modelo prioriza a
+              cláusula de bonificação quando habilitada.
             </Alert>
           ) : null}
           {codigo === 'PADRAO_FUNAP_BENEFICIOS_CONTRATANTE' ? (
             <Alert severity="info">
-              Os valores abaixo refletem o que foi salvo no convênio (transporte/alimentação e responsáveis).
+              Os valores abaixo refletem o que foi salvo no convênio (transporte/alimentação e
+              responsáveis).
             </Alert>
           ) : null}
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
@@ -442,7 +469,7 @@ function renderPreviewBody(data: ContratoPreviewDto) {
               value={data.remuneracao_beneficios.usa_nivel ? 'Sim' : 'Não'}
             />
           </Stack>
-          <Table size="small" sx={{ maxWidth: 400 }}>
+          <Table size="small" sx={{ mt: 1, mb: 1, maxWidth: 400 }}>
             <TableHead>
               <TableRow>
                 <TableCell>Nível</TableCell>
@@ -474,7 +501,9 @@ function renderPreviewBody(data: ContratoPreviewDto) {
             <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
               Resumo para cláusula
             </Typography>
-            <Typography variant="body2">{buildResumoBeneficiosConvenio(data.remuneracao_beneficios)}</Typography>
+            <Typography variant="body2">
+              {buildResumoBeneficiosConvenio(data.remuneracao_beneficios)}
+            </Typography>
           </Alert>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             <PreviewField
@@ -483,7 +512,9 @@ function renderPreviewBody(data: ContratoPreviewDto) {
             />
             <PreviewField
               label="Alimentação"
-              value={responsavelBeneficioLabels[data.remuneracao_beneficios.alimentacao_responsavel]}
+              value={
+                responsavelBeneficioLabels[data.remuneracao_beneficios.alimentacao_responsavel]
+              }
             />
           </Stack>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
@@ -529,7 +560,8 @@ function renderPreviewBody(data: ContratoPreviewDto) {
               }
             />
           ) : null}
-          {data.bonus_produtividade_tabela_json && data.bonus_produtividade_tabela_json.length > 0 ? (
+          {data.bonus_produtividade_tabela_json &&
+          data.bonus_produtividade_tabela_json.length > 0 ? (
             <PreviewField
               label="Tabela JSON (bônus)"
               value={
@@ -544,7 +576,7 @@ function renderPreviewBody(data: ContratoPreviewDto) {
               <Typography variant="caption" color="text.secondary">
                 Tabela cadastrada: {data.tabela_produtividade.nome}
               </Typography>
-              <Table size="small">
+              <Table size="small" sx={{ mt: 1, mb: 1 }}>
                 <TableHead>
                   <TableRow>
                     <TableCell>Código / faixa</TableCell>
@@ -608,7 +640,7 @@ function renderPreviewBody(data: ContratoPreviewDto) {
             {data.responsaveis.map((r) => (
               <Box
                 key={`${r.tipo}-${r.nome}`}
-                sx={{ border: (t) => `1px solid ${t.palette.divider}`, borderRadius: 1, p: 2 }}
+                sx={{ border: (t) => `1px solid ${t.palette.divider}`, borderRadius: 1, p: 3 }}
               >
                 <Typography variant="subtitle2" gutterBottom>
                   {tipoResponsavelLabels[r.tipo] ?? r.tipo}
@@ -638,7 +670,7 @@ function renderPreviewBody(data: ContratoPreviewDto) {
             {data.locais_execucao.map((loc) => (
               <Box
                 key={loc.local_id}
-                sx={{ border: (t) => `1px solid ${t.palette.divider}`, borderRadius: 1, p: 2 }}
+                sx={{ border: (t) => `1px solid ${t.palette.divider}`, borderRadius: 1, p: 3 }}
               >
                 <Typography variant="body2">
                   {[loc.logradouro, loc.numero].filter(Boolean).join(', ')}
@@ -668,9 +700,21 @@ export default function ConvenioContratoPreviewPage() {
   const navigate = useNavigate();
   const { convenioId } = useParams<{ convenioId: string }>();
   const { data, isLoading, isError, error, refetch } = useContratoPreview(convenioId);
+  const { mutate: gerarContratoPdf, isPending: isGerandoPdf } = useGerarContratoPdf();
 
-  const handlePrint = (): void => {
-    window.print();
+  const handleGerarPdf = (): void => {
+    if (!convenioId || isGerandoPdf) {
+      return;
+    }
+
+    gerarContratoPdf(convenioId, {
+      onSuccess: (result) => {
+        const openedDirect = window.open(result.url, '_blank', 'noopener,noreferrer');
+        if (!openedDirect) {
+          toast.error('Não foi possível abrir uma nova aba. Habilite pop-ups para este site.');
+        }
+      },
+    });
   };
 
   if (isLoading) {
@@ -687,41 +731,58 @@ export default function ConvenioContratoPreviewPage() {
           { name: 'Preview do contrato' },
         ]}
         action={
-          <Stack direction="row" spacing={1} sx={{ '@media print': { display: 'none' } }}>
-            <Button
-              variant="outlined"
-              color="inherit"
-              startIcon={<Iconify icon="eva:arrow-ios-back-fill" />}
-              onClick={() =>
-                convenioId
-                  ? navigate(paths.empresaConvenios.edit(convenioId))
-                  : navigate(paths.empresaConvenios.root)
-              }
-            >
-              Voltar à edição
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
-              onClick={handlePrint}
-              disabled={!data}
-            >
-              Imprimir
-            </Button>
+          <Stack spacing={1} sx={{ '@media print': { display: 'none' } }}>
+            <Stack direction="row" spacing={1}>
+              <Button
+                variant="outlined"
+                color="inherit"
+                startIcon={<Iconify icon="eva:arrow-ios-back-fill" />}
+                onClick={() =>
+                  convenioId
+                    ? navigate(paths.empresaConvenios.edit(convenioId))
+                    : navigate(paths.empresaConvenios.root)
+                }
+              >
+                Voltar à edição
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={
+                  isGerandoPdf ? (
+                    <CircularProgress size={18} color="inherit" />
+                  ) : (
+                    <Iconify icon="solar:download-bold" />
+                  )
+                }
+                onClick={handleGerarPdf}
+                disabled={!convenioId || isGerandoPdf}
+              >
+                {isGerandoPdf ? 'Gerando PDF...' : 'Gerar PDF'}
+              </Button>
+            </Stack>
+            {isGerandoPdf ? (
+              <Typography variant="caption" color="text.secondary">
+                Estamos preparando o PDF do contrato.
+              </Typography>
+            ) : null}
           </Stack>
         }
         sx={{ mb: { xs: 3, md: 5 }, '@media print': { mb: 2 } }}
       />
 
       {isError ? (
-        <Alert severity="error" action={<Button onClick={() => refetch()}>Tentar novamente</Button>}>
+        <Alert
+          severity="error"
+          action={<Button onClick={() => refetch()}>Tentar novamente</Button>}
+        >
           {(error as Error)?.message ?? 'Não foi possível carregar o preview do contrato.'}
         </Alert>
       ) : data ? (
         <Card
           id="contrato-preview-documento"
           sx={{
-            p: { xs: 2, md: 4 },
+            p: { xs: 3, md: 5 },
             '@media print': { boxShadow: 'none', borderRadius: 0 },
           }}
         >
@@ -729,8 +790,8 @@ export default function ConvenioContratoPreviewPage() {
             Pré-visualização contratual
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Documento informativo para conferência dos dados cadastrados no convênio. O layout segue o
-            código do template selecionado; a geração do PDF definitivo usará o mesmo perfil.
+            Documento informativo para conferência dos dados cadastrados no convênio. O layout segue
+            o código do template selecionado; a geração do PDF definitivo usará o mesmo perfil.
           </Typography>
           {renderPreviewBody(data)}
         </Card>
