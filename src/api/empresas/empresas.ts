@@ -4,6 +4,12 @@ export type CreateEmpresaDto = {
   razao_social: string;
   cnpj: string;
   tipo: 'PRIVADA' | 'PUBLICA';
+  inscricao_estadual?: string;
+  logradouro: string;
+  logradouro_numero: string;
+  cep: string;
+  cidade: string;
+  estado: string;
 };
 
 export type UpdateEmpresaDto = Partial<CreateEmpresaDto>;

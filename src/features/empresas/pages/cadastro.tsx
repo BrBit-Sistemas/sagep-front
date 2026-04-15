@@ -100,6 +100,7 @@ export default function EmpresaCadastroPage() {
         action={
           <PermissionGuard hasContent={false} required={{ action: 'create', subject: 'empresas' }}>
             <Button
+              data-testid="empresa-add-button"
               color="primary"
               variant="contained"
               startIcon={<Iconify icon="mingcute:add-line" />}

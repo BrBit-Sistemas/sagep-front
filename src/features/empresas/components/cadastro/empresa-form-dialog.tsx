@@ -31,6 +31,12 @@ const INITIAL_VALUES: CreateEmpresaSchema = {
   razao_social: '',
   cnpj: '',
   tipo: 'PRIVADA',
+  inscricao_estadual: '',
+  logradouro: '',
+  logradouro_numero: '',
+  cep: '',
+  cidade: '',
+  estado: '',
 };
 
 export const EmpresaFormDialog = ({
@@ -67,7 +73,7 @@ export const EmpresaFormDialog = ({
   }, [isEditing, defaultValues, methods]);
 
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog data-testid="empresa-form-dialog" open={open} onClose={onClose}>
       <DialogTitle>{isEditing ? 'Editar' : 'Adicionar'} Empresa</DialogTitle>
 
       <Form methods={methods} onSubmit={handleSubmit}>
@@ -101,14 +107,55 @@ export const EmpresaFormDialog = ({
                 inputProps={{ maxLength: 14 }}
               />
             </Grid>
+            <Grid size={{ md: 12, sm: 12 }}>
+              <Field.Text name="inscricao_estadual" label="Inscrição Estadual" />
+            </Grid>
+            <Grid size={{ md: 8, sm: 12 }}>
+              <Field.Text required name="logradouro" label="Logradouro" />
+            </Grid>
+            <Grid size={{ md: 4, sm: 12 }}>
+              <Field.Text
+                required
+                name="logradouro_numero"
+                label="Número"
+                inputProps={{ inputMode: 'numeric' }}
+              />
+            </Grid>
+            <Grid size={{ md: 4, sm: 12 }}>
+              <Field.Text
+                required
+                name="cep"
+                label="CEP"
+                placeholder="70040020"
+                inputProps={{ maxLength: 8, inputMode: 'numeric' }}
+              />
+            </Grid>
+            <Grid size={{ md: 6, sm: 12 }}>
+              <Field.Text required name="cidade" label="Cidade" />
+            </Grid>
+            <Grid size={{ md: 2, sm: 12 }}>
+              <Field.Text
+                required
+                name="estado"
+                label="UF"
+                placeholder="DF"
+                inputProps={{ maxLength: 2 }}
+              />
+            </Grid>
           </Grid>
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={onClose} variant="outlined" color="primary">
+          <Button
+            data-testid="empresa-form-cancel"
+            onClick={onClose}
+            variant="outlined"
+            color="primary"
+          >
             Cancelar
           </Button>
           <Button
+            data-testid="empresa-form-submit"
             type="submit"
             variant="contained"
             color="primary"

@@ -9,6 +9,12 @@ export const createEmpresaSchema = z.object({
   razao_social: z.string().min(1, 'Razão social é obrigatória'),
   cnpj: z.string().min(14, 'CNPJ deve ter 14 dígitos').max(14, 'CNPJ deve ter 14 dígitos'),
   tipo: z.enum(['PRIVADA', 'PUBLICA'], { error: 'Tipo é obrigatório' }),
+  inscricao_estadual: z.string().optional(),
+  logradouro: z.string().min(1, 'Logradouro é obrigatório'),
+  logradouro_numero: z.string().regex(/^[0-9]+$/, 'Apenas dígitos'),
+  cep: z.string().length(8, 'CEP deve ter 8 dígitos'),
+  cidade: z.string().min(1, 'Cidade é obrigatória'),
+  estado: z.string().regex(/^[A-Za-z]{2}$/, 'Estado deve ter 2 letras (ex: DF)'),
 });
 
 export type CreateEmpresaSchema = z.infer<typeof createEmpresaSchema>;
