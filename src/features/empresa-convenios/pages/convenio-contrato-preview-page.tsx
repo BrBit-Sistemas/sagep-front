@@ -6,7 +6,6 @@ import type {
   TipoCalculoRemuneracao,
 } from 'src/api/empresa-convenios/convenio-enums';
 
-import { toast } from 'sonner';
 import { useParams, useNavigate } from 'react-router';
 
 import Box from '@mui/material/Box';
@@ -709,10 +708,7 @@ export default function ConvenioContratoPreviewPage() {
 
     gerarContratoPdf(convenioId, {
       onSuccess: (result) => {
-        const openedDirect = window.open(result.url, '_blank', 'noopener,noreferrer');
-        if (!openedDirect) {
-          toast.error('Não foi possível abrir uma nova aba. Habilite pop-ups para este site.');
-        }
+        window.open(result.url, '_blank', 'noopener,noreferrer');
       },
     });
   };
