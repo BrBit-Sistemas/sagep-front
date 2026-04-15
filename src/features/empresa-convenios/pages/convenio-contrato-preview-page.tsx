@@ -727,7 +727,7 @@ export default function ConvenioContratoPreviewPage() {
         heading="Preview do contrato"
         links={[
           { name: 'Laboral' },
-          { name: 'Convênios', href: paths.empresaConvenios.root },
+          { name: 'Convênios', href: paths.laboral.convenios.root },
           { name: 'Preview do contrato' },
         ]}
         action={
@@ -739,8 +739,8 @@ export default function ConvenioContratoPreviewPage() {
                 startIcon={<Iconify icon="eva:arrow-ios-back-fill" />}
                 onClick={() =>
                   convenioId
-                    ? navigate(paths.empresaConvenios.edit(convenioId))
-                    : navigate(paths.empresaConvenios.root)
+                    ? navigate(paths.laboral.convenios.edit(convenioId))
+                    : navigate(paths.laboral.convenios.root)
                 }
               >
                 Voltar à edição

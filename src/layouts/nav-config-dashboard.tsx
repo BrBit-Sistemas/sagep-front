@@ -1,10 +1,34 @@
 import type { NavSectionProps } from 'src/components/nav-section';
 
+import { Chip } from '@mui/material';
+
 import { paths } from 'src/routes/paths';
 
 import { CONFIG } from 'src/global-config';
+import { fichasCadastraisAllowedRoles } from 'src/features/fichas-cadastrais/constants/permissions';
+import { validacoesAllowedRoles } from 'src/features/fichas-cadastrais-validacoes/constants/permissions';
 
 import { SvgColor } from 'src/components/svg-color';
+
+// ----------------------------------------------------------------------
+
+/** Chip de "beta" pra sinalizar telas ainda em teste no menu lateral. */
+const BetaChip = (
+  <Chip
+    size="small"
+    label="BETA"
+    color="warning"
+    variant="outlined"
+    sx={{
+      height: 18,
+      fontSize: 10,
+      fontWeight: 700,
+      letterSpacing: 0.4,
+      borderRadius: 0.75,
+      '& .MuiChip-label': { px: 0.75 },
+    }}
+  />
+);
 
 // ----------------------------------------------------------------------
 
@@ -51,15 +75,9 @@ export const navData: NavSectionProps['data'] = [
     items: [
       {
         title: 'Reeducandos',
-        path: paths.detentos.root,
+        path: paths.carceragem.reeducandos.root,
         icon: ICONS.user,
         allowedRoles: ['read:detentos', 'read:ficha_cadastral_interno'],
-      },
-      {
-        title: 'Ficha-cadastral',
-        path: `${paths.dashboard.root}/ficha-cadastral`,
-        icon: ICONS.file,
-        allowedRoles: ['read:ficha_cadastral_externo'],
       },
     ],
   },
@@ -68,39 +86,37 @@ export const navData: NavSectionProps['data'] = [
     items: [
       {
         title: 'Usuários',
-        path: paths.users.root,
+        path: paths.core.usuarios.root,
         icon: ICONS.user,
         allowedRoles: ['read:usuarios'],
       },
       {
         title: 'Permissões',
-        path: paths.permissions.root,
+        path: paths.core.permissoes.root,
         icon: ICONS.lock,
-        // Admins implicitly allowed by guard; expose only to admins here
-        // Using an action:subject token that only admins will have effectively
         allowedRoles: ['read:roles'],
       },
       {
         title: 'Unidades Prisionais',
-        path: paths.unidadesPrisionais.root,
+        path: paths.core.unidadesPrisionais.root,
         icon: ICONS.banking,
         allowedRoles: ['read:unidades_prisionais'],
       },
       {
         title: 'Regionais',
-        path: paths.regionais.root,
+        path: paths.core.regionais.root,
         icon: ICONS.folder,
         allowedRoles: ['read:regionais'],
       },
       {
         title: 'Secretarias',
-        path: paths.secretarias.root,
+        path: paths.core.secretarias.root,
         icon: ICONS.folder,
         allowedRoles: ['read:secretarias'],
       },
       {
         title: 'Profissões',
-        path: paths.profissoes.root,
+        path: paths.core.profissoes.root,
         icon: ICONS.label,
         allowedRoles: ['read:profissoes'],
       },
@@ -111,15 +127,43 @@ export const navData: NavSectionProps['data'] = [
     items: [
       {
         title: 'Empresas',
-        path: paths.empresas.root,
+        path: paths.laboral.empresas.root,
         icon: ICONS.ecommerce,
+        info: BetaChip,
         allowedRoles: ['read:empresas'],
       },
       {
         title: 'Convênios',
-        path: paths.empresaConvenios.root,
+        path: paths.laboral.convenios.root,
         icon: ICONS.file,
+        info: BetaChip,
         allowedRoles: ['read:empresas_convenio'],
+      },
+      {
+        title: 'Fichas Cadastrais',
+        path: paths.laboral.fichasCadastrais.root,
+        icon: ICONS.invoice,
+        allowedRoles: [...fichasCadastraisAllowedRoles.read],
+      },
+      {
+        title: 'Ficha Cadastral Externa',
+        path: paths.laboral.fichaCadastral,
+        icon: ICONS.file,
+        allowedRoles: ['read:ficha_cadastral_externo'],
+      },
+      {
+        title: 'Validação de Fichas',
+        path: paths.laboral.fichasCadastraisValidacoes,
+        icon: ICONS.invoice,
+        info: BetaChip,
+        allowedRoles: [...validacoesAllowedRoles.read],
+      },
+      {
+        title: 'Telão de Vagas',
+        path: paths.laboral.telaoVagas,
+        icon: ICONS.kanban,
+        info: BetaChip,
+        allowedRoles: ['read:telao_vagas_fila'],
       },
     ],
   },

@@ -38,6 +38,7 @@ function toDetento(dto: ReadDetentoDto): Detento {
     ficha_cadastral_created_at: dto.ficha_cadastral_created_at ?? null,
     ficha_cadastral_created_by_name: dto.ficha_cadastral_created_by_name ?? null,
     status_validacao: (dto as any).status_validacao ?? null,
+    motivo_reprovacao: (dto as any).motivo_reprovacao ?? null,
   };
 }
 
@@ -210,15 +211,32 @@ export const detentoService: DetentoService = {
 
     return fichasApi.update(fichacadastral_id, payload);
   },
-  paginate: async ({ page, limit, search, cpf, nome, sort, order }: any) => {
-    // Converter página de 1-based (frontend) para 0-based (backend)
+  paginate: async ({
+    page,
+    limit,
+    search,
+    cpf,
+    sort,
+    order,
+    status_validacao,
+    motivo_reprovacao,
+  }: any) => {
     const backendPage = page - 1;
 
-    const res = await api.findAll({ page: backendPage, limit, search, cpf, nome, sort, order });
+    const res = await api.findAll({
+      page: backendPage,
+      limit,
+      search,
+      cpf,
+      sort,
+      order,
+      ...(status_validacao ? { status_validacao } : {}),
+      ...(motivo_reprovacao ? { motivo_reprovacao } : {}),
+    });
 
     const result = {
       items: res.items.map(toDetento),
-      page: Number(res.page) + 1, // Converter de volta para 1-based para o frontend
+      page: Number(res.page) + 1,
       limit: res.limit,
       total: res.total,
       totalPages: Math.ceil((res.total ?? 0) / (res.limit || 1)) || 0,

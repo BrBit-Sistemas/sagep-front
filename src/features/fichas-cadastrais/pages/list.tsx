@@ -1,0 +1,287 @@
+import type { GridCellParams, GridSortModel, GridFilterModel, GridPaginationModel } from '@mui/x-data-grid/models';
+import type { FichaCadastral, StatusValidacaoFicha } from '../types';
+
+import { useMemo, useCallback, useState } from 'react';
+
+import { Alert, Box, Card, Stack, Button, MenuItem, TextField } from '@mui/material';
+
+import { paths } from 'src/routes/paths';
+import { useRouter } from 'src/routes/hooks';
+
+import { DashboardContent } from 'src/layouts/dashboard';
+
+import { Iconify } from 'src/components/iconify';
+import { MetricCard } from 'src/components/metric-card';
+import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
+import CustomDataGrid from 'src/components/custom-data-grid/custom-data-grid';
+
+import { useFichasCadastraisList } from '../hooks/use-fichas-cadastrais-list';
+import { useFichasCadastraisMetrics } from '../hooks/use-fichas-cadastrais-metrics';
+import { useFichasCadastraisListTable } from '../hooks/use-fichas-cadastrais-list-table';
+import { useFichasCadastraisSearchParams } from '../hooks/use-fichas-cadastrais-search-params';
+
+const STATUS_OPTIONS: { value: StatusValidacaoFicha | ''; label: string }[] = [
+  { value: '', label: 'Todos' },
+  { value: 'AGUARDANDO_VALIDACAO', label: 'Pendente' },
+  { value: 'VALIDADO', label: 'Aprovado' },
+  { value: 'REQUER_CORRECAO', label: 'Requer correção' },
+  { value: 'FILA_DISPONIVEL', label: 'Na fila' },
+];
+
+export default function FichasCadastraisListPage() {
+  const router = useRouter();
+  const [addMode, setAddMode] = useState(false);
+  const [selectedDetentoId, setSelectedDetentoId] = useState<string | null>(null);
+  const [selectedRowId, setSelectedRowId] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useFichasCadastraisSearchParams();
+
+  const { data, isLoading } = useFichasCadastraisList(searchParams);
+  const { data: metrics, isLoading: metricsLoading } = useFichasCadastraisMetrics();
+
+  const { columns } = useFichasCadastraisListTable();
+
+  const handleAddClick = () => {
+    if (addMode && selectedDetentoId) {
+      router.push(paths.carceragem.reeducandos.fichaCadastralNew(selectedDetentoId));
+    } else {
+      setAddMode(true);
+      setSelectedDetentoId(null);
+      setSelectedRowId(null);
+    }
+  };
+
+  const handleCellClick = useCallback(
+    (params: GridCellParams<FichaCadastral>) => {
+      if (!addMode) return;
+      if (params.field === 'actions') return;
+      setSelectedDetentoId(params.row.detento_id);
+      setSelectedRowId(params.row.id);
+    },
+    [addMode]
+  );
+
+  const handleCancelAdd = () => {
+    setAddMode(false);
+    setSelectedDetentoId(null);
+    setSelectedRowId(null);
+  };
+
+  const handlePaginationModelChange = useCallback(
+    (newModel: GridPaginationModel) => {
+      const frontendPage = newModel.page >= 1 ? newModel.page : newModel.page + 1;
+      setSearchParams({ page: frontendPage, limit: newModel.pageSize });
+    },
+    [setSearchParams]
+  );
+
+  const handleSortModelChange = useCallback(
+    (newModel: GridSortModel) => {
+      setSearchParams({ sort: newModel[0]?.field || '', order: newModel[0]?.sort || 'asc' });
+    },
+    [setSearchParams]
+  );
+
+  const handleFilterModelChange = useCallback(
+    (model: GridFilterModel) => {
+      const quick = Array.isArray(model.quickFilterValues) ? model.quickFilterValues.join(' ') : '';
+      setSearchParams({ search: quick, page: 1 });
+    },
+    [setSearchParams]
+  );
+
+  const setStatusFilter = (status: StatusValidacaoFicha) => {
+    setSearchParams({
+      status_validacao: searchParams.status_validacao === status ? '' : status,
+      page: 1,
+    });
+  };
+
+  const dataGridProps = useMemo(
+    () => ({
+      hasNextPage: data?.hasNextPage || false,
+      total: data?.total || 0,
+      rows: data?.items || [],
+      columns,
+      loading: isLoading,
+      page: searchParams.page,
+      limit: searchParams.limit,
+      sort: searchParams.sort,
+      order: searchParams.order,
+      search: searchParams.search,
+      onPaginationModelChange: handlePaginationModelChange,
+      onSortModelChange: handleSortModelChange,
+      onFilterModelChange: handleFilterModelChange,
+      getRowId: (row: any) => row.id,
+      onCellClick: handleCellClick,
+      getRowClassName: (params: { id: string | number }) =>
+        String(params.id) === selectedRowId ? 'row--add-selected' : '',
+      sx: addMode
+        ? {
+            cursor: 'pointer',
+            '& .row--add-selected': {
+              backgroundColor: 'action.selected',
+              '&:hover': { backgroundColor: 'action.selected' },
+            },
+          }
+        : undefined,
+    }),
+    [
+      data?.hasNextPage,
+      data?.total,
+      data?.items,
+      columns,
+      isLoading,
+      searchParams.page,
+      searchParams.limit,
+      searchParams.sort,
+      searchParams.order,
+      searchParams.search,
+      handlePaginationModelChange,
+      handleSortModelChange,
+      handleFilterModelChange,
+      handleCellClick,
+      selectedRowId,
+      addMode,
+    ]
+  );
+
+  return (
+    <DashboardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+      <CustomBreadcrumbs
+        heading="Fichas Cadastrais"
+        links={[
+          { name: 'Laboral' },
+          { name: 'Fichas Cadastrais', href: paths.laboral.fichasCadastrais.root },
+        ]}
+        action={
+          <Button
+            variant="contained"
+            color={addMode && selectedDetentoId ? 'success' : 'primary'}
+            startIcon={<Iconify icon="mingcute:add-line" />}
+            onClick={handleAddClick}
+          >
+            Adicionar
+          </Button>
+        }
+        sx={{ mb: { xs: 2, md: 3 } }}
+      />
+
+      {/* ---------- KPI cards ---------- */}
+      <Box
+        sx={{
+          display: 'grid',
+          gap: 2,
+          mb: 3,
+          gridTemplateColumns: {
+            xs: 'repeat(1, 1fr)',
+            sm: 'repeat(2, 1fr)',
+            md: 'repeat(5, 1fr)',
+          },
+        }}
+      >
+        <MetricCard
+          label="Fichas ativas"
+          value={metrics?.ativas}
+          icon="solar:file-bold-duotone"
+          tone="neutral"
+          loading={metricsLoading}
+          active={searchParams.status_validacao === ''}
+          onClick={() => setSearchParams({ status_validacao: '', page: 1 })}
+        />
+        <MetricCard
+          label="Aprovadas"
+          value={metrics?.aprovadas}
+          icon="solar:file-check-bold-duotone"
+          tone="success"
+          loading={metricsLoading}
+          active={searchParams.status_validacao === 'VALIDADO'}
+          onClick={() => setStatusFilter('VALIDADO')}
+        />
+        <MetricCard
+          label="Alertas"
+          value={metrics?.alertas}
+          icon="solar:shield-keyhole-bold-duotone"
+          tone="warning"
+          loading={metricsLoading}
+        />
+        <MetricCard
+          label="Reprovadas"
+          value={metrics?.reprovadas}
+          icon="solar:file-corrupted-bold-duotone"
+          tone="error"
+          loading={metricsLoading}
+          active={searchParams.status_validacao === 'REQUER_CORRECAO'}
+          onClick={() => setStatusFilter('REQUER_CORRECAO')}
+        />
+        <MetricCard
+          label="Pendentes"
+          value={metrics?.pendentes}
+          icon="solar:clock-circle-bold"
+          tone="warning"
+          loading={metricsLoading}
+          active={searchParams.status_validacao === 'AGUARDANDO_VALIDACAO'}
+          onClick={() => setStatusFilter('AGUARDANDO_VALIDACAO')}
+        />
+      </Box>
+
+      {/* ---------- Secondary filters ---------- */}
+      <Card sx={{ p: 2, mb: 2 }}>
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+          <TextField
+            select
+            size="small"
+            label="Status de validação"
+            value={searchParams.status_validacao}
+            onChange={(e) =>
+              setSearchParams({
+                status_validacao: e.target.value as StatusValidacaoFicha | '',
+                page: 1,
+              })
+            }
+            sx={{ minWidth: 220 }}
+          >
+            {STATUS_OPTIONS.map((o) => (
+              <MenuItem key={o.value || 'all'} value={o.value}>
+                {o.label}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            size="small"
+            label="CPF"
+            placeholder="somente dígitos"
+            value={searchParams.cpf}
+            onChange={(e) => setSearchParams({ cpf: e.target.value, page: 1 })}
+            sx={{ minWidth: 180 }}
+          />
+        </Stack>
+      </Card>
+
+      {/* ---------- Add mode alert ---------- */}
+      {addMode && (
+        <Alert
+          severity={selectedDetentoId ? 'success' : 'info'}
+          onClose={handleCancelAdd}
+          sx={{ mb: 2 }}
+        >
+          {selectedDetentoId
+            ? 'Reeducando selecionado. Clique em + Adicionar para continuar.'
+            : 'Selecione um reeducando na lista abaixo e clique novamente em + Adicionar.'}
+        </Alert>
+      )}
+
+      {/* ---------- Table ---------- */}
+      <Card
+        sx={{
+          minHeight: 520,
+          flexGrow: { md: 1 },
+          display: { md: 'flex' },
+          height: { xs: 800, md: '1px' },
+          flexDirection: { md: 'column' },
+        }}
+      >
+        <CustomDataGrid {...dataGridProps} />
+      </Card>
+    </DashboardContent>
+  );
+}

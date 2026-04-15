@@ -518,10 +518,10 @@ export default function EmpresaConvenioFormPage() {
     try {
       if (isEditing && convenioId) {
         await updateItem({ convenioId, ...data });
-        navigate(paths.empresaConvenios.contratoPreview(convenioId));
+        navigate(paths.laboral.convenios.contratoPreview(convenioId));
       } else {
         const created = await createItem(data);
-        navigate(paths.empresaConvenios.contratoPreview(created.id));
+        navigate(paths.laboral.convenios.contratoPreview(created.id));
       }
     } catch {
       // erro já exibido pelo onError do hook (toast)
@@ -563,7 +563,7 @@ export default function EmpresaConvenioFormPage() {
         type="button"
         variant="outlined"
         color="inherit"
-        onClick={() => navigate(paths.empresaConvenios.root)}
+        onClick={() => navigate(paths.laboral.convenios.root)}
       >
         Voltar
       </Button>
@@ -579,7 +579,7 @@ export default function EmpresaConvenioFormPage() {
         heading={title}
         links={[
           { name: 'Laboral' },
-          { name: 'Convênios', href: paths.empresaConvenios.root },
+          { name: 'Convênios', href: paths.laboral.convenios.root },
           { name: title },
         ]}
         action={

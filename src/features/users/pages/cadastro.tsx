@@ -96,7 +96,7 @@ export default function UserCadastroPage() {
     <DashboardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
       <CustomBreadcrumbs
         heading="Cadastro de Usuários"
-        links={[{ name: 'Usuários' }, { name: 'Cadastro de Usuários', href: paths.users.root }]}
+        links={[{ name: 'Core' }, { name: 'Usuários', href: paths.core.usuarios.root }]}
         action={
           <PermissionGuard hasContent={false} required={{ action: 'create', subject: 'usuarios' }}>
             <Button

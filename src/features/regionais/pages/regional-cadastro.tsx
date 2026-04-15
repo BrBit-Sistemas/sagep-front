@@ -96,8 +96,8 @@ export default function RegionalCadastroPage() {
       <CustomBreadcrumbs
         heading="Cadastro de Regionais"
         links={[
-          { name: 'Regionais' },
-          { name: 'Cadastro de Regionais', href: paths.regionais.root },
+          { name: 'Core' },
+          { name: 'Regionais', href: paths.core.regionais.root },
         ]}
         action={
           <PermissionGuard hasContent={false} required={{ action: 'create', subject: 'regionais' }}>

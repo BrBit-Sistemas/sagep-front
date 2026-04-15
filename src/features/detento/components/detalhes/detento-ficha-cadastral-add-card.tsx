@@ -22,7 +22,7 @@ export const DetentoFichaCadastralAddCard = ({ detentoId }: DetentoFichaCadastra
 
   const handleCreate = () => {
     if (!canCreate) return;
-    navigate.push(paths.detentos.fichaCadastralNew(detentoId));
+    navigate.push(paths.carceragem.reeducandos.fichaCadastralNew(detentoId));
   };
 
   if (!canCreate) {

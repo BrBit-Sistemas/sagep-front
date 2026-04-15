@@ -17,17 +17,23 @@ export const EmpresaDeleteDialog = () => {
   if (!selectedEmpresa) return null;
 
   return (
-    <Dialog open={isDeleteDialogOpen} onClose={closeDeleteDialog}>
+    <Dialog data-testid="empresa-delete-dialog" open={isDeleteDialogOpen} onClose={closeDeleteDialog}>
       <DialogTitle>Confirmar exclusão</DialogTitle>
       <DialogContent>
         Tem certeza que deseja excluir &quot;{selectedEmpresa.razao_social}&quot;? Esta ação não
         pode ser desfeita.
       </DialogContent>
       <DialogActions>
-        <Button onClick={closeDeleteDialog} variant="outlined">
+        <Button data-testid="empresa-delete-cancel" onClick={closeDeleteDialog} variant="outlined">
           Cancelar
         </Button>
-        <Button onClick={handleDelete} variant="contained" color="error" loading={isPending}>
+        <Button
+          data-testid="empresa-delete-confirm"
+          onClick={handleDelete}
+          variant="contained"
+          color="error"
+          loading={isPending}
+        >
           Excluir
         </Button>
       </DialogActions>

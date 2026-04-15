@@ -86,7 +86,7 @@ export const DetentoFichaCadastralCard = ({ fichaCadastral }: DetentoFichaCadast
       queryKey: detentoKeys.fichasCadastrais(fichaCadastral.detento_id),
     });
     navigate.push(
-      paths.detentos.fichaCadastralEdit(fichaCadastral.detento_id, fichaCadastral.fichacadastral_id)
+      paths.carceragem.reeducandos.fichaCadastralEdit(fichaCadastral.detento_id, fichaCadastral.fichacadastral_id)
     );
   };
 

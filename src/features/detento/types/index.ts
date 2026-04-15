@@ -22,13 +22,26 @@ export type Detento = {
   ficha_cadastral_created_at?: string | null;
   ficha_cadastral_created_by_name?: string | null;
   status_validacao?: string | null;
+  motivo_reprovacao?: string | null;
 } & AuditableEntity;
+
+export type DetentoStatusFilter =
+  | 'AGUARDANDO_VALIDACAO'
+  | 'VALIDADO'
+  | 'REQUER_CORRECAO'
+  | 'FILA_DISPONIVEL'
+  | 'SEM_FICHA'
+  | '';
 
 export type DetentoListParams = {
   page: number;
   limit: number;
   search?: string;
   cpf?: string;
+  sort?: string;
+  order?: 'asc' | 'desc';
+  status_validacao?: DetentoStatusFilter;
+  motivo_reprovacao?: string;
 };
 
 export type DetentoFichaCadastral = {

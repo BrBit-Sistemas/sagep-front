@@ -116,20 +116,20 @@ export function JwtSignInView() {
           );
 
         if (isAdmin) {
-          router.replace(paths.detentos.root);
+          router.replace(paths.carceragem.reeducandos.root);
           return;
         }
 
         const candidates: { allowed: boolean; path: string }[] = [
-          { allowed: hasPermission('read', 'detentos'), path: paths.detentos.root },
-          { allowed: hasPermission('read', 'usuarios'), path: paths.users.root },
+          { allowed: hasPermission('read', 'detentos'), path: paths.carceragem.reeducandos.root },
+          { allowed: hasPermission('read', 'usuarios'), path: paths.core.usuarios.root },
           {
             allowed: hasPermission('read', 'unidades_prisionais'),
-            path: paths.unidadesPrisionais.root,
+            path: paths.core.unidadesPrisionais.root,
           },
-          { allowed: hasPermission('read', 'regionais'), path: paths.regionais.root },
-          { allowed: hasPermission('read', 'secretarias'), path: paths.secretarias.root },
-          { allowed: hasPermission('read', 'profissoes'), path: paths.profissoes.root },
+          { allowed: hasPermission('read', 'regionais'), path: paths.core.regionais.root },
+          { allowed: hasPermission('read', 'secretarias'), path: paths.core.secretarias.root },
+          { allowed: hasPermission('read', 'profissoes'), path: paths.core.profissoes.root },
           {
             allowed:
               hasPermission('read', 'ficha_cadastral_interno') ||

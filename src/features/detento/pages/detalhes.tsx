@@ -17,9 +17,9 @@ export default function DetentoDetalhesPage() {
       <CustomBreadcrumbs
         heading="Detalhes"
         links={[
-          { name: 'Reeducandos' },
-          { name: 'Cadastro de Reeducandos', href: paths.detentos.root },
-          { name: 'Detalhes', href: paths.detentos.detalhes(detentoId) },
+          { name: 'Carceragem' },
+          { name: 'Reeducandos', href: paths.carceragem.reeducandos.root },
+          { name: 'Detalhes', href: paths.carceragem.reeducandos.detalhes(detentoId) },
         ]}
         sx={{ mb: { xs: 3, md: 5 } }}
       />

@@ -85,8 +85,8 @@ export default function SecretariaCadastroPage() {
       <CustomBreadcrumbs
         heading="Cadastro de Secretarias"
         links={[
-          { name: 'Secretarias' },
-          { name: 'Cadastro de Secretarias', href: paths.secretarias.root },
+          { name: 'Core' },
+          { name: 'Secretarias', href: paths.core.secretarias.root },
         ]}
         action={
           <PermissionGuard
