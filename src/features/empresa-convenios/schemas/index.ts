@@ -151,6 +151,7 @@ export const empresaConvenioBaseSchema = z.object({
   percentual_contrapartida: optionalPercent,
   data_inicio: z.string().min(1, 'Data de início é obrigatória'),
   data_fim: z.string().optional().nullable(),
+  data_repactuacao: z.string().optional().nullable(),
   observacoes: z.string().optional(),
   locais_execucao: z.array(localExecucaoSchema).optional().default([]),
   template_contrato_id: z.string().uuid('Template de contrato é obrigatório'),

@@ -91,6 +91,7 @@ const INITIAL_VALUES: CreateEmpresaConvenioFormValues = {
   locais_execucao: [],
   data_inicio: formatDateToYYYYMMDD(new Date()),
   data_fim: null,
+  data_repactuacao: null,
   observacoes: '',
   template_contrato_id: '',
   jornada_tipo: '',
@@ -118,6 +119,7 @@ const TAB_GERAL_FIELDS: (keyof CreateEmpresaConvenioFormValues)[] = [
   'artigos_vedados',
   'data_inicio',
   'data_fim',
+  'data_repactuacao',
   'observacoes',
   'jornada_tipo',
   'carga_horaria_semanal',
@@ -709,11 +711,14 @@ export default function EmpresaConvenioFormPage() {
                 </Grid>
               </Grid>
             ) : null}
-            <Grid size={{ md: 6, sm: 12 }}>
+            <Grid size={{ md: 4, sm: 12 }}>
               <Field.DatePicker name="data_inicio" label="Data início" />
             </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
+            <Grid size={{ md: 4, sm: 12 }}>
               <Field.DatePicker name="data_fim" label="Data fim" />
+            </Grid>
+            <Grid size={{ md: 4, sm: 12 }}>
+              <Field.DatePicker name="data_repactuacao" label="Data de repactuação" />
             </Grid>
             <Grid size={{ md: 12, sm: 12 }}>
               <Field.Text name="observacoes" label="Observações gerais" multiline rows={2} />

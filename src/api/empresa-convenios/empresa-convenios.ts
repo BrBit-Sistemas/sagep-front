@@ -49,6 +49,7 @@ export type CreateEmpresaConvenioDto = {
   permite_variacao_quantidade?: boolean;
   data_inicio: string;
   data_fim?: string | null;
+  data_repactuacao?: string | null;
   tipo_calculo_remuneracao: TipoCalculoRemuneracao;
   usa_nivel: boolean;
   valor_nivel_i?: number;

@@ -109,6 +109,7 @@ export const empresaConvenioToFormValues = (x: EmpresaConvenio): CreateEmpresaCo
     })),
     data_inicio: x.data_inicio,
     data_fim: x.data_fim ?? null,
+    data_repactuacao: x.data_repactuacao ?? null,
     observacoes: x.observacoes ?? '',
     template_contrato_id: x.template_contrato_id,
     jornada_tipo: x.jornada_tipo ?? '',

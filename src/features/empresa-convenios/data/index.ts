@@ -150,6 +150,7 @@ const fromApi = (dto: ReadEmpresaConvenioDto): EmpresaConvenio => ({
   percentual_gestao: dto.percentual_gestao ?? null,
   percentual_contrapartida: dto.percentual_contrapartida ?? null,
   data_fim: dto.data_fim ?? null,
+  data_repactuacao: dto.data_repactuacao ?? null,
   possui_seguro_acidente: dto.possui_seguro_acidente ?? false,
   template_contrato_id: dto.template_contrato_id,
   template_codigo: dto.template_codigo ?? null,
@@ -221,6 +222,10 @@ const serializeDto = (data: CreateEmpresaConvenioSchema | UpdateEmpresaConvenioS
     data_fim:
       data.data_fim != null && String(data.data_fim).trim() !== ''
         ? String(data.data_fim).trim()
+        : null,
+    data_repactuacao:
+      data.data_repactuacao != null && String(data.data_repactuacao).trim() !== ''
+        ? String(data.data_repactuacao).trim()
         : null,
     tipo_calculo_remuneracao: data.tipo_calculo_remuneracao,
     usa_nivel: data.usa_nivel,
