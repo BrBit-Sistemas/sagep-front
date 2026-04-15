@@ -4,6 +4,7 @@ import type { Empresa } from '../types';
 
 import { useMemo, useCallback } from 'react';
 
+import { Chip } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 
 import { formatCnpj } from 'src/utils/format-string';
@@ -41,6 +42,20 @@ export const useEmpresaListTable = () => {
         field: 'razao_social',
         headerName: 'Razão Social',
         flex: 2,
+      },
+      {
+        field: 'tipo',
+        headerName: 'Tipo',
+        flex: 1,
+        minWidth: 150,
+        renderCell: ({ row }) => (
+          <Chip
+            size="small"
+            label={row.tipo === 'PRIVADA' ? 'Privada' : 'Órgão Público'}
+            color={row.tipo === 'PRIVADA' ? 'success' : 'primary'}
+            variant="soft"
+          />
+        ),
       },
       {
         field: 'cnpj',

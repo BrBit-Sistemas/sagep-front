@@ -6,6 +6,7 @@ import {
   Grid,
   Button,
   Dialog,
+  MenuItem,
   Typography,
   DialogTitle,
   DialogActions,
@@ -16,7 +17,7 @@ import { Form, Field } from 'src/components/hook-form';
 
 import { useCreateEmpresa } from '../../hooks/use-create-empresa';
 import { useUpdateEmpresa } from '../../hooks/use-update-empresa';
-import { createEmpresaSchema, type CreateEmpresaSchema } from '../../schemas';
+import { createEmpresaSchema, TIPO_EMPRESA_OPTIONS, type CreateEmpresaSchema } from '../../schemas';
 
 type EmpresaFormDialogProps = {
   onSuccess: () => void;
@@ -29,6 +30,7 @@ type EmpresaFormDialogProps = {
 const INITIAL_VALUES: CreateEmpresaSchema = {
   razao_social: '',
   cnpj: '',
+  tipo: 'PRIVADA',
 };
 
 export const EmpresaFormDialog = ({
@@ -78,6 +80,15 @@ export const EmpresaFormDialog = ({
             * Campos obrigatórios
           </Typography>
           <Grid container spacing={2}>
+            <Grid size={{ md: 12, sm: 12 }}>
+              <Field.Select required name="tipo" label="Tipo">
+                {TIPO_EMPRESA_OPTIONS.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </MenuItem>
+                ))}
+              </Field.Select>
+            </Grid>
             <Grid size={{ md: 12, sm: 12 }}>
               <Field.Text required name="razao_social" label="Razão Social" />
             </Grid>

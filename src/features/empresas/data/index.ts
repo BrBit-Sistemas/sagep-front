@@ -15,6 +15,7 @@ const fromApi = (dto: ReadEmpresaDto): Empresa => ({
   empresa_id: dto.empresa_id,
   razao_social: dto.razao_social,
   cnpj: dto.cnpj,
+  tipo: dto.tipo,
   createdAt: dto.createdAt,
   updatedAt: dto.updatedAt,
   created_by: undefined,
@@ -49,6 +50,7 @@ export const empresaService: CrudService<
     const dto = await api.create({
       razao_social: data.razao_social,
       cnpj: sanitizeCnpj(data.cnpj),
+      tipo: data.tipo,
     });
     return fromApi(dto);
   },
@@ -62,6 +64,7 @@ export const empresaService: CrudService<
     const payload = {
       ...(data.razao_social ? { razao_social: data.razao_social } : {}),
       ...(data.cnpj ? { cnpj: sanitizeCnpj(data.cnpj) } : {}),
+      ...(data.tipo ? { tipo: data.tipo } : {}),
     };
     const dto = await api.update(id, payload);
     return fromApi(dto);

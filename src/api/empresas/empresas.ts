@@ -3,6 +3,7 @@ import { type BodyType, customInstance } from 'src/lib/axios';
 export type CreateEmpresaDto = {
   razao_social: string;
   cnpj: string;
+  tipo: 'PRIVADA' | 'PUBLICA';
 };
 
 export type UpdateEmpresaDto = Partial<CreateEmpresaDto>;
