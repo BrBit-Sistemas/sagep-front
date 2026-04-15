@@ -18,5 +18,5 @@ export const validacoesPermissions = {
 
 /** Strings `action:subject` pra `allowedRoles` do nav. */
 export const validacoesAllowedRoles = {
-  read: ['read:ficha_cadastral_interno', 'read:ficha_cadastral_externo'],
+  read: ['read:ficha_cadastral_interno'],
 } as const;

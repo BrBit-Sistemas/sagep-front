@@ -5,5 +5,5 @@ export const fichasCadastraisPermissions = {
 } as const;
 
 export const fichasCadastraisAllowedRoles = {
-  read: ['read:ficha_cadastral_interno', 'read:ficha_cadastral_externo'],
+  read: ['read:ficha_cadastral_interno'],
 } as const;
