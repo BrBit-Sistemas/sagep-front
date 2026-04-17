@@ -105,7 +105,7 @@ export const empresaConvenioService: CrudService<
   UpdateEmpresaConvenioSchema,
   EmpresaConvenioListParams
 > = {
-  paginate: async ({ page, limit, search, modalidade, status }) => {
+  paginate: async ({ page, limit, search, modalidade, status, vigencia }) => {
     const api = getEmpresaConvenios();
     const backendPage = typeof page === 'number' ? Math.max(0, page - 1) : 0;
     const res: PaginateEmpresaConvenioDto = await api.findAll({
@@ -114,6 +114,7 @@ export const empresaConvenioService: CrudService<
       search,
       ...(modalidade ? { modalidade } : {}),
       ...(status ? { status: status as 'ativo' | 'encerrado' } : {}),
+      ...(vigencia ? { vigencia: vigencia as 'ativa' | 'encerrada' } : {}),
     });
     return {
       totalPages: res.totalPages,

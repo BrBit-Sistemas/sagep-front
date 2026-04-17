@@ -1,9 +1,9 @@
 import type { GridSortModel, GridFilterModel, GridPaginationModel } from '@mui/x-data-grid/models';
 
-import { useCallback } from 'react';
 import { useNavigate } from 'react-router';
+import { useState, useCallback } from 'react';
 
-import { Box, Card, Button } from '@mui/material';
+import { Box, Card, Menu, Button, Tooltip, MenuItem, IconButton } from '@mui/material';
 
 import { paths } from 'src/routes/paths';
 
@@ -21,6 +21,49 @@ import { useEmpresaConvenioMetrics } from '../hooks/use-empresa-convenio-metrics
 import { useEmpresaConvenioListTable } from '../hooks/use-empresa-convenio-list-table';
 import { useEmpresaConvenioSearchParams } from '../hooks/use-empresa-convenio-search-params';
 import { EmpresaConvenioDeleteDialog } from '../components/cadastro/empresa-convenio-delete-dialog';
+
+const VIGENCIA_OPTIONS = [
+  { value: '', label: 'Todas' },
+  { value: 'ativa', label: 'Ativa' },
+  { value: 'encerrada', label: 'Encerrada' },
+];
+
+type VigenciaFilterButtonProps = {
+  vigencia: string;
+  onChange: (value: string) => void;
+};
+
+function VigenciaFilterButton({ vigencia, onChange }: VigenciaFilterButtonProps) {
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  return (
+    <>
+      <Tooltip title="Filtrar por vigência">
+        <IconButton
+          size="small"
+          color={vigencia ? 'primary' : 'default'}
+          onClick={(e) => setAnchorEl(e.currentTarget)}
+        >
+          <Iconify icon="solar:calendar-date-bold" />
+        </IconButton>
+      </Tooltip>
+      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
+        {VIGENCIA_OPTIONS.map((opt) => (
+          <MenuItem
+            key={opt.value}
+            selected={vigencia === opt.value}
+            onClick={() => {
+              onChange(opt.value);
+              setAnchorEl(null);
+            }}
+          >
+            {opt.label}
+          </MenuItem>
+        ))}
+      </Menu>
+    </>
+  );
+}
 
 export default function EmpresaConvenioCadastroPage() {
   const navigate = useNavigate();
@@ -164,6 +207,16 @@ export default function EmpresaConvenioCadastroPage() {
           onSortModelChange={handleSortModelChange}
           onFilterModelChange={handleFilterModelChange}
           getRowId={(row: any) => row.id}
+          slotProps={{
+            toolbar: {
+              additionalItems: (
+                <VigenciaFilterButton
+                  vigencia={searchParams.vigencia}
+                  onChange={(v) => setSearchParams({ vigencia: v, page: 1 })}
+                />
+              ),
+            } as any,
+          }}
         />
 
         <EmpresaConvenioDeleteDialog />

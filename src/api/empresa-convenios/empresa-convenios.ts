@@ -180,6 +180,7 @@ export type ListParams = {
   search?: string;
   modalidade?: string;
   status?: 'ativo' | 'encerrado';
+  vigencia?: 'ativa' | 'encerrada';
 };
 
 export type EmpresaConvenioMetricsDto = {

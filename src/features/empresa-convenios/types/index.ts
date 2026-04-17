@@ -95,4 +95,5 @@ export type EmpresaConvenioListParams = {
   search?: string;
   modalidade?: string;
   status?: string;
+  vigencia?: string;
 };
