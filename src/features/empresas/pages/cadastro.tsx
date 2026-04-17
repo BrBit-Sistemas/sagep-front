@@ -105,6 +105,7 @@ export default function EmpresaCadastroPage() {
             <Button
               data-testid="empresa-add-button"
               color="primary"
+              sx={{ bgcolor: '#e91e63', '&:hover': { bgcolor: '#c2185b' } }}
               variant="contained"
               startIcon={<Iconify icon="mingcute:add-line" />}
               onClick={openCreateDialog}
