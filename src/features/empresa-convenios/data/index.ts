@@ -177,10 +177,7 @@ const fromApi = (dto: ReadEmpresaConvenioDto): EmpresaConvenio => ({
 });
 
 const serializeDto = (data: CreateEmpresaConvenioSchema | UpdateEmpresaConvenioSchema) => {
-  const tabelaId = data.permite_bonus_produtividade
-    ? String(data.tabela_produtividade_id || '').trim() || undefined
-    : undefined;
-  const responsaveis = (data.responsaveis ?? [])
+const responsaveis = (data.responsaveis ?? [])
     .filter((r) => r.nome?.trim())
     .map((r) => ({
       tipo: r.tipo,
@@ -297,7 +294,6 @@ const serializeDto = (data: CreateEmpresaConvenioSchema | UpdateEmpresaConvenioS
     clausula_adicional: data.clausula_adicional?.trim() || undefined,
     descricao_complementar_objeto: data.descricao_complementar_objeto?.trim() || undefined,
     observacao_operacional: data.observacao_operacional?.trim() || undefined,
-    tabela_produtividade_id: tabelaId,
     responsaveis: responsaveis.length > 0 ? responsaveis : undefined,
     distribuicao_profissoes: distribuicao_profissoes.length > 0 ? distribuicao_profissoes : undefined,
   };

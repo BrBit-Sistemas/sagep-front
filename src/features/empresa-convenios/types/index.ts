@@ -85,7 +85,6 @@ export type EmpresaConvenio = {
   clausula_adicional?: string | null;
   descricao_complementar_objeto?: string | null;
   observacao_operacional?: string | null;
-  tabela_produtividade_id?: string | null;
   responsaveis?: ConvenioResponsavel[];
   distribuicao_profissoes?: ConvenioDistribuicaoProfissao[];
 } & AuditableEntity;

@@ -11,15 +11,22 @@ import Tab from '@mui/material/Tab';
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
 import Tabs from '@mui/material/Tabs';
+import Chip from '@mui/material/Chip';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
+import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
+import TableRow from '@mui/material/TableRow';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import InputAdornment from '@mui/material/InputAdornment';
+import TableContainer from '@mui/material/TableContainer';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { paths } from 'src/routes/paths';
@@ -43,12 +50,12 @@ import { useEmpresasOptions } from '../hooks/use-empresas-options';
 import { useCreateEmpresaConvenio } from '../hooks/use-create-empresa-convenio';
 import { useEmpresaConvenioDetail } from '../hooks/use-empresa-convenio-detail';
 import { useUpdateEmpresaConvenio } from '../hooks/use-update-empresa-convenio';
-import { ConvenioProfissaoAutocomplete } from '../components/convenio-profissao-autocomplete';
 import {
   useTemplateContratosCatalog,
-  useTabelasProdutividadeCatalog,
 } from '../hooks/use-convenio-contrato-catalog';
+import { ConvenioProfissaoAutocomplete } from '../components/convenio-profissao-autocomplete';
 import {
+  GRAUS_DESEMPENHO,
   buildEmpresaConvenioSchema,
   type CreateEmpresaConvenioSchema,
   type CreateEmpresaConvenioFormValues,
@@ -85,7 +92,7 @@ const INITIAL_VALUES: CreateEmpresaConvenioFormValues = {
   quantidade_nivel_iii: undefined,
   permite_bonus_produtividade: false,
   bonus_produtividade_descricao: '',
-  bonus_produtividade_tabela_json_raw: '',
+  bonus_produtividade_linhas: GRAUS_DESEMPENHO.map((g) => ({ ...g, nivel_i: null, nivel_ii: null, nivel_iii: null })),
   percentual_gestao: undefined,
   percentual_contrapartida: undefined,
   locais_execucao: [],
@@ -106,7 +113,6 @@ const INITIAL_VALUES: CreateEmpresaConvenioFormValues = {
   clausula_adicional: '',
   descricao_complementar_objeto: '',
   observacao_operacional: '',
-  tabela_produtividade_id: '',
   responsaveis: defaultResponsaveisForm(),
   distribuicao_profissoes: defaultDistribuicaoProfissoesForm(),
 };
@@ -146,8 +152,7 @@ const TAB_REMUNERACAO_FIELDS: (keyof CreateEmpresaConvenioFormValues)[] = [
   'observacao_beneficio',
   'permite_bonus_produtividade',
   'bonus_produtividade_descricao',
-  'bonus_produtividade_tabela_json_raw',
-  'tabela_produtividade_id',
+  'bonus_produtividade_linhas',
   'percentual_gestao',
   'percentual_contrapartida',
   'possui_seguro_acidente',
@@ -165,6 +170,65 @@ const TAB_PROFISSOES_FIELDS: (keyof CreateEmpresaConvenioFormValues)[] = [
   'quantidade_nivel_ii',
   'quantidade_nivel_iii',
 ];
+
+const BonusProdutividadeTable = () => {
+  const { control } = useFormContext<CreateEmpresaConvenioFormValues>();
+  const { fields } = useFieldArray({ control, name: 'bonus_produtividade_linhas' });
+
+  return (
+    <TableContainer>
+      <Table size="small">
+        <TableHead>
+          <TableRow>
+            <TableCell sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>Grau</TableCell>
+            <TableCell sx={{ fontWeight: 600 }}>Desempenho</TableCell>
+            <TableCell sx={{ fontWeight: 600, textAlign: 'center' }}>%</TableCell>
+            <TableCell sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>Nível I (R$)</TableCell>
+            <TableCell sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>Nível II (R$)</TableCell>
+            <TableCell sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>Nível III (R$)</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {fields.map((field, idx) => (
+            <TableRow key={field.id}>
+              <TableCell>
+                <Chip label={field.grau} size="small" variant="outlined" sx={{ fontWeight: 700, minWidth: 32 }} />
+              </TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap' }}>{field.nome}</TableCell>
+              <TableCell sx={{ textAlign: 'center' }}>
+                <Chip label={`${field.percentual}%`} size="small" color="primary" variant="soft" />
+              </TableCell>
+              <TableCell>
+                <Field.Text
+                  name={`bonus_produtividade_linhas.${idx}.nivel_i`}
+                  size="small"
+                  type="number"
+                  slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
+                />
+              </TableCell>
+              <TableCell>
+                <Field.Text
+                  name={`bonus_produtividade_linhas.${idx}.nivel_ii`}
+                  size="small"
+                  type="number"
+                  slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
+                />
+              </TableCell>
+              <TableCell>
+                <Field.Text
+                  name={`bonus_produtividade_linhas.${idx}.nivel_iii`}
+                  size="small"
+                  type="number"
+                  slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
+                />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+};
 
 const LocalExecucaoRow = ({ idx, onRemove }: { idx: number; onRemove: () => void }) => {
   const { setValue, control } = useFormContext();
@@ -359,7 +423,6 @@ export default function EmpresaConvenioFormPage() {
   const { mutateAsync: createItem, isPending: isCreating } = useCreateEmpresaConvenio();
   const { mutateAsync: updateItem, isPending: isUpdating } = useUpdateEmpresaConvenio();
   const { data: templates, isLoading: loadingTemplates } = useTemplateContratosCatalog();
-  const { data: tabelasProd, isLoading: loadingTabelasProd } = useTabelasProdutividadeCatalog();
   const [tab, setTab] = useState<TabValue>('geral');
 
   const isSaving = isEditing ? isUpdating : isCreating;
@@ -448,13 +511,7 @@ export default function EmpresaConvenioFormPage() {
     }
   }, [isEditing, templates, methods]);
 
-  useEffect(() => {
-    if (!permiteBonusWatch) {
-      methods.setValue('tabela_produtividade_id', '');
-    }
-  }, [permiteBonusWatch, methods]);
-
-  useEffect(() => {
+useEffect(() => {
     if (!templates?.length || !templateIdWatch) return;
     const cod = templates.find((t) => t.template_contrato_id === templateIdWatch)?.codigo;
     const prevId = prevTemplateIdRef.current;
@@ -464,7 +521,7 @@ export default function EmpresaConvenioFormPage() {
     prevTemplateIdRef.current = templateIdWatch;
   }, [templates, templateIdWatch, methods]);
 
-  const catalogLoading = loadingTemplates || loadingTabelasProd;
+  const catalogLoading = loadingTemplates;
   const catalogEmpty = !catalogLoading && !templates?.length;
 
   const somaDistProf = (distribuicaoWatch ?? []).reduce((s, row) => {
@@ -843,24 +900,7 @@ export default function EmpresaConvenioFormPage() {
             </Grid>
             {permiteBonusWatch ? (
               <>
-                <Grid size={{ md: 6, sm: 12 }}>
-                  <Field.Select
-                    name="tabela_produtividade_id"
-                    label="Tabela de produtividade (opcional)"
-                    disabled={catalogLoading}
-                    slotProps={{ inputLabel: { shrink: true } }}
-                  >
-                    <MenuItem value="">
-                      <em>Nenhuma</em>
-                    </MenuItem>
-                    {(tabelasProd ?? []).map((tb) => (
-                      <MenuItem key={tb.tabela_produtividade_id} value={tb.tabela_produtividade_id}>
-                        {tb.nome}
-                      </MenuItem>
-                    ))}
-                  </Field.Select>
-                </Grid>
-                <Grid size={{ md: 12, sm: 12 }}>
+<Grid size={{ md: 12, sm: 12 }}>
                   <Field.Text
                     name="bonus_produtividade_descricao"
                     label="Descrição / regras do bônus"
@@ -869,13 +909,10 @@ export default function EmpresaConvenioFormPage() {
                   />
                 </Grid>
                 <Grid size={{ md: 12, sm: 12 }}>
-                  <Field.Text
-                    name="bonus_produtividade_tabela_json_raw"
-                    label="Tabela JSON do bônus (opcional, array JSON)"
-                    multiline
-                    rows={4}
-                    placeholder='Ex.: [{"faixa":"A","percentual":10}]'
-                  />
+                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                    Tabela de graus de desempenho
+                  </Typography>
+                  <BonusProdutividadeTable />
                 </Grid>
               </>
             ) : null}

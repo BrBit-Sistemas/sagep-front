@@ -118,6 +118,25 @@ const distribuicaoProfissaoRowSchema = z.object({
   observacao: z.string().optional(),
 });
 
+export const GRAUS_DESEMPENHO = [
+  { grau: 'G', nome: 'Satisfatório', percentual: 10 },
+  { grau: 'F', nome: 'Convincente', percentual: 15 },
+  { grau: 'E', nome: 'Bom', percentual: 20 },
+  { grau: 'D', nome: 'Ótimo', percentual: 25 },
+  { grau: 'C', nome: 'Excelente', percentual: 30 },
+  { grau: 'B', nome: 'Extraordinário', percentual: 35 },
+  { grau: 'A', nome: 'Esplêndido', percentual: 40 },
+] as const;
+
+const grauLinhaSchema = z.object({
+  grau: z.string(),
+  nome: z.string(),
+  percentual: z.number(),
+  nivel_i: z.coerce.number().nullable().optional(),
+  nivel_ii: z.coerce.number().nullable().optional(),
+  nivel_iii: z.coerce.number().nullable().optional(),
+});
+
 export const empresaConvenioBaseSchema = z.object({
   empresa_id: z.string().min(1, 'Empresa é obrigatória'),
   modalidade_execucao: z.enum(modalidadesExecucao as [ModalidadeExecucao, ...ModalidadeExecucao[]], {
@@ -146,7 +165,7 @@ export const empresaConvenioBaseSchema = z.object({
   quantidade_nivel_iii: optionalIntNonNeg,
   permite_bonus_produtividade: z.boolean().default(false),
   bonus_produtividade_descricao: z.string().optional(),
-  bonus_produtividade_tabela_json_raw: z.string().optional(),
+  bonus_produtividade_linhas: z.array(grauLinhaSchema).optional(),
   percentual_gestao: optionalPercent,
   percentual_contrapartida: optionalPercent,
   data_inicio: z.string().min(1, 'Data de início é obrigatória'),
@@ -167,7 +186,6 @@ export const empresaConvenioBaseSchema = z.object({
   clausula_adicional: z.string().optional(),
   descricao_complementar_objeto: z.string().optional(),
   observacao_operacional: z.string().optional(),
-  tabela_produtividade_id: z.string().uuid().optional().or(z.literal('')),
   responsaveis: z.array(responsavelRowSchema).max(2).default([
     {
       tipo: 'REPRESENTANTE_LEGAL',
@@ -194,27 +212,24 @@ export type ReadTemplateContratoLike = {
   codigo: CodigoTemplateContrato;
 };
 
-const parseBonusJson = (
-  raw: string | undefined
-): Record<string, unknown>[] | undefined => {
-  const t = raw?.trim();
-  if (!t) return undefined;
-  try {
-    const p = JSON.parse(t) as unknown;
-    return Array.isArray(p) ? (p as Record<string, unknown>[]) : undefined;
-  } catch {
-    return undefined;
-  }
-};
 
 export const buildEmpresaConvenioSchema = (templates: ReadTemplateContratoLike[]) =>
   empresaConvenioBaseSchema
     .transform((data) => {
-      const bonusJson = parseBonusJson(data.bonus_produtividade_tabela_json_raw);
-      const { bonus_produtividade_tabela_json_raw: _r, ...rest } = data;
+      const { bonus_produtividade_linhas, ...rest } = data;
+      const bonusJson = bonus_produtividade_linhas
+        ?.filter((l) => l.nivel_i != null || l.nivel_ii != null || l.nivel_iii != null)
+        .map(({ grau, nome, percentual, nivel_i, nivel_ii, nivel_iii }) => ({
+          grau,
+          nome,
+          percentual,
+          nivel_i: nivel_i ?? null,
+          nivel_ii: nivel_ii ?? null,
+          nivel_iii: nivel_iii ?? null,
+        }));
       return {
         ...rest,
-        bonus_produtividade_tabela_json: bonusJson,
+        bonus_produtividade_tabela_json: bonusJson?.length ? bonusJson : undefined,
       };
     })
     .superRefine((data, ctx) => {
@@ -238,15 +253,14 @@ export const buildEmpresaConvenioSchema = (templates: ReadTemplateContratoLike[]
       }
       const permiteBonus = data.permite_bonus_produtividade === true;
       if (permiteBonus) {
-        const hasTabela = Boolean(String(data.tabela_produtividade_id || '').trim());
-        const hasJson =
+        const hasLinhas =
           Array.isArray(data.bonus_produtividade_tabela_json) &&
           data.bonus_produtividade_tabela_json.length > 0;
         const hasDesc = Boolean(data.bonus_produtividade_descricao?.trim());
-        if (!hasTabela && !hasJson && !hasDesc) {
+        if (!hasLinhas && !hasDesc) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: 'Informe descrição do bônus, JSON da tabela ou tabela de produtividade cadastrada',
+            message: 'Preencha pelo menos um valor na tabela de desempenho ou informe a descrição do bônus',
             path: ['bonus_produtividade_descricao'],
           });
         }
