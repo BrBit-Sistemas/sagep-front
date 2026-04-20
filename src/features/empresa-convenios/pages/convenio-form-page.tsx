@@ -160,9 +160,20 @@ const TAB_PROFISSOES_FIELDS: (keyof CreateEmpresaConvenioFormValues)[] = [
   'quantidade_nivel_iii',
 ];
 
+const calcNivelBonus = (percentual: unknown, valor: unknown): string => {
+  const p = Number(percentual);
+  const v = Number(valor);
+  if (!p || !v || Number.isNaN(p) || Number.isNaN(v)) return '—';
+  return `R$ ${Math.round((p / 100) * v).toLocaleString('pt-BR')}`;
+};
+
 const BonusProdutividadeTable = () => {
   const { control } = useFormContext<CreateEmpresaConvenioFormValues>();
   const { fields } = useFieldArray({ control, name: 'bonus_produtividade_linhas' });
+  const valorI = useWatch({ control, name: 'valor_nivel_i' });
+  const valorII = useWatch({ control, name: 'valor_nivel_ii' });
+  const valorIII = useWatch({ control, name: 'valor_nivel_iii' });
+  const linhas = useWatch({ control, name: 'bonus_produtividade_linhas' });
 
   return (
     <TableContainer>
@@ -171,48 +182,41 @@ const BonusProdutividadeTable = () => {
           <TableRow>
             <TableCell sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>Grau</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>Desempenho</TableCell>
-            <TableCell sx={{ fontWeight: 600, textAlign: 'center' }}>%</TableCell>
+            <TableCell sx={{ fontWeight: 600, textAlign: 'center' }}>% Bônus</TableCell>
             <TableCell sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>Nível I (R$)</TableCell>
             <TableCell sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>Nível II (R$)</TableCell>
             <TableCell sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>Nível III (R$)</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {fields.map((field, idx) => (
-            <TableRow key={field.id}>
-              <TableCell>
-                <Chip label={field.grau} size="small" variant="outlined" sx={{ fontWeight: 700, minWidth: 32 }} />
-              </TableCell>
-              <TableCell sx={{ whiteSpace: 'nowrap' }}>{field.nome}</TableCell>
-              <TableCell sx={{ textAlign: 'center' }}>
-                <Chip label={`${field.percentual}%`} size="small" color="primary" variant="soft" />
-              </TableCell>
-              <TableCell>
-                <Field.Text
-                  name={`bonus_produtividade_linhas.${idx}.nivel_i`}
-                  size="small"
-                  type="number"
-                  slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
-                />
-              </TableCell>
-              <TableCell>
-                <Field.Text
-                  name={`bonus_produtividade_linhas.${idx}.nivel_ii`}
-                  size="small"
-                  type="number"
-                  slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
-                />
-              </TableCell>
-              <TableCell>
-                <Field.Text
-                  name={`bonus_produtividade_linhas.${idx}.nivel_iii`}
-                  size="small"
-                  type="number"
-                  slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
-                />
-              </TableCell>
-            </TableRow>
-          ))}
+          {fields.map((field, idx) => {
+            const p = linhas?.[idx]?.percentual;
+            return (
+              <TableRow key={field.id}>
+                <TableCell>
+                  <Chip label={field.grau} size="small" variant="outlined" sx={{ fontWeight: 700, minWidth: 32 }} />
+                </TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>{field.nome}</TableCell>
+                <TableCell>
+                  <Field.Text
+                    name={`bonus_produtividade_linhas.${idx}.percentual`}
+                    size="small"
+                    type="number"
+                    slotProps={{ htmlInput: { min: 10, max: 40 } }}
+                  />
+                </TableCell>
+                <TableCell sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
+                  {calcNivelBonus(p, valorI)}
+                </TableCell>
+                <TableCell sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
+                  {calcNivelBonus(p, valorII)}
+                </TableCell>
+                <TableCell sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
+                  {calcNivelBonus(p, valorIII)}
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </TableContainer>

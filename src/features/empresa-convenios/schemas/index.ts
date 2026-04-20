@@ -131,7 +131,7 @@ export const GRAUS_DESEMPENHO = [
 const grauLinhaSchema = z.object({
   grau: z.string(),
   nome: z.string(),
-  percentual: z.number(),
+  percentual: z.coerce.number().min(10).max(40),
   nivel_i: z.coerce.number().nullable().optional(),
   nivel_ii: z.coerce.number().nullable().optional(),
   nivel_iii: z.coerce.number().nullable().optional(),
@@ -212,15 +212,7 @@ export const buildEmpresaConvenioSchema = (templates: ReadTemplateContratoLike[]
     .transform((data) => {
       const { bonus_produtividade_linhas, ...rest } = data;
       const bonusJson = bonus_produtividade_linhas
-        ?.filter((l) => l.nivel_i != null || l.nivel_ii != null || l.nivel_iii != null)
-        .map(({ grau, nome, percentual, nivel_i, nivel_ii, nivel_iii }) => ({
-          grau,
-          nome,
-          percentual,
-          nivel_i: nivel_i ?? null,
-          nivel_ii: nivel_ii ?? null,
-          nivel_iii: nivel_iii ?? null,
-        }));
+        ?.map(({ grau, nome, percentual }) => ({ grau, nome, percentual }));
       return {
         ...rest,
         bonus_produtividade_tabela_json: bonusJson?.length ? bonusJson : undefined,
