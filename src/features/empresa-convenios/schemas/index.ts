@@ -180,9 +180,6 @@ export const empresaConvenioBaseSchema = z.object({
   possui_seguro_acidente: z.boolean().default(false),
   tipo_cobertura_seguro: z.string().optional(),
   observacao_seguro: z.string().optional(),
-  observacao_juridica: z.string().optional(),
-  clausula_adicional: z.string().optional(),
-  descricao_complementar_objeto: z.string().optional(),
   responsaveis: z.array(responsavelRowSchema).max(2).default([
     {
       tipo: 'REPRESENTANTE_LEGAL',

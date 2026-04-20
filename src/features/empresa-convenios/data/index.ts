@@ -287,9 +287,6 @@ const responsaveis = (data.responsaveis ?? [])
     possui_seguro_acidente: data.possui_seguro_acidente,
     tipo_cobertura_seguro: data.tipo_cobertura_seguro?.trim() || undefined,
     observacao_seguro: data.observacao_seguro?.trim() || undefined,
-    observacao_juridica: data.observacao_juridica?.trim() || undefined,
-    clausula_adicional: data.clausula_adicional?.trim() || undefined,
-    descricao_complementar_objeto: data.descricao_complementar_objeto?.trim() || undefined,
     responsaveis: responsaveis.length > 0 ? responsaveis : undefined,
     distribuicao_profissoes: distribuicao_profissoes.length > 0 ? distribuicao_profissoes : undefined,
   };

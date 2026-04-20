@@ -557,18 +557,12 @@ function renderPreviewBody(data: ContratoPreviewDto) {
         <Stack spacing={2}>
           {(
             [
-              'observacao_juridica',
-              'clausula_adicional',
-              'descricao_complementar_objeto',
               'observacoes',
             ] as const
           ).flatMap((key) => {
             const v = data[key];
             if (typeof v !== 'string' || !v.trim()) return [];
             const labels = {
-              observacao_juridica: 'Observação jurídica',
-              clausula_adicional: 'Cláusula adicional',
-              descricao_complementar_objeto: 'Descrição complementar do objeto',
               observacoes: 'Observações gerais',
             } as const;
             return [

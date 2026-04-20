@@ -129,9 +129,6 @@ export const empresaConvenioToFormValues = (x: EmpresaConvenio): CreateEmpresaCo
     possui_seguro_acidente: x.possui_seguro_acidente ?? false,
     tipo_cobertura_seguro: x.tipo_cobertura_seguro ?? '',
     observacao_seguro: x.observacao_seguro ?? '',
-    observacao_juridica: x.observacao_juridica ?? '',
-    clausula_adicional: x.clausula_adicional ?? '',
-    descricao_complementar_objeto: x.descricao_complementar_objeto ?? '',
     responsaveis,
     distribuicao_profissoes:
       distribuicao_profissoes.length > 0

@@ -79,9 +79,6 @@ export type EmpresaConvenio = {
   possui_seguro_acidente: boolean;
   tipo_cobertura_seguro?: string | null;
   observacao_seguro?: string | null;
-  observacao_juridica?: string | null;
-  clausula_adicional?: string | null;
-  descricao_complementar_objeto?: string | null;
   responsaveis?: ConvenioResponsavel[];
   distribuicao_profissoes?: ConvenioDistribuicaoProfissao[];
 } & AuditableEntity;

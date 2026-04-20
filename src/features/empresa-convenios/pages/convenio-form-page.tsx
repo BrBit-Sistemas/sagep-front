@@ -107,9 +107,6 @@ const INITIAL_VALUES: CreateEmpresaConvenioFormValues = {
   possui_seguro_acidente: false,
   tipo_cobertura_seguro: '',
   observacao_seguro: '',
-  observacao_juridica: '',
-  clausula_adicional: '',
-  descricao_complementar_objeto: '',
   responsaveis: defaultResponsaveisForm(),
   distribuicao_profissoes: defaultDistribuicaoProfissoesForm(),
 };
@@ -129,9 +126,6 @@ const TAB_GERAL_FIELDS: (keyof CreateEmpresaConvenioFormValues)[] = [
   'escala',
   'horario_inicio',
   'horario_fim',
-  'observacao_juridica',
-  'clausula_adicional',
-  'descricao_complementar_objeto',
 
 ];
 
@@ -778,28 +772,6 @@ useEffect(() => {
             </Grid>
             <Grid size={{ md: 12, sm: 12 }}>
               <Field.Text name="observacoes" label="Observações gerais" multiline rows={2} />
-            </Grid>
-            <Grid size={{ md: 12, sm: 12 }}>
-              <Divider sx={{ mt: 4, mb: 4, width: '100%' }} />
-              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                Textos complementares (contrato / PDF futuro)
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid size={{ md: 12, sm: 12 }}>
-                  <Field.Text name="observacao_juridica" label="Observação jurídica" multiline rows={2} />
-                </Grid>
-                <Grid size={{ md: 12, sm: 12 }}>
-                  <Field.Text name="clausula_adicional" label="Cláusula adicional" multiline rows={2} />
-                </Grid>
-                <Grid size={{ md: 12, sm: 12 }}>
-                  <Field.Text
-                    name="descricao_complementar_objeto"
-                    label="Descrição complementar do objeto"
-                    multiline rows={2}
-                  />
-                </Grid>
-
-              </Grid>
             </Grid>
           </Grid>
           {saveFooter}
