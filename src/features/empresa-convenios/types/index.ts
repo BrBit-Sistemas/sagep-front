@@ -67,8 +67,6 @@ export type EmpresaConvenio = {
   permite_bonus_produtividade: boolean;
   bonus_produtividade_descricao?: string | null;
   bonus_produtividade_tabela_json?: Record<string, unknown>[] | null;
-  percentual_gestao?: number | null;
-  percentual_contrapartida?: number | null;
   observacoes?: string;
   locais_execucao?: EmpresaConvenioLocal[];
   template_contrato_id: string;
@@ -84,7 +82,6 @@ export type EmpresaConvenio = {
   observacao_juridica?: string | null;
   clausula_adicional?: string | null;
   descricao_complementar_objeto?: string | null;
-  observacao_operacional?: string | null;
   responsaveis?: ConvenioResponsavel[];
   distribuicao_profissoes?: ConvenioDistribuicaoProfissao[];
 } & AuditableEntity;

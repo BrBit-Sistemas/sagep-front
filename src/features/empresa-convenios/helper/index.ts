@@ -105,8 +105,6 @@ export const empresaConvenioToFormValues = (x: EmpresaConvenio): CreateEmpresaCo
     permite_bonus_produtividade: x.permite_bonus_produtividade ?? false,
     bonus_produtividade_descricao: x.bonus_produtividade_descricao ?? '',
     bonus_produtividade_linhas: bonusLinhas,
-    percentual_gestao: x.percentual_gestao ?? undefined,
-    percentual_contrapartida: x.percentual_contrapartida ?? undefined,
     locais_execucao: (x.locais_execucao ?? []).map((local) => ({
       local_id: local.local_id,
       logradouro: local.logradouro,
@@ -134,7 +132,6 @@ export const empresaConvenioToFormValues = (x: EmpresaConvenio): CreateEmpresaCo
     observacao_juridica: x.observacao_juridica ?? '',
     clausula_adicional: x.clausula_adicional ?? '',
     descricao_complementar_objeto: x.descricao_complementar_objeto ?? '',
-    observacao_operacional: x.observacao_operacional ?? '',
     responsaveis,
     distribuicao_profissoes:
       distribuicao_profissoes.length > 0

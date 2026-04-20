@@ -93,8 +93,6 @@ const INITIAL_VALUES: CreateEmpresaConvenioFormValues = {
   permite_bonus_produtividade: false,
   bonus_produtividade_descricao: '',
   bonus_produtividade_linhas: GRAUS_DESEMPENHO.map((g) => ({ ...g, nivel_i: null, nivel_ii: null, nivel_iii: null })),
-  percentual_gestao: undefined,
-  percentual_contrapartida: undefined,
   locais_execucao: [],
   data_inicio: formatDateToYYYYMMDD(new Date()),
   data_fim: null,
@@ -112,7 +110,6 @@ const INITIAL_VALUES: CreateEmpresaConvenioFormValues = {
   observacao_juridica: '',
   clausula_adicional: '',
   descricao_complementar_objeto: '',
-  observacao_operacional: '',
   responsaveis: defaultResponsaveisForm(),
   distribuicao_profissoes: defaultDistribuicaoProfissoesForm(),
 };
@@ -135,7 +132,7 @@ const TAB_GERAL_FIELDS: (keyof CreateEmpresaConvenioFormValues)[] = [
   'observacao_juridica',
   'clausula_adicional',
   'descricao_complementar_objeto',
-  'observacao_operacional',
+
 ];
 
 const TAB_REMUNERACAO_FIELDS: (keyof CreateEmpresaConvenioFormValues)[] = [
@@ -153,8 +150,6 @@ const TAB_REMUNERACAO_FIELDS: (keyof CreateEmpresaConvenioFormValues)[] = [
   'permite_bonus_produtividade',
   'bonus_produtividade_descricao',
   'bonus_produtividade_linhas',
-  'percentual_gestao',
-  'percentual_contrapartida',
   'possui_seguro_acidente',
   'tipo_cobertura_seguro',
   'observacao_seguro',
@@ -455,6 +450,10 @@ export default function EmpresaConvenioFormPage() {
   const possuiSeguroWatch = useWatch({
     control: methods.control,
     name: 'possui_seguro_acidente',
+  });
+  const beneficioVariavelWatch = useWatch({
+    control: methods.control,
+    name: 'beneficio_variavel_por_dia',
   });
   const templateCodigo = templates?.find((t) => t.template_contrato_id === templateIdWatch)?.codigo;
   const isTemplateGdf = templateCodigo === 'PADRAO_ORGAO_PUBLICO_GDF';
@@ -799,9 +798,7 @@ useEffect(() => {
                     multiline rows={2}
                   />
                 </Grid>
-                <Grid size={{ md: 12, sm: 12 }}>
-                  <Field.Text name="observacao_operacional" label="Observação operacional" multiline rows={2} />
-                </Grid>
+
               </Grid>
             </Grid>
           </Grid>
@@ -882,6 +879,11 @@ useEffect(() => {
               <Field.Switch
                 name="beneficio_variavel_por_dia"
                 label="Benefício variável conforme dias trabalhados"
+                helperText={
+                  beneficioVariavelWatch
+                    ? 'Valor proporcional aos dias efetivamente trabalhados no mês'
+                    : 'Valor fixo mensal, independente dos dias trabalhados'
+                }
               />
             </Grid>
             <Grid size={{ md: 12, sm: 12 }}>
@@ -916,22 +918,7 @@ useEffect(() => {
                 </Grid>
               </>
             ) : null}
-            <Grid size={{ md: 3, sm: 6 }}>
-              <Field.Text
-                name="percentual_gestao"
-                label="% gestão operacional"
-                type="number"
-                slotProps={{ htmlInput: { min: 0, max: 100, step: 0.01 } }}
-              />
-            </Grid>
-            <Grid size={{ md: 3, sm: 6 }}>
-              <Field.Text
-                name="percentual_contrapartida"
-                label="% contrapartida"
-                type="number"
-                slotProps={{ htmlInput: { min: 0, max: 100, step: 0.01 } }}
-              />
-            </Grid>
+
             <Grid size={{ md: 12, sm: 12 }}>
               <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
                 Seguro / acidentes pessoais

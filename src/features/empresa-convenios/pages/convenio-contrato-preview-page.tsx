@@ -338,18 +338,6 @@ function renderPreviewBody(data: ContratoPreviewDto) {
             Nenhuma profissão informada na distribuição.
           </Typography>
         )}
-        {data.observacao_operacional ? (
-          <Box sx={{ mt: 2 }}>
-            <PreviewField
-              label="Observação operacional"
-              value={
-                <Typography component="span" variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                  {data.observacao_operacional}
-                </Typography>
-              }
-            />
-          </Box>
-        ) : null}
       </PreviewSection>
 
       {isIntramuros || hasJornadaPreenchida(data) ? (
@@ -516,8 +504,6 @@ function renderPreviewBody(data: ContratoPreviewDto) {
               label="Bônus produtividade"
               value={data.permite_bonus_produtividade ? 'Sim' : 'Não'}
             />
-            <PreviewField label="% Gestão" value={data.percentual_gestao ?? '—'} />
-            <PreviewField label="% Contrapartida" value={data.percentual_contrapartida ?? '—'} />
           </Stack>
           {data.bonus_produtividade_descricao ? (
             <PreviewField
@@ -574,7 +560,6 @@ function renderPreviewBody(data: ContratoPreviewDto) {
               'observacao_juridica',
               'clausula_adicional',
               'descricao_complementar_objeto',
-              'observacao_operacional',
               'observacoes',
             ] as const
           ).flatMap((key) => {
@@ -584,7 +569,6 @@ function renderPreviewBody(data: ContratoPreviewDto) {
               observacao_juridica: 'Observação jurídica',
               clausula_adicional: 'Cláusula adicional',
               descricao_complementar_objeto: 'Descrição complementar do objeto',
-              observacao_operacional: 'Observação operacional',
               observacoes: 'Observações gerais',
             } as const;
             return [

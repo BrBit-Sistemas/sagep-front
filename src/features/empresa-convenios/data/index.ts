@@ -155,8 +155,6 @@ const fromApi = (dto: ReadEmpresaConvenioDto): EmpresaConvenio => ({
   max_reeducandos: dto.max_reeducandos ?? null,
   permite_variacao_quantidade: dto.permite_variacao_quantidade ?? true,
   permite_bonus_produtividade: dto.permite_bonus_produtividade ?? false,
-  percentual_gestao: dto.percentual_gestao ?? null,
-  percentual_contrapartida: dto.percentual_contrapartida ?? null,
   data_fim: dto.data_fim ?? null,
   data_repactuacao: dto.data_repactuacao ?? null,
   possui_seguro_acidente: dto.possui_seguro_acidente ?? false,
@@ -258,8 +256,6 @@ const responsaveis = (data.responsaveis ?? [])
     permite_bonus_produtividade: data.permite_bonus_produtividade,
     bonus_produtividade_descricao: data.bonus_produtividade_descricao?.trim() || undefined,
     bonus_produtividade_tabela_json: bonusJson,
-    percentual_gestao: data.percentual_gestao ?? undefined,
-    percentual_contrapartida: data.percentual_contrapartida ?? undefined,
     observacoes: data.observacoes?.trim() || undefined,
     locais_execucao: data.locais_execucao?.map((local) => {
       const estadoNorm = String(local.estado ?? '')
@@ -294,7 +290,6 @@ const responsaveis = (data.responsaveis ?? [])
     observacao_juridica: data.observacao_juridica?.trim() || undefined,
     clausula_adicional: data.clausula_adicional?.trim() || undefined,
     descricao_complementar_objeto: data.descricao_complementar_objeto?.trim() || undefined,
-    observacao_operacional: data.observacao_operacional?.trim() || undefined,
     responsaveis: responsaveis.length > 0 ? responsaveis : undefined,
     distribuicao_profissoes: distribuicao_profissoes.length > 0 ? distribuicao_profissoes : undefined,
   };

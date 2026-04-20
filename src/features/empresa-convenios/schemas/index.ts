@@ -166,8 +166,6 @@ export const empresaConvenioBaseSchema = z.object({
   permite_bonus_produtividade: z.boolean().default(false),
   bonus_produtividade_descricao: z.string().optional(),
   bonus_produtividade_linhas: z.array(grauLinhaSchema).optional(),
-  percentual_gestao: optionalPercent,
-  percentual_contrapartida: optionalPercent,
   data_inicio: z.string().min(1, 'Data de início é obrigatória'),
   data_fim: z.string().optional().nullable(),
   data_repactuacao: z.string().optional().nullable(),
@@ -185,7 +183,6 @@ export const empresaConvenioBaseSchema = z.object({
   observacao_juridica: z.string().optional(),
   clausula_adicional: z.string().optional(),
   descricao_complementar_objeto: z.string().optional(),
-  observacao_operacional: z.string().optional(),
   responsaveis: z.array(responsavelRowSchema).max(2).default([
     {
       tipo: 'REPRESENTANTE_LEGAL',
