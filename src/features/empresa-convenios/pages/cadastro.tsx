@@ -129,7 +129,7 @@ export default function EmpresaConvenioCadastroPage() {
           gridTemplateColumns: {
             xs: 'repeat(1, 1fr)',
             sm: 'repeat(2, 1fr)',
-            md: 'repeat(4, 1fr)',
+            md: 'repeat(5, 1fr)',
           },
         }}
       >
@@ -151,6 +151,20 @@ export default function EmpresaConvenioCadastroPage() {
           active={searchParams.status === 'ativo'}
           onClick={() =>
             setSearchParams({ status: searchParams.status === 'ativo' ? '' : 'ativo', page: 1 })
+          }
+        />
+        <MetricCard
+          label="Encerrados"
+          value={metrics?.encerrados}
+          icon="solar:close-circle-bold"
+          tone="error"
+          loading={metricsLoading}
+          active={searchParams.status === 'encerrado'}
+          onClick={() =>
+            setSearchParams({
+              status: searchParams.status === 'encerrado' ? '' : 'encerrado',
+              page: 1,
+            })
           }
         />
         <MetricCard
