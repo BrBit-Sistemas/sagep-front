@@ -131,7 +131,7 @@ export const GRAUS_DESEMPENHO = [
 const grauLinhaSchema = z.object({
   grau: z.string(),
   nome: z.string(),
-  percentual: z.coerce.number().min(10).max(40),
+  percentual: z.coerce.number().min(0, 'Mínimo 0%').max(100, 'Máximo 100%'),
   nivel_i: z.coerce.number().nullable().optional(),
   nivel_ii: z.coerce.number().nullable().optional(),
   nivel_iii: z.coerce.number().nullable().optional(),

@@ -202,7 +202,7 @@ const BonusProdutividadeTable = () => {
                     name={`bonus_produtividade_linhas.${idx}.percentual`}
                     size="small"
                     type="number"
-                    slotProps={{ htmlInput: { min: 10, max: 40 } }}
+                    slotProps={{ htmlInput: { min: 0, max: 100 } }}
                   />
                 </TableCell>
                 <TableCell sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>

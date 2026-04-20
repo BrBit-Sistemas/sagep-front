@@ -75,7 +75,7 @@ export const empresaConvenioToFormValues = (x: EmpresaConvenio): CreateEmpresaCo
     return {
       grau: g.grau,
       nome: g.nome,
-      percentual: g.percentual,
+      percentual: found?.percentual != null ? Number(found.percentual) : g.percentual,
       nivel_i: found?.nivel_i != null ? Number(found.nivel_i) : null,
       nivel_ii: found?.nivel_ii != null ? Number(found.nivel_ii) : null,
       nivel_iii: found?.nivel_iii != null ? Number(found.nivel_iii) : null,
