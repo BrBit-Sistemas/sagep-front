@@ -3,7 +3,7 @@ import type { StatusValidacaoFicha } from '../types';
 
 import { useMemo, useState, useCallback } from 'react';
 
-import { Box, Card, Stack, Button, MenuItem, TextField } from '@mui/material';
+import { Box, Card, Alert, Stack, Button, MenuItem, TextField } from '@mui/material';
 
 import { paths } from 'src/routes/paths';
 
@@ -30,6 +30,7 @@ const STATUS_OPTIONS: { value: StatusValidacaoFicha | ''; label: string }[] = [
 
 export default function FichasCadastraisListPage() {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [cpfInput, setCpfInput] = useState('');
   const [searchParams, setSearchParams] = useFichasCadastraisSearchParams();
 
   const { data, isLoading } = useFichasCadastraisList(searchParams);
@@ -121,6 +122,11 @@ export default function FichasCadastraisListPage() {
         sx={{ mb: { xs: 2, md: 3 } }}
       />
 
+      <Alert severity="info" sx={{ mb: 3 }}>
+        Esta tela lista e gerencia apenas fichas cadastrais ativas. Para visualizar o histórico de
+        fichas de um reeducando, acesse os detalhes do reeducando.
+      </Alert>
+
       {/* ---------- KPI cards ---------- */}
       <Box
         sx={{
@@ -205,8 +211,13 @@ export default function FichasCadastraisListPage() {
             size="small"
             label="CPF"
             placeholder="somente dígitos"
-            value={searchParams.cpf}
-            onChange={(e) => setSearchParams({ cpf: e.target.value, page: 1 })}
+            value={cpfInput}
+            onChange={(e) => {
+              const digits = e.target.value.replace(/\D/g, '');
+              setCpfInput(digits);
+              setSearchParams({ cpf: digits.length >= 3 ? digits : '', page: 1 });
+            }}
+            inputProps={{ maxLength: 11, inputMode: 'numeric' }}
             sx={{ minWidth: 180 }}
           />
         </Stack>
