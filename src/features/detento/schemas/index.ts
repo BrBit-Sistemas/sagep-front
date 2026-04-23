@@ -106,10 +106,7 @@ export const createDetentoFichaCadastralBaseSchema = z.object({
   // Experiência e qualificação
   experiencia_profissional: z.string().optional(),
   fez_curso_sistema_prisional: z.string().optional(),
-  disponibilidade_trabalho: z
-    .enum(['MANHÃ', 'TARDE', 'MANHÃ e TARDE', 'SOMENTE NOITE'])
-    .optional()
-    .or(z.literal('')),
+  disponibilidade_trabalho: z.string().min(1, 'Disponibilidade de trabalho é obrigatória'),
   ja_trabalhou_funap: z.boolean().default(false),
   ano_trabalho_anterior: z
     .string()
