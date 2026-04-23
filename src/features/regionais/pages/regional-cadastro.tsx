@@ -127,10 +127,10 @@ export default function RegionalCadastroPage() {
       >
         <MetricCard
           label="Total de regionais"
-          value={metrics?.total}
+          value={data?.total}
           icon="solar:list-bold"
           tone="neutral"
-          loading={metricsLoading}
+          loading={isLoading}
         />
         <MetricCard
           label="Unidades vinculadas"
