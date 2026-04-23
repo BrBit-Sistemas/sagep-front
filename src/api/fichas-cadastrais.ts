@@ -128,6 +128,13 @@ export interface PaginateFichasCadastraisParams {
   cpf?: string;
 }
 
+export type ValidateCpfStatus = 'can_create' | 'has_active_fc' | 'no_detento';
+
+export interface ValidateCpfDto {
+  status: ValidateCpfStatus;
+  detento_id?: string;
+}
+
 export interface RequererCorrecaoBody {
   motivo?: string;
 }
@@ -312,6 +319,13 @@ export const getFichasCadastrais = () => {
       options
     );
 
+  /** Verifica se CPF pode criar FC: 'can_create' | 'has_active_fc' | 'no_detento'. */
+  const validateCpf = (cpf: string, options?: SecondParameter<typeof customInstance>) =>
+    customInstance<ValidateCpfDto>(
+      { url: `/fichas-cadastrais/validate-cpf`, method: 'GET', params: { cpf } },
+      options
+    );
+
   return {
     create,
     update,
@@ -326,6 +340,7 @@ export const getFichasCadastrais = () => {
     requererCorrecao,
     aprovar,
     filaDisponivel,
+    validateCpf,
   };
 };
 

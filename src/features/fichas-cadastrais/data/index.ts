@@ -6,6 +6,7 @@ import type {
 
 import {
   getFichasCadastrais,
+  type ValidateCpfDto,
   type StatusValidacaoFicha,
   type ReadFichaCadastralDto,
   type PaginateFichasCadastraisParams,
@@ -64,5 +65,10 @@ export const fichasCadastraisService = {
   metrics: async (): Promise<FichasCadastraisMetrics> => {
     const api = getFichasCadastrais();
     return api.indicadoresValidacao();
+  },
+
+  validateCpf: async (cpf: string): Promise<ValidateCpfDto> => {
+    const api = getFichasCadastrais();
+    return api.validateCpf(cpf);
   },
 };
