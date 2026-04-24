@@ -2,17 +2,23 @@ import { useState } from 'react';
 
 import {
   Box,
+  Alert,
+  Stack,
   Button,
   Dialog,
   TextField,
   Typography,
   DialogTitle,
+  Autocomplete,
   DialogActions,
   DialogContent,
 } from '@mui/material';
 
+import { Iconify } from 'src/components/iconify';
+
 import { useValidacaoStore } from '../stores/validacao-store';
 import { useRequererCorrecao } from '../hooks/use-requerer-correcao';
+import { MOTIVOS_REPROVACAO } from '../constants/motivos-reprovacao';
 
 type Props = {
   fichaId: string;
@@ -23,32 +29,43 @@ export const RequererCorrecaoDialog = ({ fichaId, detentoNome }: Props) => {
   const { isReprovarOpen, closeReprovar, closeDetails } = useValidacaoStore();
   const { mutateAsync, isPending } = useRequererCorrecao();
 
-  const [motivo, setMotivo] = useState('');
+  const [motivo, setMotivo] = useState<string | null>(null);
+  const [observacao, setObservacao] = useState('');
   const [touched, setTouched] = useState(false);
 
-  const error = touched && motivo.trim().length < 3;
+  const motivoText = motivo?.trim() ?? '';
+  const observacaoText = observacao.trim();
+  const motivoCompleto = observacaoText ? `${motivoText} - ${observacaoText}` : motivoText;
+  const error = touched && motivoText.length < 3;
 
   const handleConfirm = async () => {
-    if (motivo.trim().length < 3) {
+    if (motivoText.length < 3) {
       setTouched(true);
       return;
     }
-    await mutateAsync({ fichaId, motivo: motivo.trim() });
-    setMotivo('');
+    await mutateAsync({ fichaId, motivo: motivoCompleto });
+    setMotivo(null);
+    setObservacao('');
     setTouched(false);
     closeReprovar();
     closeDetails();
   };
 
   const handleClose = () => {
-    setMotivo('');
+    setMotivo(null);
+    setObservacao('');
     setTouched(false);
     closeReprovar();
   };
 
   return (
     <Dialog open={isReprovarOpen} onClose={handleClose} fullWidth maxWidth="sm">
-      <DialogTitle>Requerer correção</DialogTitle>
+      <DialogTitle>
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <Iconify icon="solar:close-circle-bold" width={24} />
+          <span>Reprovar ficha cadastral</span>
+        </Stack>
+      </DialogTitle>
       <DialogContent>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           Reeducando:{' '}
@@ -56,33 +73,60 @@ export const RequererCorrecaoDialog = ({ fichaId, detentoNome }: Props) => {
             {detentoNome}
           </Box>
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          A ficha volta para <b>REQUER_CORRECAO</b>. O motivo fica registrado no histórico.
-        </Typography>
-        <TextField
-          autoFocus
-          fullWidth
-          multiline
-          minRows={3}
-          label="Motivo da correção"
-          placeholder="Ex.: documentação incompleta; artigo vedado para trabalho externo."
-          value={motivo}
-          onChange={(e) => setMotivo(e.target.value)}
-          onBlur={() => setTouched(true)}
-          error={error}
-          helperText={
-            error
-              ? 'Motivo é obrigatório (mín. 3 caracteres).'
-              : 'Visível na listagem e no detalhe da ficha.'
-          }
-        />
+
+        <Alert
+          severity="warning"
+          variant="outlined"
+          sx={{ mb: 2 }}
+          icon={<Iconify icon="solar:danger-triangle-bold" />}
+        >
+          A decisão registra o motivo na ficha e retira a ficha do fluxo de validação aprovado.
+        </Alert>
+
+        <Stack spacing={2}>
+          <Autocomplete
+            autoHighlight
+            options={[...MOTIVOS_REPROVACAO]}
+            value={motivo}
+            onChange={(_, value) => {
+              setMotivo(value);
+              setTouched(true);
+            }}
+            onBlur={() => setTouched(true)}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                autoFocus
+                label="Motivo da reprovação"
+                placeholder="Selecione um motivo"
+                error={error}
+                helperText={
+                  error
+                    ? 'Selecione um motivo para reprovar a ficha.'
+                    : 'Use a lista padronizada para manter o histórico consistente.'
+                }
+              />
+            )}
+          />
+
+          <TextField
+            fullWidth
+            multiline
+            minRows={3}
+            label="Observação complementar"
+            placeholder="Detalhe a pendência quando precisar, por exemplo número do documento ou contexto da consulta."
+            value={observacao}
+            onChange={(e) => setObservacao(e.target.value)}
+            helperText="Opcional. Será salvo junto ao motivo selecionado."
+          />
+        </Stack>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} variant="outlined" disabled={isPending}>
           Cancelar
         </Button>
         <Button onClick={handleConfirm} variant="contained" color="error" loading={isPending}>
-          Requerer correção
+          Reprovar ficha
         </Button>
       </DialogActions>
     </Dialog>

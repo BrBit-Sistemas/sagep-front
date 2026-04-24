@@ -4,7 +4,7 @@ import type { FichaCadastralValidacao } from '../types';
 
 import { useMemo, useCallback } from 'react';
 
-import { Box, Tooltip, Typography } from '@mui/material';
+import { Box, Chip, Tooltip, Typography } from '@mui/material';
 
 import { formatDateToDDMMYYYY } from 'src/utils/format-date';
 
@@ -102,17 +102,27 @@ export const useValidacoesListTable = () => {
         renderCell: ({ row }) =>
           row.motivo_reprovacao ? (
             <Tooltip title={row.motivo_reprovacao} placement="top-start">
-              <Typography
-                variant="body2"
+              <Chip
+                size="small"
+                icon={<Iconify icon="solar:danger-triangle-bold" />}
+                label={row.motivo_reprovacao}
                 sx={{
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  color: 'error.main',
+                  maxWidth: '100%',
+                  color: 'error.dark',
+                  fontWeight: 700,
+                  bgcolor: 'rgba(255, 86, 48, 0.12)',
+                  border: '1px solid rgba(255, 86, 48, 0.42)',
+                  boxShadow: '0 0 0 1px rgba(255, 86, 48, 0.06), 0 0 12px rgba(255, 86, 48, 0.22)',
+                  '& .MuiChip-icon': {
+                    color: 'error.main',
+                  },
+                  '& .MuiChip-label': {
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  },
                 }}
-              >
-                {row.motivo_reprovacao}
-              </Typography>
+              />
             </Tooltip>
           ) : (
             <Typography variant="body2" color="text.disabled">

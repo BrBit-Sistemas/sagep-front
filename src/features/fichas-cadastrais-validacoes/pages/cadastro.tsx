@@ -3,7 +3,7 @@ import type { StatusValidacaoFicha } from '../types';
 
 import { useMemo, useState, useCallback } from 'react';
 
-import { Box, Card, Stack, MenuItem, TextField } from '@mui/material';
+import { Box, Card, Stack, MenuItem, TextField, Autocomplete } from '@mui/material';
 
 import { paths } from 'src/routes/paths';
 
@@ -14,6 +14,7 @@ import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import CustomDataGrid from 'src/components/custom-data-grid/custom-data-grid';
 
 import { useValidacoesList } from '../hooks/use-validacoes-list';
+import { MOTIVOS_REPROVACAO } from '../constants/motivos-reprovacao';
 import { useValidacoesMetrics } from '../hooks/use-validacoes-metrics';
 import { useValidacoesListTable } from '../hooks/use-validacoes-list-table';
 import { ValidacaoDetailsDialog } from '../components/validacao-details-dialog';
@@ -191,12 +192,16 @@ export default function FichaCadastralValidacoesPage() {
               </MenuItem>
             ))}
           </TextField>
-          <TextField
+          <Autocomplete
             size="small"
-            label="Motivo da reprovação"
-            placeholder="ex.: artigo vedado"
-            value={searchParams.motivo_reprovacao}
-            onChange={(e) => setSearchParams({ motivo_reprovacao: e.target.value, page: 1 })}
+            options={[...MOTIVOS_REPROVACAO]}
+            value={searchParams.motivo_reprovacao || null}
+            onChange={(_, value) =>
+              setSearchParams({ motivo_reprovacao: value ?? '', page: 1 })
+            }
+            renderInput={(params) => (
+              <TextField {...params} label="Motivo da reprovação" placeholder="Todos" />
+            )}
             sx={{ flex: 1, maxWidth: { md: 360 } }}
           />
           <TextField
