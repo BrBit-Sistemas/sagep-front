@@ -1,7 +1,7 @@
 import type { GridSortModel, GridFilterModel, GridPaginationModel } from '@mui/x-data-grid/models';
 import type { StatusValidacaoFicha } from '../types';
 
-import { useMemo, useCallback } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 
 import { Box, Card, Stack, MenuItem, TextField } from '@mui/material';
 
@@ -28,6 +28,7 @@ const STATUS_OPTIONS: { value: StatusValidacaoFicha | ''; label: string }[] = [
 ];
 
 export default function FichaCadastralValidacoesPage() {
+  const [cpfInput, setCpfInput] = useState('');
   const [searchParams, setSearchParams] = useValidacoesSearchParams();
 
   const { data, isLoading } = useValidacoesList(searchParams);
@@ -202,8 +203,13 @@ export default function FichaCadastralValidacoesPage() {
             size="small"
             label="CPF"
             placeholder="somente dígitos"
-            value={searchParams.cpf}
-            onChange={(e) => setSearchParams({ cpf: e.target.value, page: 1 })}
+            value={cpfInput}
+            onChange={(e) => {
+              const digits = e.target.value.replace(/\D/g, '');
+              setCpfInput(digits);
+              setSearchParams({ cpf: digits.length >= 3 ? digits : '', page: 1 });
+            }}
+            inputProps={{ maxLength: 11, inputMode: 'numeric' }}
             sx={{ minWidth: 180 }}
           />
         </Stack>
