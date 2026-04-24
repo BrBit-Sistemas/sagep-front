@@ -158,7 +158,7 @@ export const EmpresaFormDialog = ({
             data-testid="empresa-form-submit"
             type="submit"
             variant="contained"
-            color="primary"
+            color={isEditing ? 'primary' : 'warning'}
             loading={isLoading}
             disabled={isLoading}
           >
