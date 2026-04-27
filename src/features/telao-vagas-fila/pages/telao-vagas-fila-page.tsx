@@ -40,6 +40,14 @@ function formatTelaoDate(value: string): string {
   return Number.isNaN(d.getTime()) ? value : d.toLocaleDateString('pt-BR');
 }
 
+function formatTempoFila(tempo: { dias: number; horas: number; minutos: number }, compact = false): string {
+  const { dias, horas, minutos } = tempo;
+  if (compact) return `${dias}d ${horas}h`;
+  const parts: string[] = [`${dias} ${dias === 1 ? 'dia' : 'dias'}`, `${horas}h`];
+  if (minutos > 0) parts.push(`${minutos}min`);
+  return parts.join(' ');
+}
+
 function getFilaStatusPresentation(row: FilaItemTelao): {
   color: 'success' | 'error' | 'warning' | 'default';
   icon: ReactElement;
@@ -586,7 +594,7 @@ export default function TelaoVagasFilaPage() {
                             style={{ opacity: 0.5, flexShrink: 0 }}
                           />
                           <Typography variant="caption" color="text.secondary" sx={{ fontSize: 11 }}>
-                            {row.dias_na_fila}d
+                            {formatTempoFila(row.dias_na_fila, true)}
                           </Typography>
                         </Stack>
                         <Stack direction="row" alignItems="center" gap={0.5} sx={{ mt: 0.5 }}>
@@ -742,7 +750,7 @@ export default function TelaoVagasFilaPage() {
                       },
                       {
                         k: 'Tempo na fila',
-                        v: `${data.selecionado.dias_na_fila} dias`,
+                        v: formatTempoFila(data.selecionado.dias_na_fila),
                         icon: 'solar:clock-circle-bold',
                       },
                       {
