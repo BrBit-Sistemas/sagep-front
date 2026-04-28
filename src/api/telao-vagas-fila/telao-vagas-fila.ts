@@ -44,6 +44,7 @@ export type ReeducandoDetalheTelao = {
 export type VagaTelao = {
   convenio_vaga_id: string;
   convenio_id: string;
+  convenio_data_inicio: string;
   empresa_id: string;
   empresa_nome: string;
   profissao_id: string;
@@ -119,6 +120,7 @@ export const getTelaoVagasFila = () => {
       detento_id: string;
       convenio_vaga_id?: string;
       justificativa: string;
+      posicao_destino?: number;
     }>,
     options?: Parameters<typeof customInstance>[1]
   ) =>

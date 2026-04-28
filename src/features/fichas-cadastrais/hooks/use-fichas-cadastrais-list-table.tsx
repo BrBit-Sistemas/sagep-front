@@ -20,7 +20,7 @@ import { fichasCadastraisPermissions } from '../constants/permissions';
 const MONTHS = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
 
 function formatCreatedAt(value: string): string {
-  const d = new Date(value);
+  const d = new Date(value.includes('T') ? value : `${value}T00:00:00`);
   if (Number.isNaN(d.getTime())) return '—';
   const day = String(d.getDate()).padStart(2, '0');
   const hh = String(d.getHours()).padStart(2, '0');
