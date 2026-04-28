@@ -26,6 +26,18 @@ export function formatPhoneBrMobileFromStorage(raw: string | null | undefined): 
   return format(digits, { mask, replacement });
 }
 
+export function formatCnpjFromStorage(raw: string | null | undefined): string {
+  if (raw == null || raw === '') {
+    return '';
+  }
+  const digits = String(raw).replace(/\D/g, '').slice(0, 14);
+  if (digits.length === 0) {
+    return '';
+  }
+  const { mask, replacement } = INPUT_MASK_PRESETS.cnpj;
+  return format(digits, { mask, replacement });
+}
+
 export function formatDocumentoBrFromStorage(raw: string | null | undefined): string {
   if (raw == null || raw === '') {
     return '';

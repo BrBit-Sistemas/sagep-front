@@ -3,6 +3,8 @@ import type { CodigoTemplateContrato } from 'src/api/empresa-convenios/convenio-
 
 import { z } from 'zod';
 
+import { schemaHelper } from 'src/components/hook-form';
+
 export const modalidadesExecucao: ModalidadeExecucao[] = ['INTRAMUROS', 'EXTRAMUROS'];
 
 function isHorarioHmValid(s: string): boolean {
@@ -96,12 +98,7 @@ const responsavelRowSchema = z.object({
   nome: z.string().optional(),
   cargo: z.string().optional(),
   documento: z.string().optional(),
-  email: z
-    .string()
-    .optional()
-    .refine((v) => !v || v === '' || z.string().email().safeParse(v).success, {
-      message: 'E-mail inválido',
-    }),
+  email: schemaHelper.email(),
   telefone: z.string().optional(),
 });
 
@@ -397,13 +394,6 @@ export const buildEmpresaConvenioSchema = (templates: ReadTemplateContratoLike[]
       }
       (data.responsaveis ?? []).forEach((r, idx) => {
         if (!r.nome?.trim()) return;
-        if (r.email && r.email !== '' && !z.string().email().safeParse(r.email).success) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'E-mail inválido',
-            path: ['responsaveis', idx, 'email'],
-          });
-        }
       });
     });
 

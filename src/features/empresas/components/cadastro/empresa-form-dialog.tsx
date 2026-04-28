@@ -99,13 +99,7 @@ export const EmpresaFormDialog = ({
               <Field.Text required name="razao_social" label="Razão Social" />
             </Grid>
             <Grid size={{ md: 12, sm: 12 }}>
-              <Field.Text
-                required
-                name="cnpj"
-                label="CNPJ"
-                placeholder="12345678000199"
-                inputProps={{ maxLength: 14 }}
-              />
+              <Field.Cnpj required name="cnpj" label="CNPJ" />
             </Grid>
             <Grid size={{ md: 12, sm: 12 }}>
               <Field.Text name="inscricao_estadual" label="Inscrição Estadual" />
@@ -119,7 +113,7 @@ export const EmpresaFormDialog = ({
                 name="logradouro_numero"
                 label="Número"
                 inputProps={{
-                  inputMode: 'numeric',
+                  maxLength: 12,
                   onInput: (e: React.FormEvent<HTMLInputElement>) => {
                     e.currentTarget.value = e.currentTarget.value.replace(/[^0-9\-/]/g, '');
                   },
@@ -127,40 +121,13 @@ export const EmpresaFormDialog = ({
               />
             </Grid>
             <Grid size={{ md: 4, sm: 12 }}>
-              <Field.Text
-                required
-                name="cep"
-                label="CEP"
-                placeholder="70040-020"
-                inputProps={{
-                  maxLength: 9,
-                  inputMode: 'numeric',
-                  onInput: (e: React.FormEvent<HTMLInputElement>) => {
-                    const raw = e.currentTarget.value.replace(/\D/g, '').slice(0, 8);
-                    e.currentTarget.value =
-                      raw.length > 5 ? `${raw.slice(0, 5)}-${raw.slice(5)}` : raw;
-                  },
-                }}
-              />
+              <Field.Cep required name="cep" label="CEP" />
             </Grid>
             <Grid size={{ md: 6, sm: 12 }}>
               <Field.Text required name="cidade" label="Cidade" />
             </Grid>
             <Grid size={{ md: 2, sm: 12 }}>
-              <Field.Text
-                required
-                name="estado"
-                label="UF"
-                placeholder="DF"
-                inputProps={{
-                  maxLength: 2,
-                  onInput: (e: React.FormEvent<HTMLInputElement>) => {
-                    e.currentTarget.value = e.currentTarget.value
-                      .replace(/[^a-zA-Z]/g, '')
-                      .toUpperCase();
-                  },
-                }}
-              />
+              <Field.Uf required name="estado" label="UF" />
             </Grid>
           </Grid>
         </DialogContent>

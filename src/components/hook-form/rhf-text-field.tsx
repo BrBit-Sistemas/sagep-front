@@ -1,8 +1,9 @@
 import type { MaskOptions } from '@react-input/mask';
 import type { TextFieldProps } from '@mui/material/TextField';
+import type { FieldError, ControllerRenderProps } from 'react-hook-form';
 import type { InputMaskPresetId } from 'src/utils/input-masks';
 
-import { InputMask } from '@react-input/mask';
+import { useMask } from '@react-input/mask';
 import { Controller, useFormContext } from 'react-hook-form';
 import { transformValue, transformValueOnBlur, transformValueOnChange } from 'minimal-shared/utils';
 
@@ -10,17 +11,57 @@ import TextField from '@mui/material/TextField';
 
 import { getInputMaskPreset } from 'src/utils/input-masks';
 
-function MaskedInput(props: MaskOptions & Record<string, unknown>) {
-  const { mask, replacement, showMask, separate, track, modify, ...rest } = props;
+type MaskedFieldProps = {
+  field: ControllerRenderProps;
+  fieldError?: FieldError;
+  helperText?: React.ReactNode;
+  maskOptions: MaskOptions;
+  maskPreset?: InputMaskPresetId;
+  onChange?: TextFieldProps['onChange'];
+  onBlur?: TextFieldProps['onBlur'];
+  slotProps?: TextFieldProps['slotProps'];
+} & Omit<TextFieldProps, 'onChange' | 'onBlur' | 'slotProps' | 'name'>;
+
+function MaskedField({
+  field,
+  fieldError,
+  helperText,
+  maskOptions,
+  maskPreset,
+  onChange,
+  onBlur,
+  slotProps,
+  ...other
+}: MaskedFieldProps) {
+  const maskRef = useMask(maskOptions);
+  const displayValue = field.value === null || field.value === undefined ? '' : String(field.value);
   return (
-    <InputMask
-      mask={mask ?? ''}
-      replacement={replacement ?? {}}
-      {...(showMask != null ? { showMask } : {})}
-      {...(separate != null ? { separate } : {})}
-      {...(track != null ? { track } : {})}
-      {...(modify != null ? { modify } : {})}
-      {...rest}
+    <TextField
+      {...field}
+      inputRef={maskRef}
+      fullWidth
+      value={displayValue}
+      type="text"
+      error={!!fieldError}
+      helperText={fieldError?.message ?? helperText}
+      onChange={(e) => {
+        const value = maskPreset === 'uf' ? e.target.value.toUpperCase() : e.target.value;
+        field.onChange(value);
+        onChange?.(e);
+      }}
+      onBlur={(e) => {
+        field.onBlur();
+        onBlur?.(e);
+      }}
+      slotProps={{
+        ...slotProps,
+        htmlInput: {
+          ...slotProps?.htmlInput,
+          inputMode: maskPreset === 'uf' ? ('text' as const) : ('numeric' as const),
+          autoComplete: 'new-password',
+        },
+      }}
+      {...other}
     />
   );
 }
@@ -57,44 +98,24 @@ export function RHFTextField({
       control={control}
       render={({ field, fieldState: { error } }) => {
         if (effectiveMask) {
-          const displayValue =
-            field.value === null || field.value === undefined ? '' : String(field.value);
+          const maskOptions: MaskOptions = {
+            mask: effectiveMask,
+            replacement: effectiveReplacement ?? {},
+            ...(presetOptions?.showMask != null ? { showMask: presetOptions.showMask } : {}),
+            ...(presetOptions?.separate != null ? { separate: presetOptions.separate } : {}),
+            ...(presetOptions?.track != null ? { track: presetOptions.track } : {}),
+            ...(presetOptions?.modify != null ? { modify: presetOptions.modify } : {}),
+          };
           return (
-            <TextField
-              {...field}
-              fullWidth
-              value={displayValue}
-              type="text"
-              error={!!error}
-              helperText={error?.message ?? helperText}
-              onChange={(e) => {
-                field.onChange(e.target.value);
-                onChange?.(e);
-              }}
-              onBlur={(e) => {
-                field.onBlur();
-                onBlur?.(e);
-              }}
-              slotProps={{
-                ...slotProps,
-                htmlInput: {
-                  ...slotProps?.htmlInput,
-                  inputMode:
-                    maskPreset === 'uf' ? ('text' as const) : ('numeric' as const),
-                  autoComplete: 'new-password',
-                },
-              }}
-              InputProps={{
-                inputComponent: MaskedInput as any,
-                inputProps: {
-                  mask: effectiveMask,
-                  replacement: effectiveReplacement,
-                  ...(presetOptions?.showMask != null ? { showMask: presetOptions.showMask } : {}),
-                  ...(presetOptions?.separate != null ? { separate: presetOptions.separate } : {}),
-                  ...(presetOptions?.track != null ? { track: presetOptions.track } : {}),
-                  ...(presetOptions?.modify != null ? { modify: presetOptions.modify } : {}),
-                },
-              }}
+            <MaskedField
+              field={field}
+              fieldError={error}
+              helperText={helperText}
+              maskOptions={maskOptions}
+              maskPreset={maskPreset}
+              onChange={onChange}
+              onBlur={onBlur}
+              slotProps={slotProps}
               {...other}
             />
           );

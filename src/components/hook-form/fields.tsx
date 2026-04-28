@@ -1,6 +1,9 @@
 import { RHFRating } from './rhf-rating';
 import { RHFSlider } from './rhf-slider';
+import { RHFUfField } from './rhf-uf-field';
+import { RHFCepField } from './rhf-cep-field';
 import { RHFCpfField } from './rhf-cpf-field';
+import { RHFCnpjField } from './rhf-cnpj-field';
 import { RHFTextField } from './rhf-text-field';
 import { RHFRadioGroup } from './rhf-radio-group';
 import { RHFAutocomplete } from './rhf-autocomplete';
@@ -25,6 +28,9 @@ export const Field = {
   Autocomplete: RHFAutocomplete,
   MultiCheckbox: RHFMultiCheckbox,
   Cpf: RHFCpfField,
+  Cnpj: RHFCnpjField,
+  Cep: RHFCepField,
+  Uf: RHFUfField,
   Upload: RHFUpload,
   UploadAvatar: RHFUploadAvatar,
   // Pickers

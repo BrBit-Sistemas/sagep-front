@@ -12,6 +12,25 @@ type MessageMapProps = {
 
 export const schemaHelper = {
   /**
+   * Email
+   * Optional by default (empty allowed). Pass `required: true` to enforce presence.
+   */
+  email: (props?: { message?: MessageMapProps; required?: boolean }) => {
+    const invalidMsg = props?.message?.invalid_type ?? 'E-mail inválido';
+    if (props?.required) {
+      return zod
+        .string()
+        .min(1, { message: props?.message?.required ?? 'E-mail é obrigatório' })
+        .email({ message: invalidMsg });
+    }
+    return zod
+      .string()
+      .optional()
+      .refine((v) => !v || v === '' || zod.string().email().safeParse(v).success, {
+        message: invalidMsg,
+      });
+  },
+  /**
    * Phone number
    * Apply for phone number input.
    */
