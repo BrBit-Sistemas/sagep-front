@@ -118,7 +118,12 @@ export const EmpresaFormDialog = ({
                 required
                 name="logradouro_numero"
                 label="Número"
-                inputProps={{ inputMode: 'numeric' }}
+                inputProps={{
+                  inputMode: 'numeric',
+                  onInput: (e: React.FormEvent<HTMLInputElement>) => {
+                    e.currentTarget.value = e.currentTarget.value.replace(/[^0-9\-/]/g, '');
+                  },
+                }}
               />
             </Grid>
             <Grid size={{ md: 4, sm: 12 }}>
@@ -126,8 +131,16 @@ export const EmpresaFormDialog = ({
                 required
                 name="cep"
                 label="CEP"
-                placeholder="70040020"
-                inputProps={{ maxLength: 8, inputMode: 'numeric' }}
+                placeholder="70040-020"
+                inputProps={{
+                  maxLength: 9,
+                  inputMode: 'numeric',
+                  onInput: (e: React.FormEvent<HTMLInputElement>) => {
+                    const raw = e.currentTarget.value.replace(/\D/g, '').slice(0, 8);
+                    e.currentTarget.value =
+                      raw.length > 5 ? `${raw.slice(0, 5)}-${raw.slice(5)}` : raw;
+                  },
+                }}
               />
             </Grid>
             <Grid size={{ md: 6, sm: 12 }}>
@@ -139,7 +152,14 @@ export const EmpresaFormDialog = ({
                 name="estado"
                 label="UF"
                 placeholder="DF"
-                inputProps={{ maxLength: 2 }}
+                inputProps={{
+                  maxLength: 2,
+                  onInput: (e: React.FormEvent<HTMLInputElement>) => {
+                    e.currentTarget.value = e.currentTarget.value
+                      .replace(/[^a-zA-Z]/g, '')
+                      .toUpperCase();
+                  },
+                }}
               />
             </Grid>
           </Grid>
