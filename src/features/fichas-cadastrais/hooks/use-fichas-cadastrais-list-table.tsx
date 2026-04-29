@@ -17,6 +17,18 @@ import { usePermissionCheck } from 'src/auth/guard/permission-guard';
 
 import { fichasCadastraisPermissions } from '../constants/permissions';
 
+const MONTHS = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+
+function formatCreatedAt(value: string): string {
+  const d = new Date(value.includes('T') ? value : `${value}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return '—';
+  const day = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  const ss = String(d.getSeconds()).padStart(2, '0');
+  return `${day} ${MONTHS[d.getMonth()]} ${d.getFullYear()} ${hh}:${mm}:${ss}`;
+}
+
 export const useFichasCadastraisListTable = () => {
   const router = useRouter();
   const { isLoading, hasPermission } = usePermissionCheck();
@@ -25,15 +37,6 @@ export const useFichasCadastraisListTable = () => {
     (row: FichaCadastral) => {
       if (row.detento_id && row.id) {
         router.push(paths.carceragem.reeducandos.fichaCadastralEdit(row.detento_id, row.id));
-      }
-    },
-    [router]
-  );
-
-  const onAddNew = useCallback(
-    (row: FichaCadastral) => {
-      if (row.detento_id) {
-        router.push(paths.carceragem.reeducandos.fichaCadastralNew(row.detento_id));
       }
     },
     [router]
@@ -99,6 +102,14 @@ export const useFichasCadastraisListTable = () => {
         renderCell: ({ row }) => <StatusChip status={row.status_validacao} />,
       },
       {
+        field: 'createdAt',
+        headerName: 'Criado em',
+        width: 180,
+        sortable: false,
+        valueGetter: (_v, row) => row.createdAt ?? '',
+        renderCell: ({ row }) => row.createdAt ? formatCreatedAt(row.createdAt) : '—',
+      },
+      {
         type: 'actions',
         field: 'actions',
         headerName: ' ',
@@ -137,23 +148,13 @@ export const useFichasCadastraisListTable = () => {
               ) as unknown as React.ReactElement<GridActionsCellItemProps>
             );
 
-            actions.push(
-              (
-                <CustomGridActionsCellItem
-                  showInMenu
-                  label="Adicionar ficha"
-                  icon={<Iconify icon="mingcute:add-line" />}
-                  onClick={() => onAddNew(params.row)}
-                />
-              ) as unknown as React.ReactElement<GridActionsCellItemProps>
-            );
           }
 
           return actions;
         },
       },
     ],
-    [isLoading, hasPermission, onEdit, onAddNew, onViewDetento]
+    [isLoading, hasPermission, onEdit, onViewDetento]
   );
 
   return { columns };

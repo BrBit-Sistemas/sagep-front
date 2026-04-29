@@ -38,7 +38,7 @@ export const getProfissoes = () => {
    * @summary Listar todas as profissões
    */
   const findAll = (
-    params?: ProfissaoControllerFindAllParams,
+    params?: ProfissaoControllerFindAllParams & { ativo?: boolean },
     options?: SecondParameter<typeof customInstance>
   ) => customInstance<PaginateProfissaoDto>({ url: `/profissoes`, method: 'GET', params }, options);
   /**
@@ -68,8 +68,14 @@ export const getProfissoes = () => {
    */
   const remove = (id: string, options?: SecondParameter<typeof customInstance>) =>
     customInstance<void>({ url: `/profissoes/${id}`, method: 'DELETE' }, options);
-  return { create, findAll, findOne, update, remove };
+
+  const metrics = (options?: SecondParameter<typeof customInstance>) =>
+    customInstance<ProfissaoMetricsDto>({ url: `/profissoes/metrics`, method: 'GET' }, options);
+
+  return { create, findAll, findOne, update, remove, metrics };
 };
+
+export type ProfissaoMetricsDto = { total: number; ativas: number; inativas: number };
 export type CreateResult = NonNullable<
   Awaited<ReturnType<ReturnType<typeof getProfissoes>['create']>>
 >;

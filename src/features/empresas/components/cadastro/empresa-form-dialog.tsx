@@ -99,13 +99,7 @@ export const EmpresaFormDialog = ({
               <Field.Text required name="razao_social" label="Razão Social" />
             </Grid>
             <Grid size={{ md: 12, sm: 12 }}>
-              <Field.Text
-                required
-                name="cnpj"
-                label="CNPJ"
-                placeholder="12345678000199"
-                inputProps={{ maxLength: 14 }}
-              />
+              <Field.Cnpj required name="cnpj" label="CNPJ" />
             </Grid>
             <Grid size={{ md: 12, sm: 12 }}>
               <Field.Text name="inscricao_estadual" label="Inscrição Estadual" />
@@ -118,29 +112,22 @@ export const EmpresaFormDialog = ({
                 required
                 name="logradouro_numero"
                 label="Número"
-                inputProps={{ inputMode: 'numeric' }}
+                inputProps={{
+                  maxLength: 12,
+                  onInput: (e: React.FormEvent<HTMLInputElement>) => {
+                    e.currentTarget.value = e.currentTarget.value.replace(/[^0-9\-/]/g, '');
+                  },
+                }}
               />
             </Grid>
             <Grid size={{ md: 4, sm: 12 }}>
-              <Field.Text
-                required
-                name="cep"
-                label="CEP"
-                placeholder="70040020"
-                inputProps={{ maxLength: 8, inputMode: 'numeric' }}
-              />
+              <Field.Cep required name="cep" label="CEP" />
             </Grid>
             <Grid size={{ md: 6, sm: 12 }}>
               <Field.Text required name="cidade" label="Cidade" />
             </Grid>
             <Grid size={{ md: 2, sm: 12 }}>
-              <Field.Text
-                required
-                name="estado"
-                label="UF"
-                placeholder="DF"
-                inputProps={{ maxLength: 2 }}
-              />
+              <Field.Uf required name="estado" label="UF" />
             </Grid>
           </Grid>
         </DialogContent>

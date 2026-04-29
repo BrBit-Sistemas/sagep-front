@@ -2,7 +2,7 @@ import type { GridSortModel, GridFilterModel, GridPaginationModel } from '@mui/x
 
 import { useMemo, useCallback } from 'react';
 
-import { Card, Button } from '@mui/material';
+import { Box, Card, Button } from '@mui/material';
 
 import { paths } from 'src/routes/paths';
 
@@ -10,6 +10,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { profissaoToFormValues } from 'src/features/profissoes/helper';
 
 import { Iconify } from 'src/components/iconify';
+import { MetricCard } from 'src/components/metric-card';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import CustomDataGrid from 'src/components/custom-data-grid/custom-data-grid';
 
@@ -17,6 +18,7 @@ import { PermissionGuard } from 'src/auth/guard';
 
 import { useProfissaoCadastroStore } from '../stores';
 import { useListProfissoes } from '../hooks/use-list-profissoes';
+import { useProfissaoMetrics } from '../hooks/use-profissao-metrics';
 import { useProfissaoListTable } from '../hooks/use-profissao-list-table';
 import { ProfissaoFormDialog, ProfissaoDeleteDialog } from '../components';
 import { useProfissaoSearchParams } from '../hooks/use-profissao-search-params';
@@ -28,6 +30,7 @@ export default function ProfissaoCadastroPage() {
     useProfissaoCadastroStore();
 
   const { data, isLoading } = useListProfissoes(searchParams);
+  const { data: metrics, isLoading: metricsLoading } = useProfissaoMetrics();
 
   const { columns } = useProfissaoListTable();
 
@@ -114,8 +117,50 @@ export default function ProfissaoCadastroPage() {
             </Button>
           </PermissionGuard>
         }
-        sx={{ mb: { xs: 3, md: 5 } }}
+        sx={{ mb: { xs: 2, md: 3 } }}
       />
+
+      <Box
+        sx={{
+          display: 'grid',
+          gap: 2,
+          mb: 3,
+          gridTemplateColumns: { xs: 'repeat(1, 1fr)', sm: 'repeat(3, 1fr)' },
+        }}
+      >
+        <MetricCard
+          label="Total de profissões"
+          value={metrics?.total}
+          icon="solar:bill-list-bold"
+          tone="neutral"
+          loading={metricsLoading}
+          active={!searchParams.ativo}
+          onClick={() => setSearchParams({ ativo: '', page: 1 })}
+        />
+        <MetricCard
+          label="Ativas"
+          value={metrics?.ativas}
+          icon="solar:check-circle-bold"
+          tone="success"
+          loading={metricsLoading}
+          active={searchParams.ativo === 'true'}
+          onClick={() =>
+            setSearchParams({ ativo: searchParams.ativo === 'true' ? '' : 'true', page: 1 })
+          }
+        />
+        <MetricCard
+          label="Inativas"
+          value={metrics?.inativas}
+          icon="solar:close-circle-bold"
+          tone="error"
+          loading={metricsLoading}
+          active={searchParams.ativo === 'false'}
+          onClick={() =>
+            setSearchParams({ ativo: searchParams.ativo === 'false' ? '' : 'false', page: 1 })
+          }
+        />
+      </Box>
+
       <Card
         sx={{
           minHeight: 640,

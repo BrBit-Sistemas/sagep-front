@@ -37,8 +37,15 @@ export type ListEmpresaParams = {
   search?: string;
   razao_social?: string;
   cnpj?: string;
+  tipo?: 'PRIVADA' | 'PUBLICA';
   sort?: 'razao_social' | 'cnpj' | 'createdAt' | 'updatedAt';
   order?: 'asc' | 'desc';
+};
+
+export type EmpresaMetricsDto = {
+  total: number;
+  privadas: number;
+  publicas: number;
 };
 
 export const getEmpresas = () => {
@@ -77,5 +84,8 @@ export const getEmpresas = () => {
   const remove = (id: string, options?: Parameters<typeof customInstance>[1]) =>
     customInstance<void>({ url: `${base}/${id}`, method: 'DELETE' }, options);
 
-  return { create, findAll, findOne, update, remove };
+  const metrics = (options?: Parameters<typeof customInstance>[1]) =>
+    customInstance<EmpresaMetricsDto>({ url: `${base}/metrics`, method: 'GET' }, options);
+
+  return { create, findAll, findOne, update, remove, metrics };
 };

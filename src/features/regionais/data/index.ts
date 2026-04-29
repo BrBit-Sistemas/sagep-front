@@ -6,7 +6,7 @@ import type {
   UpdateRegionalDto,
 } from 'src/api/generated.schemas';
 
-import { getRegionais } from 'src/api/regionais/regionais';
+import { getRegionais, type RegionalMetricsDto } from 'src/api/regionais/regionais';
 
 const api = getRegionais();
 
@@ -37,3 +37,5 @@ export const regionalService: CrudService<
   update: async (id: string, data: UpdateRegionalDto) => api.update(id, data),
   delete: async (id: string) => api.remove(id),
 };
+
+export const regionalMetrics = (): Promise<RegionalMetricsDto> => api.metrics();

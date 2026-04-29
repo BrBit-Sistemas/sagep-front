@@ -2,13 +2,14 @@ import type { GridSortModel, GridFilterModel, GridPaginationModel } from '@mui/x
 
 import { useMemo, useCallback } from 'react';
 
-import { Card, Button } from '@mui/material';
+import { Box, Card, Button } from '@mui/material';
 
 import { paths } from 'src/routes/paths';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
+import { MetricCard } from 'src/components/metric-card';
 import { CustomDataGrid } from 'src/components/custom-data-grid';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
@@ -16,6 +17,7 @@ import { PermissionGuard } from 'src/auth/guard';
 
 import { unidadePrisionalToFormValues } from '../helper';
 import { useUnidadePrisionalList } from '../hooks/use-unidade-prisional-list';
+import { useUnidadePrisionalMetrics } from '../hooks/use-unidade-prisional-metrics';
 import { useUnidadePrisionalListTable } from '../hooks/use-unidade-prisional-list-table';
 import { useUnidadePrisionalCadastroStore } from '../stores/unidade-prisional-cadastro-store';
 import { useUnidadePrisionalSearchParams } from '../hooks/use-unidade-prisional-search-params';
@@ -29,6 +31,7 @@ export default function UnidadePrisionalCadastroPage() {
     useUnidadePrisionalCadastroStore();
 
   const { data, isLoading } = useUnidadePrisionalList(searchParams);
+  const { data: metrics, isLoading: metricsLoading } = useUnidadePrisionalMetrics();
 
   const { columns } = useUnidadePrisionalListTable();
 
@@ -115,8 +118,19 @@ export default function UnidadePrisionalCadastroPage() {
             </Button>
           </PermissionGuard>
         }
-        sx={{ mb: { xs: 3, md: 5 } }}
+        sx={{ mb: { xs: 2, md: 3 } }}
       />
+
+      <Box sx={{ display: 'grid', gap: 2, mb: 3, gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' } }}>
+        <MetricCard
+          label="Total de unidades"
+          value={metrics?.total}
+          icon="solar:home-angle-bold-duotone"
+          tone="neutral"
+          loading={metricsLoading}
+        />
+      </Box>
+
       <Card
         sx={{
           minHeight: 640,

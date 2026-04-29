@@ -6,7 +6,7 @@ import type {
   UpdateProfissaoDto,
 } from 'src/api/generated.schemas';
 
-import { getProfissoes } from 'src/api/profissoes/profissoes';
+import { getProfissoes, type ProfissaoMetricsDto } from 'src/api/profissoes/profissoes';
 
 const api = getProfissoes();
 
@@ -16,11 +16,16 @@ export const profissaoService: CrudService<
   UpdateProfissaoDto,
   ProfissaoListParams
 > = {
-  paginate: async ({ page, limit, search, sort, order }: ProfissaoListParams): Promise<PaginatedResponse<ReadProfissaoDto>> => {
+  paginate: async ({ page, limit, search, ativo, sort, order }: ProfissaoListParams): Promise<PaginatedResponse<ReadProfissaoDto>> => {
     // Converter página de 1-based (frontend) para 0-based (backend)
     const backendPage = page - 1;
     
-    const res = await api.findAll({ page: backendPage, limit, search });
+    const res = await api.findAll({
+      page: backendPage,
+      limit,
+      search,
+      ...(ativo !== undefined && ativo !== '' ? { ativo: ativo === 'true' } : {}),
+    });
     
     return {
       items: res.items,
@@ -48,3 +53,5 @@ export const profissaoService: CrudService<
     await api.remove(id);
   },
 };
+
+export const profissaoMetrics = (): Promise<ProfissaoMetricsDto> => api.metrics();

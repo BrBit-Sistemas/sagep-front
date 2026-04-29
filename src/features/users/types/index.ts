@@ -8,6 +8,7 @@ export type UserListParams = {
   search?: string;
   nome?: string;
   email?: string;
+  isAdmin?: string;
   sort?: string;
   order?: 'asc' | 'desc';
 };

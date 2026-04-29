@@ -1,12 +1,11 @@
-import type { GridCellParams, GridSortModel, GridFilterModel, GridPaginationModel } from '@mui/x-data-grid/models';
-import type { FichaCadastral, StatusValidacaoFicha } from '../types';
+import type { GridSortModel, GridFilterModel, GridPaginationModel } from '@mui/x-data-grid/models';
+import type { StatusValidacaoFicha } from '../types';
 
-import { useMemo, useCallback, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 
-import { Alert, Box, Card, Stack, Button, MenuItem, TextField } from '@mui/material';
+import { Box, Card, Alert, Stack, Button, MenuItem, TextField } from '@mui/material';
 
 import { paths } from 'src/routes/paths';
-import { useRouter } from 'src/routes/hooks';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
@@ -16,6 +15,7 @@ import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import CustomDataGrid from 'src/components/custom-data-grid/custom-data-grid';
 
 import { useFichasCadastraisList } from '../hooks/use-fichas-cadastrais-list';
+import { AddFichaCadastralDialog } from '../components/add-ficha-cadastral-dialog';
 import { useFichasCadastraisMetrics } from '../hooks/use-fichas-cadastrais-metrics';
 import { useFichasCadastraisListTable } from '../hooks/use-fichas-cadastrais-list-table';
 import { useFichasCadastraisSearchParams } from '../hooks/use-fichas-cadastrais-search-params';
@@ -29,42 +29,14 @@ const STATUS_OPTIONS: { value: StatusValidacaoFicha | ''; label: string }[] = [
 ];
 
 export default function FichasCadastraisListPage() {
-  const router = useRouter();
-  const [addMode, setAddMode] = useState(false);
-  const [selectedDetentoId, setSelectedDetentoId] = useState<string | null>(null);
-  const [selectedRowId, setSelectedRowId] = useState<string | null>(null);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [cpfInput, setCpfInput] = useState('');
   const [searchParams, setSearchParams] = useFichasCadastraisSearchParams();
 
   const { data, isLoading } = useFichasCadastraisList(searchParams);
   const { data: metrics, isLoading: metricsLoading } = useFichasCadastraisMetrics();
 
   const { columns } = useFichasCadastraisListTable();
-
-  const handleAddClick = () => {
-    if (addMode && selectedDetentoId) {
-      router.push(paths.carceragem.reeducandos.fichaCadastralNew(selectedDetentoId));
-    } else {
-      setAddMode(true);
-      setSelectedDetentoId(null);
-      setSelectedRowId(null);
-    }
-  };
-
-  const handleCellClick = useCallback(
-    (params: GridCellParams<FichaCadastral>) => {
-      if (!addMode) return;
-      if (params.field === 'actions') return;
-      setSelectedDetentoId(params.row.detento_id);
-      setSelectedRowId(params.row.id);
-    },
-    [addMode]
-  );
-
-  const handleCancelAdd = () => {
-    setAddMode(false);
-    setSelectedDetentoId(null);
-    setSelectedRowId(null);
-  };
 
   const handlePaginationModelChange = useCallback(
     (newModel: GridPaginationModel) => {
@@ -112,18 +84,6 @@ export default function FichasCadastraisListPage() {
       onSortModelChange: handleSortModelChange,
       onFilterModelChange: handleFilterModelChange,
       getRowId: (row: any) => row.id,
-      onCellClick: handleCellClick,
-      getRowClassName: (params: { id: string | number }) =>
-        String(params.id) === selectedRowId ? 'row--add-selected' : '',
-      sx: addMode
-        ? {
-            cursor: 'pointer',
-            '& .row--add-selected': {
-              backgroundColor: 'action.selected',
-              '&:hover': { backgroundColor: 'action.selected' },
-            },
-          }
-        : undefined,
     }),
     [
       data?.hasNextPage,
@@ -139,9 +99,6 @@ export default function FichasCadastraisListPage() {
       handlePaginationModelChange,
       handleSortModelChange,
       handleFilterModelChange,
-      handleCellClick,
-      selectedRowId,
-      addMode,
     ]
   );
 
@@ -156,15 +113,19 @@ export default function FichasCadastraisListPage() {
         action={
           <Button
             variant="contained"
-            color={addMode && selectedDetentoId ? 'success' : 'primary'}
             startIcon={<Iconify icon="mingcute:add-line" />}
-            onClick={handleAddClick}
+            onClick={() => setAddDialogOpen(true)}
           >
             Adicionar
           </Button>
         }
         sx={{ mb: { xs: 2, md: 3 } }}
       />
+
+      <Alert severity="info" sx={{ mb: 3 }}>
+        Esta tela lista e gerencia apenas fichas cadastrais ativas. Para visualizar o histórico de
+        fichas de um reeducando, acesse os detalhes do reeducando.
+      </Alert>
 
       {/* ---------- KPI cards ---------- */}
       <Box
@@ -250,25 +211,19 @@ export default function FichasCadastraisListPage() {
             size="small"
             label="CPF"
             placeholder="somente dígitos"
-            value={searchParams.cpf}
-            onChange={(e) => setSearchParams({ cpf: e.target.value, page: 1 })}
+            value={cpfInput}
+            onChange={(e) => {
+              const digits = e.target.value.replace(/\D/g, '');
+              setCpfInput(digits);
+              setSearchParams({ cpf: digits.length >= 3 ? digits : '', page: 1 });
+            }}
+            inputProps={{ maxLength: 11, inputMode: 'numeric' }}
             sx={{ minWidth: 180 }}
           />
         </Stack>
       </Card>
 
-      {/* ---------- Add mode alert ---------- */}
-      {addMode && (
-        <Alert
-          severity={selectedDetentoId ? 'success' : 'info'}
-          onClose={handleCancelAdd}
-          sx={{ mb: 2 }}
-        >
-          {selectedDetentoId
-            ? 'Reeducando selecionado. Clique em + Adicionar para continuar.'
-            : 'Selecione um reeducando na lista abaixo e clique novamente em + Adicionar.'}
-        </Alert>
-      )}
+      <AddFichaCadastralDialog open={addDialogOpen} onClose={() => setAddDialogOpen(false)} />
 
       {/* ---------- Table ---------- */}
       <Card

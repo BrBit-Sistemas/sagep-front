@@ -1,0 +1,17 @@
+export const MOTIVOS_REPROVACAO = [
+  'Falta grave',
+  'Benefício suspenso',
+  'Castigo',
+  'Sem benefício',
+  'Foragido',
+  'Sem término de pena',
+  'Unificação de pena',
+  'BRB desatualizado',
+  'CPF na Receita irregular ou suspenso',
+  'Cadastro na Receita',
+  'Estando ativo no contrato',
+  'Recambiado',
+  'Falta de documentação da ficha',
+  'Documentação inelegível',
+  'Mudança de nome',
+] as const;

@@ -2,7 +2,7 @@ import type { GridSortModel, GridFilterModel, GridPaginationModel } from '@mui/x
 
 import { useMemo, useCallback } from 'react';
 
-import { Card, Button } from '@mui/material';
+import { Box, Card, Button } from '@mui/material';
 
 import { paths } from 'src/routes/paths';
 
@@ -10,6 +10,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { regionalToFormValues } from 'src/features/regionais/helper';
 
 import { Iconify } from 'src/components/iconify';
+import { MetricCard } from 'src/components/metric-card';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import CustomDataGrid from 'src/components/custom-data-grid/custom-data-grid';
 
@@ -17,6 +18,7 @@ import { PermissionGuard } from 'src/auth/guard';
 
 import { useRegionalCadastroStore } from '../stores';
 import { useListRegionais } from '../hooks/use-list-regionais';
+import { useRegionalMetrics } from '../hooks/use-regional-metrics';
 import { useRegionalListTable } from '../hooks/use-regional-list-table';
 import { RegionalFormDialog, RegionalDeleteDialog } from '../components';
 import { useRegionalSearchParams } from '../hooks/use-regional-search-params';
@@ -28,6 +30,7 @@ export default function RegionalCadastroPage() {
     useRegionalCadastroStore();
 
   const { data, isLoading } = useListRegionais(searchParams);
+  const { data: metrics, isLoading: metricsLoading } = useRegionalMetrics();
 
   const { columns } = useRegionalListTable();
 
@@ -111,8 +114,33 @@ export default function RegionalCadastroPage() {
             </Button>
           </PermissionGuard>
         }
-        sx={{ mb: { xs: 3, md: 5 } }}
+        sx={{ mb: { xs: 2, md: 3 } }}
       />
+
+      <Box
+        sx={{
+          display: 'grid',
+          gap: 2,
+          mb: 3,
+          gridTemplateColumns: { xs: 'repeat(1, 1fr)', sm: 'repeat(2, 1fr)' },
+        }}
+      >
+        <MetricCard
+          label="Total de regionais"
+          value={data?.total}
+          icon="solar:list-bold"
+          tone="neutral"
+          loading={isLoading}
+        />
+        <MetricCard
+          label="Unidades vinculadas"
+          value={metrics?.totalUnidades}
+          icon="solar:home-angle-bold-duotone"
+          tone="primary"
+          loading={metricsLoading}
+        />
+      </Box>
+
       <Card
         sx={{
           minHeight: 640,

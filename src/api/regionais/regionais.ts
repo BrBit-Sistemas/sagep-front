@@ -68,8 +68,14 @@ export const getRegionais = () => {
    */
   const remove = (id: string, options?: SecondParameter<typeof customInstance>) =>
     customInstance<void>({ url: `/regionais/${id}`, method: 'DELETE' }, options);
-  return { create, findAll, findOne, update, remove };
+
+  const metrics = (options?: SecondParameter<typeof customInstance>) =>
+    customInstance<RegionalMetricsDto>({ url: `/regionais/metrics`, method: 'GET' }, options);
+
+  return { create, findAll, findOne, update, remove, metrics };
 };
+
+export type RegionalMetricsDto = { total: number; totalUnidades: number };
 export type CreateResult = NonNullable<
   Awaited<ReturnType<ReturnType<typeof getRegionais>['create']>>
 >;

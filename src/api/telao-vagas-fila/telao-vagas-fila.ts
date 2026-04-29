@@ -1,5 +1,12 @@
 import { type BodyType, customInstance } from '../../lib/axios';
 
+export type TempoNaFila = {
+  dias: number;
+  horas: number;
+  minutos: number;
+  segundos: number;
+};
+
 export type MatchCriterioTelao = {
   chave: string;
   label: string;
@@ -12,7 +19,7 @@ export type FilaItemTelao = {
   detento_id: string;
   nome: string;
   prontuario?: string | null;
-  dias_na_fila: number;
+  dias_na_fila: TempoNaFila;
   status_visual: 'ELEGIVEL' | 'BLOQUEADO' | 'SEM_VAGA';
   motivo_resumo: string;
   vagas_elegiveis_count?: number;
@@ -29,7 +36,7 @@ export type ReeducandoDetalheTelao = {
   unidade: string;
   escolaridade: string;
   artigo_resumo: string;
-  dias_na_fila: number;
+  dias_na_fila: TempoNaFila;
   ficha_cadastro_em: string;
   experiencias_tags: string[];
 };
@@ -37,6 +44,7 @@ export type ReeducandoDetalheTelao = {
 export type VagaTelao = {
   convenio_vaga_id: string;
   convenio_id: string;
+  convenio_data_inicio: string;
   empresa_id: string;
   empresa_nome: string;
   profissao_id: string;
@@ -112,6 +120,7 @@ export const getTelaoVagasFila = () => {
       detento_id: string;
       convenio_vaga_id?: string;
       justificativa: string;
+      posicao_destino?: number;
     }>,
     options?: Parameters<typeof customInstance>[1]
   ) =>

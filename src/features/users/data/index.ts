@@ -4,7 +4,7 @@ import type { ReadUsuarioDto } from 'src/api/generated.schemas';
 import type { CreateUserSchema, UpdateUserSchema } from 'src/features/users/schemas';
 
 import { customInstance } from 'src/lib/axios';
-import { getUsuários } from 'src/api/usuários/usuários';
+import { getUsuários, type UsuarioMetricsDto } from 'src/api/usuários/usuários';
 
 const api = getUsuários();
 
@@ -55,11 +55,20 @@ export const userService: CrudService<
   UpdateUserSchema,
   UserListParams
 > = {
-  paginate: async ({ page, limit, search, nome, email, sort, order }: any) => {
+  paginate: async ({ page, limit, search, nome, email, isAdmin, sort, order }: any) => {
     // Converter página de 1-based (frontend) para 0-based (backend)
     const backendPage = page - 1;
     
-    const res = await api.paginate({ page: backendPage, limit, search, nome, email, sort, order });
+    const res = await api.paginate({
+      page: backendPage,
+      limit,
+      search,
+      nome,
+      email,
+      sort,
+      order,
+      ...(isAdmin !== undefined && isAdmin !== '' ? { isAdmin: isAdmin === 'true' } : {}),
+    });
     return {
       items: res.items,
       page: Number(res.page) + 1, // Converter de volta para 1-based para o frontend
@@ -112,3 +121,5 @@ export const userService: CrudService<
   },
   delete: (id: string) => api.remove(id),
 };
+
+export const usuarioMetrics = (): Promise<UsuarioMetricsDto> => api.metrics();

@@ -12,15 +12,22 @@ import Tab from '@mui/material/Tab';
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
 import Tabs from '@mui/material/Tabs';
+import Chip from '@mui/material/Chip';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
+import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
+import TableRow from '@mui/material/TableRow';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import InputAdornment from '@mui/material/InputAdornment';
+import TableContainer from '@mui/material/TableContainer';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { paths } from 'src/routes/paths';
@@ -50,6 +57,7 @@ import {
   useTabelasProdutividadeCatalog,
 } from '../hooks/use-convenio-contrato-catalog';
 import {
+  GRAUS_DESEMPENHO,
   buildEmpresaConvenioSchema,
   type CreateEmpresaConvenioSchema,
   type CreateEmpresaConvenioFormValues,
@@ -86,12 +94,18 @@ const INITIAL_VALUES: CreateEmpresaConvenioFormValues = {
   quantidade_nivel_iii: undefined,
   permite_bonus_produtividade: false,
   bonus_produtividade_descricao: '',
-  bonus_produtividade_tabela_json_raw: '',
+  bonus_produtividade_linhas: GRAUS_DESEMPENHO.map((g) => ({
+    ...g,
+    nivel_i: null,
+    nivel_ii: null,
+    nivel_iii: null,
+  })),
   percentual_gestao: undefined,
   percentual_contrapartida: undefined,
   locais_execucao: [],
   data_inicio: formatDateToYYYYMMDD(new Date()),
   data_fim: null,
+  data_repactuacao: null,
   observacoes: '',
   numero_contrato_sequencial: '',
   ano_contrato: String(new Date().getFullYear()),
@@ -124,6 +138,7 @@ const TAB_GERAL_FIELDS: (keyof CreateEmpresaConvenioFormValues)[] = [
   'artigos_vedados',
   'data_inicio',
   'data_fim',
+  'data_repactuacao',
   'observacoes',
   'numero_contrato_sequencial',
   'ano_contrato',
@@ -155,7 +170,7 @@ const TAB_REMUNERACAO_FIELDS: (keyof CreateEmpresaConvenioFormValues)[] = [
   'observacao_beneficio',
   'permite_bonus_produtividade',
   'bonus_produtividade_descricao',
-  'bonus_produtividade_tabela_json_raw',
+  'bonus_produtividade_linhas',
   'tabela_produtividade_id',
   'percentual_gestao',
   'percentual_contrapartida',
@@ -174,6 +189,74 @@ const TAB_PROFISSOES_FIELDS: (keyof CreateEmpresaConvenioFormValues)[] = [
   'quantidade_nivel_ii',
   'quantidade_nivel_iii',
 ];
+
+const calcNivelBonus = (percentual: unknown, valor: unknown): string => {
+  const p = Number(percentual);
+  const v = Number(valor);
+  if (!p || !v || Number.isNaN(p) || Number.isNaN(v)) return '—';
+  return `R$ ${Math.round((p / 100) * v).toLocaleString('pt-BR')}`;
+};
+
+const BonusProdutividadeTable = () => {
+  const { control } = useFormContext<CreateEmpresaConvenioFormValues>();
+  const { fields } = useFieldArray({ control, name: 'bonus_produtividade_linhas' });
+  const valorI = useWatch({ control, name: 'valor_nivel_i' });
+  const valorII = useWatch({ control, name: 'valor_nivel_ii' });
+  const valorIII = useWatch({ control, name: 'valor_nivel_iii' });
+  const linhas = useWatch({ control, name: 'bonus_produtividade_linhas' });
+
+  return (
+    <TableContainer>
+      <Table size="small">
+        <TableHead>
+          <TableRow>
+            <TableCell sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>Grau</TableCell>
+            <TableCell sx={{ fontWeight: 600 }}>Desempenho</TableCell>
+            <TableCell sx={{ fontWeight: 600, textAlign: 'center' }}>% Bônus</TableCell>
+            <TableCell sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>Nível I (R$)</TableCell>
+            <TableCell sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>Nível II (R$)</TableCell>
+            <TableCell sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>Nível III (R$)</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {fields.map((field, idx) => {
+            const p = linhas?.[idx]?.percentual;
+            return (
+              <TableRow key={field.id}>
+                <TableCell>
+                  <Chip
+                    label={field.grau}
+                    size="small"
+                    variant="outlined"
+                    sx={{ fontWeight: 700, minWidth: 32 }}
+                  />
+                </TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>{field.nome}</TableCell>
+                <TableCell>
+                  <Field.Text
+                    name={`bonus_produtividade_linhas.${idx}.percentual`}
+                    size="small"
+                    type="number"
+                    slotProps={{ htmlInput: { min: 0, max: 100 } }}
+                  />
+                </TableCell>
+                <TableCell sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
+                  {calcNivelBonus(p, valorI)}
+                </TableCell>
+                <TableCell sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
+                  {calcNivelBonus(p, valorII)}
+                </TableCell>
+                <TableCell sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
+                  {calcNivelBonus(p, valorIII)}
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+};
 
 const LocalExecucaoRow = ({ idx, onRemove }: { idx: number; onRemove: () => void }) => {
   const { setValue, control } = useFormContext();
@@ -391,7 +474,7 @@ export default function EmpresaConvenioFormPage() {
   const { mutateAsync: createItem, isPending: isCreating } = useCreateEmpresaConvenio();
   const { mutateAsync: updateItem, isPending: isUpdating } = useUpdateEmpresaConvenio();
   const { data: templates, isLoading: loadingTemplates } = useTemplateContratosCatalog();
-  const { data: tabelasProd, isLoading: loadingTabelasProd } = useTabelasProdutividadeCatalog();
+  const { data: tabelasProd, isLoading: loadingTabelas } = useTabelasProdutividadeCatalog();
   const [tab, setTab] = useState<TabValue>('geral');
 
   const isSaving = isEditing ? isUpdating : isCreating;
@@ -421,6 +504,10 @@ export default function EmpresaConvenioFormPage() {
   const possuiSeguroWatch = useWatch({
     control: methods.control,
     name: 'possui_seguro_acidente',
+  });
+  const beneficioVariavelWatch = useWatch({
+    control: methods.control,
+    name: 'beneficio_variavel_por_dia',
   });
   const templateCodigo = templates?.find((t) => t.template_contrato_id === templateIdWatch)?.codigo;
   const isTemplateGdf = templateCodigo === 'PADRAO_ORGAO_PUBLICO_GDF';
@@ -492,7 +579,8 @@ export default function EmpresaConvenioFormPage() {
     prevTemplateIdRef.current = templateIdWatch;
   }, [templates, templateIdWatch, methods]);
 
-  const catalogLoading = loadingTemplates || loadingTabelasProd;
+  const catalogLoading = loadingTemplates;
+  const tabelasLoading = loadingTabelas;
   const catalogEmpty = !catalogLoading && !templates?.length;
 
   const somaDistProf = (distribuicaoWatch ?? []).reduce((s, row) => {
@@ -799,11 +887,14 @@ export default function EmpresaConvenioFormPage() {
                 </Grid>
               </Grid>
             ) : null}
-            <Grid size={{ md: 6, sm: 12 }}>
+            <Grid size={{ md: 4, sm: 12 }}>
               <Field.DatePicker name="data_inicio" label="Data início" />
             </Grid>
-            <Grid size={{ md: 6, sm: 12 }}>
+            <Grid size={{ md: 4, sm: 12 }}>
               <Field.DatePicker name="data_fim" label="Data fim" />
+            </Grid>
+            <Grid size={{ md: 4, sm: 12 }}>
+              <Field.DatePicker name="data_repactuacao" label="Data de repactuação" />
             </Grid>
             <Grid size={{ md: 12, sm: 12 }}>
               <Field.Text name="observacoes" label="Observações gerais" multiline rows={2} />
@@ -934,6 +1025,11 @@ export default function EmpresaConvenioFormPage() {
               <Field.Switch
                 name="beneficio_variavel_por_dia"
                 label="Benefício variável conforme dias trabalhados"
+                helperText={
+                  beneficioVariavelWatch
+                    ? 'Valor proporcional aos dias efetivamente trabalhados no mês'
+                    : 'Valor fixo mensal, independente dos dias trabalhados'
+                }
               />
             </Grid>
             <Grid size={{ md: 12, sm: 12 }}>
@@ -956,7 +1052,7 @@ export default function EmpresaConvenioFormPage() {
                   <Field.Select
                     name="tabela_produtividade_id"
                     label="Tabela de produtividade (opcional)"
-                    disabled={catalogLoading}
+                    disabled={tabelasLoading}
                     slotProps={{ inputLabel: { shrink: true } }}
                   >
                     <MenuItem value="">
@@ -978,13 +1074,10 @@ export default function EmpresaConvenioFormPage() {
                   />
                 </Grid>
                 <Grid size={{ md: 12, sm: 12 }}>
-                  <Field.Text
-                    name="bonus_produtividade_tabela_json_raw"
-                    label="Tabela JSON do bônus (opcional, array JSON)"
-                    multiline
-                    rows={4}
-                    placeholder='Ex.: [{"faixa":"A","percentual":10}]'
-                  />
+                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                    Tabela de graus de desempenho
+                  </Typography>
+                  <BonusProdutividadeTable />
                 </Grid>
               </>
             ) : null}
@@ -1004,6 +1097,7 @@ export default function EmpresaConvenioFormPage() {
                 slotProps={{ htmlInput: { min: 0, max: 100, step: 0.01 } }}
               />
             </Grid>
+
             <Grid size={{ md: 12, sm: 12 }}>
               <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
                 Seguro / acidentes pessoais

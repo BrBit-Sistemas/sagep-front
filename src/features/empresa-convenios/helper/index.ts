@@ -10,6 +10,8 @@ import {
   formatPhoneBrMobileFromStorage,
 } from 'src/utils/input-masks';
 
+import { GRAUS_DESEMPENHO } from '../schemas';
+
 const silentSet = { shouldValidate: false, shouldDirty: true } as const;
 
 type ConvenioFormPick = Pick<UseFormReturn<CreateEmpresaConvenioFormValues>, 'setValue'>;
@@ -88,10 +90,19 @@ export const empresaConvenioToFormValues = (
     nivel: (d.nivel ?? '') as '' | 'I' | 'II' | 'III',
     observacao: d.observacao ?? '',
   }));
-  const bonusRaw =
-    x.bonus_produtividade_tabela_json != null
-      ? JSON.stringify(x.bonus_produtividade_tabela_json, null, 2)
-      : '';
+  const bonusLinhas = GRAUS_DESEMPENHO.map((g) => {
+    const found = (x.bonus_produtividade_tabela_json ?? []).find(
+      (row) => (row as Record<string, unknown>).grau === g.grau
+    ) as Record<string, unknown> | undefined;
+    return {
+      grau: g.grau,
+      nome: g.nome,
+      percentual: found?.percentual != null ? Number(found.percentual) : g.percentual,
+      nivel_i: found?.nivel_i != null ? Number(found.nivel_i) : null,
+      nivel_ii: found?.nivel_ii != null ? Number(found.nivel_ii) : null,
+      nivel_iii: found?.nivel_iii != null ? Number(found.nivel_iii) : null,
+    };
+  });
   return {
     empresa_id: x.empresa_id,
     modalidade_execucao: x.modalidade_execucao,
@@ -115,7 +126,7 @@ export const empresaConvenioToFormValues = (
     quantidade_nivel_iii: x.quantidade_nivel_iii ?? undefined,
     permite_bonus_produtividade: x.permite_bonus_produtividade ?? false,
     bonus_produtividade_descricao: x.bonus_produtividade_descricao ?? '',
-    bonus_produtividade_tabela_json_raw: bonusRaw,
+    bonus_produtividade_linhas: bonusLinhas,
     percentual_gestao: x.percentual_gestao ?? undefined,
     percentual_contrapartida: x.percentual_contrapartida ?? undefined,
     locais_execucao: (x.locais_execucao ?? []).map((local) => ({
@@ -131,6 +142,7 @@ export const empresaConvenioToFormValues = (
     })),
     data_inicio: x.data_inicio,
     data_fim: x.data_fim ?? null,
+    data_repactuacao: x.data_repactuacao ?? null,
     observacoes: x.observacoes ?? '',
     numero_contrato_sequencial: numeroContratoParsed.sequencial,
     ano_contrato: numeroContratoParsed.ano,

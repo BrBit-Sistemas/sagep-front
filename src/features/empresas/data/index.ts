@@ -5,6 +5,7 @@ import type { CreateEmpresaSchema, UpdateEmpresaSchema } from '../schemas';
 import {
   getEmpresas,
   type ReadEmpresaDto,
+  type EmpresaMetricsDto,
   type PaginateEmpresaDto,
 } from 'src/api/empresas/empresas';
 
@@ -35,12 +36,17 @@ export const empresaService: CrudService<
   UpdateEmpresaSchema,
   EmpresaListParams
 > = {
-  paginate: async ({ page, limit, search, sort, order }: EmpresaListParams) => {
+  paginate: async ({ page, limit, search, tipo, sort, order }: EmpresaListParams) => {
     const api = getEmpresas();
     // Converter página de 1-based (frontend) para 0-based (backend)
     const backendPage = page - 1;
-    
-    const response: PaginateEmpresaDto = await api.findAll({ page: backendPage, limit, search });
+
+    const response: PaginateEmpresaDto = await api.findAll({
+      page: backendPage,
+      limit,
+      search,
+      ...(tipo ? { tipo: tipo as 'PRIVADA' | 'PUBLICA' } : {}),
+    });
 
     return {
       totalPages: response.totalPages,
@@ -92,4 +98,9 @@ export const empresaService: CrudService<
     const api = getEmpresas();
     await api.remove(id);
   },
+};
+
+export const empresaMetrics = async (): Promise<EmpresaMetricsDto> => {
+  const api = getEmpresas();
+  return api.metrics();
 };

@@ -2,13 +2,14 @@ import type { GridSortModel, GridFilterModel, GridPaginationModel } from '@mui/x
 
 import { useMemo, useCallback } from 'react';
 
-import { Card, Button } from '@mui/material';
+import { Box, Card, Button } from '@mui/material';
 
 import { paths } from 'src/routes/paths';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
+import { MetricCard } from 'src/components/metric-card';
 import { CustomDataGrid } from 'src/components/custom-data-grid';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
@@ -16,6 +17,7 @@ import { PermissionGuard } from 'src/auth/guard';
 
 import { userToFormValues } from '../helper';
 import { useUserList } from '../hooks/use-user-list';
+import { useUserMetrics } from '../hooks/use-user-metrics';
 import { useUserListTable } from '../hooks/use-user-list-table';
 import { useUserCadastroStore } from '../stores/user-cadastro-store';
 import { useUserSearchParams } from '../hooks/use-user-search-params';
@@ -29,6 +31,7 @@ export default function UserCadastroPage() {
     useUserCadastroStore();
 
   const { data, isLoading } = useUserList(searchParams);
+  const { data: metrics, isLoading: metricsLoading } = useUserMetrics();
 
   const { columns } = useUserListTable();
 
@@ -109,8 +112,50 @@ export default function UserCadastroPage() {
             </Button>
           </PermissionGuard>
         }
-        sx={{ mb: { xs: 3, md: 5 } }}
+        sx={{ mb: { xs: 2, md: 3 } }}
       />
+
+      <Box
+        sx={{
+          display: 'grid',
+          gap: 2,
+          mb: 3,
+          gridTemplateColumns: { xs: 'repeat(1, 1fr)', sm: 'repeat(3, 1fr)' },
+        }}
+      >
+        <MetricCard
+          label="Total de usuários"
+          value={metrics?.total}
+          icon="solar:user-rounded-bold"
+          tone="neutral"
+          loading={metricsLoading}
+          active={!searchParams.isAdmin}
+          onClick={() => setSearchParams({ isAdmin: '', page: 1 })}
+        />
+        <MetricCard
+          label="Administradores"
+          value={metrics?.admins}
+          icon="solar:users-group-rounded-bold-duotone"
+          tone="warning"
+          loading={metricsLoading}
+          active={searchParams.isAdmin === 'true'}
+          onClick={() =>
+            setSearchParams({ isAdmin: searchParams.isAdmin === 'true' ? '' : 'true', page: 1 })
+          }
+        />
+        <MetricCard
+          label="Regulares"
+          value={metrics?.regulares}
+          icon="solar:user-id-bold"
+          tone="success"
+          loading={metricsLoading}
+          active={searchParams.isAdmin === 'false'}
+          onClick={() =>
+            setSearchParams({ isAdmin: searchParams.isAdmin === 'false' ? '' : 'false', page: 1 })
+          }
+        />
+      </Box>
+
       <Card
         sx={{
           minHeight: 640,

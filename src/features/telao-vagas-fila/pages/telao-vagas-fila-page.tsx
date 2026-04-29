@@ -1,4 +1,4 @@
-import type { FilaItemTelao } from 'src/api/telao-vagas-fila/telao-vagas-fila';
+import type { FilaItemTelao, TelaoVagasFilaResponse } from 'src/api/telao-vagas-fila/telao-vagas-fila';
 
 import { useMemo, useState, useCallback, type ReactElement } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -36,8 +36,16 @@ const api = getTelaoVagasFila();
 const PAGE_SIZE = 8;
 
 function formatTelaoDate(value: string): string {
-  const d = new Date(value);
+  const d = new Date(value.includes('T') ? value : `${value}T00:00:00`);
   return Number.isNaN(d.getTime()) ? value : d.toLocaleDateString('pt-BR');
+}
+
+function formatTempoFila(tempo: { dias: number; horas: number; minutos: number }, compact = false): string {
+  const { dias, horas, minutos } = tempo;
+  if (compact) return `${dias}d ${horas}h`;
+  const parts: string[] = [`${dias} ${dias === 1 ? 'dia' : 'dias'}`, `${horas}h`];
+  if (minutos > 0) parts.push(`${minutos}min`);
+  return parts.join(' ');
 }
 
 function getFilaStatusPresentation(row: FilaItemTelao): {
@@ -106,6 +114,10 @@ export default function TelaoVagasFilaPage() {
   const [buscaFila, setBuscaFila] = useState('');
   const [pularOpen, setPularOpen] = useState(false);
   const [justificativa, setJustificativa] = useState('');
+  const [reposicionarOpen, setReposicionarOpen] = useState(false);
+  const [reposicionarDetentoId, setReposicionarDetentoId] = useState('');
+  const [reposicionarJustificativa, setReposicionarJustificativa] = useState('');
+  const [posicaoDestino, setPosicaoDestino] = useState<number | ''>('');
   const [vagaExpandida, setVagaExpandida] = useState<string | null>(null);
   const [historicoOpen, setHistoricoOpen] = useState(false);
 
@@ -147,6 +159,46 @@ export default function TelaoVagasFilaPage() {
     setFilaPage(1);
   }, []);
 
+  const mutReposicionar = useMutation({
+    mutationFn: () =>
+      api.pular({
+        detento_id: reposicionarDetentoId,
+        justificativa: reposicionarJustificativa,
+        ...(posicaoDestino !== '' ? { posicao_destino: posicaoDestino } : {}),
+      }),
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: ['telao-vagas-fila'] });
+      const prev = qc.getQueryData<TelaoVagasFilaResponse>(['telao-vagas-fila', empresaId, detentoId]);
+      qc.setQueryData<TelaoVagasFilaResponse>(['telao-vagas-fila', empresaId, detentoId], (old) => {
+        if (!old || posicaoDestino === '') return old;
+        const cloned = old.fila.map((f) => ({ ...f }));
+        const idxA = cloned.findIndex((f) => f.detento_id === reposicionarDetentoId);
+        const idxB = cloned.findIndex((f) => f.posicao === posicaoDestino);
+        if (idxA !== -1 && idxB !== -1) {
+          const posA = cloned[idxA].posicao;
+          cloned[idxA] = { ...cloned[idxA], posicao: cloned[idxB].posicao };
+          cloned[idxB] = { ...cloned[idxB], posicao: posA };
+          cloned.sort((a, b) => a.posicao - b.posicao);
+        }
+        return { ...old, fila: cloned };
+      });
+      return { prev };
+    },
+    onSuccess: () => {
+      toast.success('Reeducando reposicionado na fila');
+      setReposicionarOpen(false);
+      setReposicionarJustificativa('');
+      setPosicaoDestino('');
+    },
+    onError: (e: Error & { response?: { data?: { message?: string } } }, _, ctx) => {
+      if (ctx?.prev) qc.setQueryData(['telao-vagas-fila', empresaId, detentoId], ctx.prev);
+      toast.error(e?.response?.data?.message ?? e.message ?? 'Falha ao reposicionar');
+    },
+    onSettled: async () => {
+      await qc.invalidateQueries({ queryKey: ['telao-vagas-fila'] });
+    },
+  });
+
   const mutPular = useMutation({
     mutationFn: () =>
       api.pular({ detento_id: data?.selecionado?.detento_id ?? '', justificativa }),
@@ -168,8 +220,9 @@ export default function TelaoVagasFilaPage() {
       toast.success('Reserva criada');
       await qc.invalidateQueries({ queryKey: ['telao-vagas-fila'] });
     },
-    onError: (e: Error & { response?: { data?: { message?: string } } }) => {
+    onError: async (e: Error & { response?: { data?: { message?: string } } }) => {
       toast.error(e?.response?.data?.message ?? e.message ?? 'Falha na reserva');
+      await qc.invalidateQueries({ queryKey: ['telao-vagas-fila'] });
     },
   });
 
@@ -180,8 +233,9 @@ export default function TelaoVagasFilaPage() {
       toast.success('Alocação registrada (contrato ativo)');
       await qc.invalidateQueries({ queryKey: ['telao-vagas-fila'] });
     },
-    onError: (e: Error & { response?: { data?: { message?: string } } }) => {
+    onError: async (e: Error & { response?: { data?: { message?: string } } }) => {
       toast.error(e?.response?.data?.message ?? e.message ?? 'Falha na alocação');
+      await qc.invalidateQueries({ queryKey: ['telao-vagas-fila'] });
     },
   });
 
@@ -243,6 +297,10 @@ export default function TelaoVagasFilaPage() {
       ? data.empresas_com_vagas.find((e) => e.id === empresaId)?.razao_social
       : undefined;
   const vagasPosicoesAbertas = data.vagas.reduce((acc, v) => acc + v.quantidade_disponivel, 0);
+  const posicaoSelecionado = data.selecionado?.posicao_fila ?? 1;
+  const elegivelBloqueiaAlocacao = data.fila
+    .filter((f) => f.posicao < posicaoSelecionado)
+    .some((f) => f.status_visual === 'ELEGIVEL');
   const vagasElegiveis = data.vagas.filter((x) => x.elegivel).length;
   const progressoPct = data.vagas.length
     ? Math.round((vagasElegiveis / data.vagas.length) * 100)
@@ -556,7 +614,8 @@ export default function TelaoVagasFilaPage() {
                   >
                     <Stack direction="row" spacing={0} alignItems="flex-start">
                       <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Stack direction="row" spacing={0.75} alignItems="baseline">
+                        <Stack direction="row" spacing={0.75} alignItems="center" justifyContent="space-between">
+                          <Stack direction="row" spacing={0.75} alignItems="baseline" sx={{ minWidth: 0, flex: 1 }}>
                           <Typography
                             variant="caption"
                             sx={{
@@ -575,6 +634,37 @@ export default function TelaoVagasFilaPage() {
                           >
                             {row.nome}
                           </Typography>
+                          </Stack>
+                          <Stack direction="row" spacing={0.25} flexShrink={0}>
+                            {(['cima', 'baixo'] as const).map((dir) => {
+                              const disabled = dir === 'cima' ? row.posicao === 1 : row.posicao === data.fila.length;
+                              return (
+                                <Tooltip key={dir} title={dir === 'cima' ? 'Subir uma posição' : 'Descer uma posição'} placement="top" arrow>
+                                  <Box
+                                    component="span"
+                                    onClick={(e) => {
+                                      if (disabled) return;
+                                      e.stopPropagation();
+                                      setReposicionarDetentoId(row.detento_id);
+                                      setReposicionarJustificativa('');
+                                      setPosicaoDestino(dir === 'cima' ? row.posicao - 1 : row.posicao + 1);
+                                      setReposicionarOpen(true);
+                                    }}
+                                    sx={{
+                                      display: 'flex',
+                                      color: disabled ? 'action.disabled' : 'text.disabled',
+                                      cursor: disabled ? 'default' : 'pointer',
+                                      p: 0.25,
+                                      borderRadius: 0.5,
+                                      '&:hover': disabled ? {} : { color: 'warning.main', bgcolor: 'action.hover' },
+                                    }}
+                                  >
+                                    <Iconify icon={dir === 'cima' ? 'solar:double-alt-arrow-up-bold-duotone' : 'solar:double-alt-arrow-down-bold-duotone'} width={14} />
+                                  </Box>
+                                </Tooltip>
+                              );
+                            })}
+                          </Stack>
                         </Stack>
                         <Stack direction="row" alignItems="center" gap={0.5} sx={{ mt: 0.25 }}>
                           <Typography variant="caption" color="text.secondary" sx={{ fontSize: 11 }}>
@@ -586,7 +676,7 @@ export default function TelaoVagasFilaPage() {
                             style={{ opacity: 0.5, flexShrink: 0 }}
                           />
                           <Typography variant="caption" color="text.secondary" sx={{ fontSize: 11 }}>
-                            {row.dias_na_fila}d
+                            {formatTempoFila(row.dias_na_fila, true)}
                           </Typography>
                         </Stack>
                         <Stack direction="row" alignItems="center" gap={0.5} sx={{ mt: 0.5 }}>
@@ -742,7 +832,7 @@ export default function TelaoVagasFilaPage() {
                       },
                       {
                         k: 'Tempo na fila',
-                        v: `${data.selecionado.dias_na_fila} dias`,
+                        v: formatTempoFila(data.selecionado.dias_na_fila),
                         icon: 'solar:clock-circle-bold',
                       },
                       {
@@ -818,18 +908,6 @@ export default function TelaoVagasFilaPage() {
                   </Stack>
                 </Box>
 
-                {canPular && (
-                  <Button
-                    fullWidth
-                    sx={{ mt: 3 }}
-                    variant="outlined"
-                    color="warning"
-                    startIcon={<Iconify icon="solar:forward-bold" width={18} />}
-                    onClick={() => setPularOpen(true)}
-                  >
-                    Pular na fila
-                  </Button>
-                )}
               </Stack>
             ) : (
               <Stack
@@ -857,12 +935,33 @@ export default function TelaoVagasFilaPage() {
           <Box sx={colHeaderSx}>
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
               <Box sx={{ minWidth: 0 }}>
-                <Typography
-                  variant="overline"
-                  sx={{ fontWeight: 800, letterSpacing: 1.2, lineHeight: 1, display: 'block' }}
-                >
-                  Vagas Disponíveis
-                </Typography>
+                <Stack direction="row" alignItems="center" spacing={0.75}>
+                  <Typography
+                    variant="overline"
+                    sx={{ fontWeight: 800, letterSpacing: 1.2, lineHeight: 1 }}
+                  >
+                    Vagas Disponíveis
+                  </Typography>
+                  <Tooltip
+                    arrow
+                    placement="right"
+                    title={
+                      <Box sx={{ p: 0.5 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}>
+                          Ordenação das vagas
+                        </Typography>
+                        <Typography variant="caption" sx={{ display: 'block' }}>
+                          A sequência é definida pela data de início do convênio — convênios mais
+                          antigos aparecem primeiro.
+                        </Typography>
+                      </Box>
+                    }
+                  >
+                    <Box sx={{ display: 'flex', cursor: 'help', color: 'text.disabled' }}>
+                      <Iconify icon="solar:info-circle-bold" width={15} />
+                    </Box>
+                  </Tooltip>
+                </Stack>
                 <Typography variant="caption" color="text.secondary">
                   {data.vagas.length} {data.vagas.length === 1 ? 'vaga' : 'vagas'}
                   {empresaFiltroNome ? ` · ${empresaFiltroNome}` : ''}
@@ -911,32 +1010,59 @@ export default function TelaoVagasFilaPage() {
                   >
                     {/* Score + título + toggle */}
                     <Stack direction="row" spacing={1.5} alignItems="flex-start">
-                      <Box
-                        sx={{
-                          width: 52,
-                          height: 52,
-                          borderRadius: '50%',
-                          border: `3px solid ${v.elegivel ? theme.palette.success.main : theme.palette.divider}`,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0,
-                          bgcolor: v.elegivel
-                            ? alpha(theme.palette.success.main, 0.08)
-                            : 'action.hover',
-                        }}
+                      <Tooltip
+                        arrow
+                        placement="right"
+                        title={
+                          v.criterios.length > 0 ? (
+                            <Box sx={{ p: 0.5, minWidth: 180 }}>
+                              <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 1 }}>
+                                Score: {v.score} — {v.criterios.filter((c) => c.ok).length}/{v.criterios.length} critérios
+                              </Typography>
+                              <Stack spacing={0.4}>
+                                {v.criterios.map((c) => (
+                                  <Typography
+                                    key={c.chave}
+                                    variant="caption"
+                                    sx={{ color: c.ok ? 'success.light' : 'error.light', display: 'block' }}
+                                  >
+                                    {c.ok ? '✓' : '✗'} {c.label}
+                                    {c.detalhe ? ` — ${c.detalhe}` : ''}
+                                  </Typography>
+                                ))}
+                              </Stack>
+                            </Box>
+                          ) : ''
+                        }
                       >
-                        <Typography
-                          variant="subtitle1"
+                        <Box
                           sx={{
-                            fontWeight: 800,
-                            color: v.elegivel ? 'success.main' : 'text.disabled',
-                            lineHeight: 1,
+                            width: 52,
+                            height: 52,
+                            borderRadius: '50%',
+                            border: `3px solid ${v.elegivel ? theme.palette.success.main : theme.palette.divider}`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                            cursor: v.criterios.length > 0 ? 'help' : 'default',
+                            bgcolor: v.elegivel
+                              ? alpha(theme.palette.success.main, 0.08)
+                              : 'action.hover',
                           }}
                         >
-                          {v.score}
-                        </Typography>
-                      </Box>
+                          <Typography
+                            variant="subtitle1"
+                            sx={{
+                              fontWeight: 800,
+                              color: v.elegivel ? 'success.main' : 'text.disabled',
+                              lineHeight: 1,
+                            }}
+                          >
+                            {v.score}
+                          </Typography>
+                        </Box>
+                      </Tooltip>
 
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Stack direction="row" alignItems="center" spacing={0.75} flexWrap="wrap">
@@ -951,6 +1077,14 @@ export default function TelaoVagasFilaPage() {
                               sx={{ height: 18, fontSize: 10, fontWeight: 700, px: 0.25 }}
                             />
                           )}
+                        </Stack>
+
+                        <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.35 }}>
+                          <Iconify icon="solar:calendar-date-bold" width={13} sx={{ color: 'primary.main', flexShrink: 0 }} />
+                          <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                            Início:{' '}
+                            {formatTelaoDate(v.convenio_data_inicio)}
+                          </Typography>
                         </Stack>
 
                         <Stack direction="row" flexWrap="wrap" alignItems="center" gap={1} sx={{ mt: 0.4 }}>
@@ -1086,39 +1220,46 @@ export default function TelaoVagasFilaPage() {
 
                     {/* Botões */}
                     <Stack direction="row" spacing={1} sx={{ mt: 1.5 }}>
-                      <Button
-                        size="small"
-                        variant="contained"
-                        color="success"
-                        disabled={!canAlocar || !v.elegivel || v.quantidade_disponivel <= 0}
-                        startIcon={<Iconify icon="solar:user-plus-bold" width={15} />}
-                        onClick={() => mutAlocar.mutate(v.convenio_vaga_id)}
-                        sx={{ fontWeight: 700, borderRadius: 1.5, flex: 1 }}
+                      <Tooltip
+                        title={elegivelBloqueiaAlocacao ? 'Há reeducando elegível à frente na fila' : ''}
+                        placement="top"
+                        arrow
                       >
-                        Alocar
-                      </Button>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        color="inherit"
-                        disabled={!canReservar || !v.elegivel || v.quantidade_disponivel <= 0}
-                        startIcon={<Iconify icon="solar:suitcase-tag-bold" width={15} />}
-                        onClick={() => mutReservar.mutate(v.convenio_vaga_id)}
-                        sx={{ fontWeight: 700, borderRadius: 1.5, flex: 1 }}
+                        <span style={{ flex: 1 }}>
+                          <Button
+                            fullWidth
+                            size="small"
+                            variant="contained"
+                            color="success"
+                            disabled={!canAlocar || !v.elegivel || v.quantidade_disponivel <= 0 || elegivelBloqueiaAlocacao}
+                            startIcon={<Iconify icon="solar:user-plus-bold" width={15} />}
+                            onClick={() => mutAlocar.mutate(v.convenio_vaga_id)}
+                            sx={{ fontWeight: 700, borderRadius: 1.5 }}
+                          >
+                            Alocar
+                          </Button>
+                        </span>
+                      </Tooltip>
+                      <Tooltip
+                        title={elegivelBloqueiaAlocacao ? 'Há reeducando elegível à frente na fila' : ''}
+                        placement="top"
+                        arrow
                       >
-                        Reservar
-                      </Button>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        color="warning"
-                        disabled={!canPular || !data.selecionado}
-                        startIcon={<Iconify icon="solar:forward-bold" width={15} />}
-                        onClick={() => setPularOpen(true)}
-                        sx={{ fontWeight: 700, borderRadius: 1.5, flex: 1 }}
-                      >
-                        Pular
-                      </Button>
+                        <span style={{ flex: 1 }}>
+                          <Button
+                            fullWidth
+                            size="small"
+                            variant="outlined"
+                            color="inherit"
+                            disabled={!canReservar || !v.elegivel || v.quantidade_disponivel <= 0 || elegivelBloqueiaAlocacao}
+                            startIcon={<Iconify icon="solar:suitcase-tag-bold" width={15} />}
+                            onClick={() => mutReservar.mutate(v.convenio_vaga_id)}
+                            sx={{ fontWeight: 700, borderRadius: 1.5 }}
+                          >
+                            Reservar
+                          </Button>
+                        </span>
+                      </Tooltip>
                     </Stack>
 
                     {/* Critérios expandidos */}
@@ -1152,7 +1293,41 @@ export default function TelaoVagasFilaPage() {
         </Box>
       </Box>
 
-      {/* ─── Dialog: Pular ─── */}
+      {/* ─── Dialog: Reposicionar na fila ─── */}
+      <Dialog open={reposicionarOpen} onClose={() => setReposicionarOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>
+          Mover para posição {posicaoDestino}
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            fullWidth
+            multiline
+            minRows={3}
+            sx={{ mt: 1 }}
+            label="Justificativa"
+            value={reposicionarJustificativa}
+            onChange={(e) => setReposicionarJustificativa(e.target.value)}
+            helperText="Mínimo 5 caracteres"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setReposicionarOpen(false)}>Cancelar</Button>
+          <Button
+            variant="contained"
+            color="warning"
+            disabled={
+              posicaoDestino === '' ||
+              reposicionarJustificativa.trim().length < 5 ||
+              mutReposicionar.isPending
+            }
+            onClick={() => mutReposicionar.mutate()}
+          >
+            Reposicionar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Dialog open={pularOpen} onClose={() => setPularOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>Justificativa obrigatória</DialogTitle>
         <DialogContent>

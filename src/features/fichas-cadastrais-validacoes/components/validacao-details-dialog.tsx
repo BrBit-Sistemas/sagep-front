@@ -195,7 +195,7 @@ export const ValidacaoDetailsDialog = () => {
               onClick={openReprovar}
               disabled={busy}
             >
-              Requerer correção
+              Reprovar ficha
             </Button>
           )}
 

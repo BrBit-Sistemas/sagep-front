@@ -38,7 +38,7 @@ export const getUsuários = () => {
    * @summary Listar todos os usuários
    */
   const paginate = (
-    params?: UsuarioControllerPaginateParams,
+    params?: UsuarioControllerPaginateParams & { isAdmin?: boolean },
     options?: SecondParameter<typeof customInstance>
   ) => customInstance<PaginateUsuarioDto>({ url: `/usuarios`, method: 'GET', params }, options);
   /**
@@ -68,8 +68,14 @@ export const getUsuários = () => {
    */
   const remove = (id: string, options?: SecondParameter<typeof customInstance>) =>
     customInstance<void>({ url: `/usuarios/${id}`, method: 'DELETE' }, options);
-  return { create, paginate, findOne, update, remove };
+
+  const metrics = (options?: SecondParameter<typeof customInstance>) =>
+    customInstance<UsuarioMetricsDto>({ url: `/usuarios/metrics`, method: 'GET' }, options);
+
+  return { create, paginate, findOne, update, remove, metrics };
 };
+
+export type UsuarioMetricsDto = { total: number; admins: number; regulares: number };
 export type CreateResult = NonNullable<
   Awaited<ReturnType<ReturnType<typeof getUsuários>['create']>>
 >;

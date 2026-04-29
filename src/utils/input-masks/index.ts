@@ -8,6 +8,7 @@ export {
 
 export {
   formatCepFromStorage,
+  formatCnpjFromStorage,
   formatTimeHmFromStorage,
   formatDocumentoBrFromStorage,
   formatPhoneBrMobileFromStorage,

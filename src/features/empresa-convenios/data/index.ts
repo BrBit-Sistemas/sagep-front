@@ -1,11 +1,12 @@
-import type { EmpresaConvenio } from '../types';
-import type { CrudService, PaginatedParams } from 'src/types';
+import type { CrudService } from 'src/types';
+import type { EmpresaConvenio, EmpresaConvenioListParams } from '../types';
 import type { CreateEmpresaConvenioSchema, UpdateEmpresaConvenioSchema } from '../schemas';
 
 import {
   getEmpresaConvenios,
   type ReadEmpresaConvenioDto,
   type CreateEmpresaConvenioDto,
+  type EmpresaConvenioMetricsDto,
   type PaginateEmpresaConvenioDto,
   type CreateConvenioDistribuicaoProfissaoDto,
 } from 'src/api/empresa-convenios/empresa-convenios';
@@ -102,12 +103,19 @@ export const empresaConvenioService: CrudService<
   EmpresaConvenio,
   CreateEmpresaConvenioSchema,
   UpdateEmpresaConvenioSchema,
-  PaginatedParams
+  EmpresaConvenioListParams
 > = {
-  paginate: async ({ page, limit, search }) => {
+  paginate: async ({ page, limit, search, modalidade, status, vigencia }) => {
     const api = getEmpresaConvenios();
     const backendPage = typeof page === 'number' ? Math.max(0, page - 1) : 0;
-    const res: PaginateEmpresaConvenioDto = await api.findAll({ page: backendPage, limit, search });
+    const res: PaginateEmpresaConvenioDto = await api.findAll({
+      page: backendPage,
+      limit,
+      search,
+      ...(modalidade ? { modalidade } : {}),
+      ...(status ? { status: status as 'ativo' | 'encerrado' } : {}),
+      ...(vigencia ? { vigencia: vigencia as 'ativa' | 'encerrada' } : {}),
+    });
     return {
       totalPages: res.totalPages,
       page: (res.page ?? 0) + 1,
@@ -147,9 +155,8 @@ const fromApi = (dto: ReadEmpresaConvenioDto): EmpresaConvenio => ({
   max_reeducandos: dto.max_reeducandos ?? null,
   permite_variacao_quantidade: dto.permite_variacao_quantidade ?? true,
   permite_bonus_produtividade: dto.permite_bonus_produtividade ?? false,
-  percentual_gestao: dto.percentual_gestao ?? null,
-  percentual_contrapartida: dto.percentual_contrapartida ?? null,
   data_fim: dto.data_fim ?? null,
+  data_repactuacao: dto.data_repactuacao ?? null,
   possui_seguro_acidente: dto.possui_seguro_acidente ?? false,
   template_contrato_id: dto.template_contrato_id,
   template_codigo: dto.template_codigo ?? null,
@@ -221,6 +228,10 @@ const serializeDto = (data: CreateEmpresaConvenioSchema | UpdateEmpresaConvenioS
     data_fim:
       data.data_fim != null && String(data.data_fim).trim() !== ''
         ? String(data.data_fim).trim()
+        : null,
+    data_repactuacao:
+      data.data_repactuacao != null && String(data.data_repactuacao).trim() !== ''
+        ? String(data.data_repactuacao).trim()
         : null,
     tipo_calculo_remuneracao: data.tipo_calculo_remuneracao,
     usa_nivel: data.usa_nivel,
@@ -294,4 +305,9 @@ const serializeDto = (data: CreateEmpresaConvenioSchema | UpdateEmpresaConvenioS
       distribuicao_profissoes.length > 0 ? distribuicao_profissoes : undefined,
   };
   return body;
+};
+
+export const empresaConvenioMetrics = async (): Promise<EmpresaConvenioMetricsDto> => {
+  const api = getEmpresaConvenios();
+  return api.metrics();
 };

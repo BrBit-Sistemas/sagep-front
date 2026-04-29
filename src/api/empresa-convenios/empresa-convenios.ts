@@ -49,6 +49,7 @@ export type CreateEmpresaConvenioDto = {
   permite_variacao_quantidade?: boolean;
   data_inicio: string;
   data_fim?: string | null;
+  data_repactuacao?: string | null;
   tipo_calculo_remuneracao: TipoCalculoRemuneracao;
   usa_nivel: boolean;
   valor_nivel_i?: number;
@@ -187,7 +188,22 @@ export type PaginateEmpresaConvenioDto = {
   hasPrevPage: boolean;
 };
 
-export type ListParams = { page?: number; limit?: number; search?: string };
+export type ListParams = {
+  page?: number;
+  limit?: number;
+  search?: string;
+  modalidade?: string;
+  status?: 'ativo' | 'encerrado';
+  vigencia?: 'ativa' | 'encerrada';
+};
+
+export type EmpresaConvenioMetricsDto = {
+  total: number;
+  ativos: number;
+  encerrados: number;
+  intramuros: number;
+  extramuros: number;
+};
 
 export const getEmpresaConvenios = () => {
   const base = '/empresa-convenios';
@@ -237,5 +253,17 @@ export const getEmpresaConvenios = () => {
   const remove = (id: string, options?: Parameters<typeof customInstance>[1]) =>
     customInstance<void>({ url: `${base}/${id}`, method: 'DELETE' }, options);
 
-  return { create, findAll, findOne, getContratoPreview, gerarContratoPdf, update, remove };
+  const metrics = (options?: Parameters<typeof customInstance>[1]) =>
+    customInstance<EmpresaConvenioMetricsDto>({ url: `${base}/metrics`, method: 'GET' }, options);
+
+  return {
+    create,
+    findAll,
+    findOne,
+    getContratoPreview,
+    gerarContratoPdf,
+    update,
+    remove,
+    metrics,
+  };
 };

@@ -3,6 +3,8 @@ import type { CodigoTemplateContrato } from 'src/api/empresa-convenios/convenio-
 
 import { z } from 'zod';
 
+import { schemaHelper } from 'src/components/hook-form';
+
 export const modalidadesExecucao: ModalidadeExecucao[] = ['INTRAMUROS', 'EXTRAMUROS'];
 
 function isHorarioHmValid(s: string): boolean {
@@ -96,12 +98,7 @@ const responsavelRowSchema = z.object({
   nome: z.string().optional(),
   cargo: z.string().optional(),
   documento: z.string().optional(),
-  email: z
-    .string()
-    .optional()
-    .refine((v) => !v || v === '' || z.string().email().safeParse(v).success, {
-      message: 'E-mail inválido',
-    }),
+  email: schemaHelper.email(),
   telefone: z.string().optional(),
 });
 
@@ -116,6 +113,25 @@ const distribuicaoProfissaoRowSchema = z.object({
   quantidade: z.coerce.number().int().min(0).default(0),
   nivel: nivelDistribuicaoSchema,
   observacao: z.string().optional(),
+});
+
+export const GRAUS_DESEMPENHO = [
+  { grau: 'G', nome: 'Satisfatório', percentual: 10 },
+  { grau: 'F', nome: 'Convincente', percentual: 15 },
+  { grau: 'E', nome: 'Bom', percentual: 20 },
+  { grau: 'D', nome: 'Ótimo', percentual: 25 },
+  { grau: 'C', nome: 'Excelente', percentual: 30 },
+  { grau: 'B', nome: 'Extraordinário', percentual: 35 },
+  { grau: 'A', nome: 'Esplêndido', percentual: 40 },
+] as const;
+
+const grauLinhaSchema = z.object({
+  grau: z.string(),
+  nome: z.string(),
+  percentual: z.coerce.number().min(0, 'Mínimo 0%').max(100, 'Máximo 100%'),
+  nivel_i: z.coerce.number().nullable().optional(),
+  nivel_ii: z.coerce.number().nullable().optional(),
+  nivel_iii: z.coerce.number().nullable().optional(),
 });
 
 export const empresaConvenioBaseSchema = z.object({
@@ -149,11 +165,12 @@ export const empresaConvenioBaseSchema = z.object({
   quantidade_nivel_iii: optionalIntNonNeg,
   permite_bonus_produtividade: z.boolean().default(false),
   bonus_produtividade_descricao: z.string().optional(),
-  bonus_produtividade_tabela_json_raw: z.string().optional(),
+  bonus_produtividade_linhas: z.array(grauLinhaSchema).optional(),
   percentual_gestao: optionalPercent,
   percentual_contrapartida: optionalPercent,
   data_inicio: z.string().min(1, 'Data de início é obrigatória'),
   data_fim: z.string().optional().nullable(),
+  data_repactuacao: z.string().optional().nullable(),
   observacoes: z.string().optional(),
   numero_contrato_sequencial: z.string().optional(),
   ano_contrato: z
@@ -207,25 +224,20 @@ export type ReadTemplateContratoLike = {
   codigo: CodigoTemplateContrato;
 };
 
-const parseBonusJson = (raw: string | undefined): Record<string, unknown>[] | undefined => {
-  const t = raw?.trim();
-  if (!t) return undefined;
-  try {
-    const p = JSON.parse(t) as unknown;
-    return Array.isArray(p) ? (p as Record<string, unknown>[]) : undefined;
-  } catch {
-    return undefined;
-  }
-};
-
 export const buildEmpresaConvenioSchema = (templates: ReadTemplateContratoLike[]) =>
   empresaConvenioBaseSchema
     .transform((data) => {
-      const bonusJson = parseBonusJson(data.bonus_produtividade_tabela_json_raw);
-      const numeroSequencial = String(data.numero_contrato_sequencial ?? '')
+      const { bonus_produtividade_linhas, numero_contrato_sequencial, ano_contrato, ...rest } =
+        data;
+      const bonusJson = bonus_produtividade_linhas?.map(({ grau, nome, percentual }) => ({
+        grau,
+        nome,
+        percentual,
+      }));
+      const numeroSequencial = String(numero_contrato_sequencial ?? '')
         .replace(/\D/g, '')
         .trim();
-      const anoContrato = String(data.ano_contrato ?? '').trim();
+      const anoContrato = String(ano_contrato ?? '').trim();
       const numeroContrato =
         numeroSequencial !== '' && anoContrato !== ''
           ? `${numeroSequencial}/${anoContrato}`
@@ -233,18 +245,9 @@ export const buildEmpresaConvenioSchema = (templates: ReadTemplateContratoLike[]
       const processoSei = String(data.processo_sei ?? '').trim() || undefined;
       const docSei = String(data.doc_sei ?? '').trim() || undefined;
       const siggoNumero = String(data.siggo_numero ?? '').trim() || undefined;
-      const {
-        bonus_produtividade_tabela_json_raw: bonusRaw,
-        numero_contrato_sequencial: numeroSequencialIgnorado,
-        ano_contrato: anoContratoIgnorado,
-        ...rest
-      } = data;
-      void bonusRaw;
-      void numeroSequencialIgnorado;
-      void anoContratoIgnorado;
       return {
         ...rest,
-        bonus_produtividade_tabela_json: bonusJson,
+        bonus_produtividade_tabela_json: bonusJson?.length ? bonusJson : undefined,
         numero_contrato: numeroContrato,
         processo_sei: processoSei,
         doc_sei: docSei,
@@ -273,15 +276,15 @@ export const buildEmpresaConvenioSchema = (templates: ReadTemplateContratoLike[]
       const permiteBonus = data.permite_bonus_produtividade === true;
       if (permiteBonus) {
         const hasTabela = Boolean(String(data.tabela_produtividade_id || '').trim());
-        const hasJson =
+        const hasLinhas =
           Array.isArray(data.bonus_produtividade_tabela_json) &&
           data.bonus_produtividade_tabela_json.length > 0;
         const hasDesc = Boolean(data.bonus_produtividade_descricao?.trim());
-        if (!hasTabela && !hasJson && !hasDesc) {
+        if (!hasTabela && !hasLinhas && !hasDesc) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message:
-              'Informe descrição do bônus, JSON da tabela ou tabela de produtividade cadastrada',
+              'Preencha a tabela de desempenho, selecione uma tabela cadastrada ou informe a descrição do bônus',
             path: ['bonus_produtividade_descricao'],
           });
         }
@@ -430,13 +433,6 @@ export const buildEmpresaConvenioSchema = (templates: ReadTemplateContratoLike[]
       }
       (data.responsaveis ?? []).forEach((r, idx) => {
         if (!r.nome?.trim()) return;
-        if (r.email && r.email !== '' && !z.string().email().safeParse(r.email).success) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'E-mail inválido',
-            path: ['responsaveis', idx, 'email'],
-          });
-        }
       });
     });
 
