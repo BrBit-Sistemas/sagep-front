@@ -219,6 +219,10 @@ function renderPreviewBody(data: ContratoPreviewDto) {
               label="Vigência"
               value={`${formatDateToDDMMYYYY(data.data_inicio)} — ${data.data_fim ? formatDateToDDMMYYYY(data.data_fim) : 'Sem data fim'}`}
             />
+            <PreviewField
+              label="Repactuação"
+              value={data.data_repactuacao ? formatDateToDDMMYYYY(data.data_repactuacao) : '—'}
+            />
           </Stack>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             <PreviewField
@@ -534,6 +538,16 @@ function renderPreviewBody(data: ContratoPreviewDto) {
               label="Bônus produtividade"
               value={data.permite_bonus_produtividade ? 'Sim' : 'Não'}
             />
+            <PreviewField
+              label="Percentual gestão"
+              value={data.percentual_gestao != null ? `${data.percentual_gestao}%` : '—'}
+            />
+            <PreviewField
+              label="Percentual contrapartida"
+              value={
+                data.percentual_contrapartida != null ? `${data.percentual_contrapartida}%` : '—'
+              }
+            />
           </Stack>
           {data.bonus_produtividade_descricao ? (
             <PreviewField
@@ -589,12 +603,20 @@ function renderPreviewBody(data: ContratoPreviewDto) {
           {(
             [
               'observacoes',
+              'observacao_juridica',
+              'clausula_adicional',
+              'descricao_complementar_objeto',
+              'observacao_operacional',
             ] as const
           ).flatMap((key) => {
             const v = data[key];
             if (typeof v !== 'string' || !v.trim()) return [];
             const labels = {
               observacoes: 'Observações gerais',
+              observacao_juridica: 'Observação jurídica',
+              clausula_adicional: 'Cláusula adicional',
+              descricao_complementar_objeto: 'Descrição complementar do objeto',
+              observacao_operacional: 'Observação operacional',
             } as const;
             return [
               <PreviewField
@@ -722,6 +744,7 @@ export default function ConvenioContratoPreviewPage() {
               <Button
                 variant="contained"
                 color="primary"
+                data-testid="contrato-gerar-pdf-button"
                 startIcon={
                   isGerandoPdf ? (
                     <CircularProgress size={18} color="inherit" />
@@ -755,6 +778,7 @@ export default function ConvenioContratoPreviewPage() {
       ) : data ? (
         <Card
           id="contrato-preview-documento"
+          data-testid="contrato-preview-documento"
           sx={{
             p: { xs: 3, md: 5 },
             '@media print': { boxShadow: 'none', borderRadius: 0 },

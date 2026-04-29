@@ -160,6 +160,7 @@ export type ContratoPreviewDto = {
   siggo_numero?: string | null;
   data_inicio: string;
   data_fim?: string | null;
+  data_repactuacao?: string | null;
   remuneracao_beneficios: ContratoPreviewRemuneracaoBeneficiosDto;
   permite_bonus_produtividade: boolean;
   bonus_produtividade_descricao?: string | null;
