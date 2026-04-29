@@ -115,6 +115,72 @@ test.describe('Empresa Convênios — contratos', () => {
 
     await popup.close();
   });
+
+  test('salva cargo/qualidade do preposto pelo formulário e usa no PDF', async ({
+    page,
+    authenticatedApi,
+  }, testInfo) => {
+    test.setTimeout(180_000);
+
+    const prepared = await prepareContratoConvenio(authenticatedApi, {
+      index: 1,
+      seed: `preposto-${Date.now()}`,
+      templateCode: 'PADRAO_FUNAP',
+    });
+    const prepostoInicial = prepared.payload.responsaveis?.find(
+      (responsavel) => responsavel.tipo === 'PREPOSTO_OPERACIONAL'
+    );
+    const cargoAtualizado = `${prepared.marker} Qualidade Preposto Assinatura`;
+
+    await page.goto(`/laboral/convenios/${prepared.convenio.convenio_id}/edit`);
+    await page.getByRole('tab', { name: /Responsáveis/i }).click();
+
+    const cargoPrepostoField = page.getByLabel('Cargo / qualidade');
+    await expect(cargoPrepostoField).toBeVisible();
+    await expect(cargoPrepostoField).toHaveValue(prepostoInicial?.cargo ?? '');
+
+    await cargoPrepostoField.fill(cargoAtualizado);
+
+    const updateResponsePromise = page.waitForResponse(
+      (response) =>
+        response.url().includes(`/empresa-convenios/${prepared.convenio.convenio_id}`) &&
+        response.request().method() === 'PUT'
+    );
+
+    await page.getByRole('button', { name: /^Salvar$/i }).click();
+
+    const updateResponse = await updateResponsePromise;
+    expect(updateResponse.ok()).toBeTruthy();
+    await expect(page).toHaveURL(
+      new RegExp(`/laboral/convenios/${prepared.convenio.convenio_id}/contrato-preview$`)
+    );
+
+    const preview = await getContratoPreview(authenticatedApi, prepared.convenio.convenio_id);
+    const prepostoPreview = preview.responsaveis.find(
+      (responsavel) => responsavel.tipo === 'PREPOSTO_OPERACIONAL'
+    );
+    expect(prepostoPreview?.cargo).toBe(cargoAtualizado);
+
+    const previewDocument = page.getByTestId('contrato-preview-documento');
+    await expect(previewDocument).toBeVisible();
+    await expectLocatorContainsFields(previewDocument, [cargoAtualizado]);
+
+    const result = await gerarContratoPdf(authenticatedApi, prepared.convenio.convenio_id);
+    const artifact = await saveContratoPdfArtifact(
+      authenticatedApi,
+      result,
+      testInfo,
+      `${prepared.marker}-preposto-cargo`
+    );
+
+    expect(artifact.bytes).toBeGreaterThan(0);
+    expectTextContainsFields(artifact.text, [
+      cargoAtualizado,
+      prepostoPreview?.nome ?? '',
+      prepared.empresa.razao_social,
+    ]);
+    expect(artifact.text).not.toContain('___________________');
+  });
 });
 
 test.describe('Empresa Convênios — geração concorrente de contratos', () => {

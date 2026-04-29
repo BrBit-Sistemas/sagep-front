@@ -135,9 +135,12 @@ export async function getContratoPreview(
 
 export async function gerarContratoPdf(
   api: APIRequestContext,
-  convenioId: string
+  convenioId: string,
+  timeout = 180_000
 ): Promise<GerarContratoPdfResponseDto> {
-  const response = await api.post(`/empresa-convenios/${convenioId}/gerar-contrato-pdf`);
+  const response = await api.post(`/empresa-convenios/${convenioId}/gerar-contrato-pdf`, {
+    timeout,
+  });
   return parseJsonResponse<GerarContratoPdfResponseDto>(response);
 }
 
@@ -196,8 +199,8 @@ function buildConvenioPayload(options: {
     permite_bonus_produtividade: true,
     bonus_produtividade_descricao: `${marker} bonus produtividade`,
     bonus_produtividade_tabela_json: [
-      { faixa: `${marker} faixa ouro`, percentual: 40 },
-      { faixa: `${marker} faixa prata`, percentual: 20 },
+      { grau: 'A', nome: `${marker} faixa ouro`, percentual: 40 },
+      { grau: 'B', nome: `${marker} faixa prata`, percentual: 20 },
     ],
     percentual_gestao: 12.5,
     percentual_contrapartida: 7.5,
@@ -301,8 +304,8 @@ function buildExpectedFields(options: {
     payload.observacao_seguro ?? '',
     payload.observacao_beneficio ?? '',
     payload.bonus_produtividade_descricao ?? '',
-    String(payload.bonus_produtividade_tabela_json?.[0]?.faixa ?? ''),
-    String(payload.bonus_produtividade_tabela_json?.[1]?.faixa ?? ''),
+    String(payload.bonus_produtividade_tabela_json?.[0]?.nome ?? ''),
+    String(payload.bonus_produtividade_tabela_json?.[1]?.nome ?? ''),
     payload.observacoes ?? '',
     payload.observacao_juridica ?? '',
     payload.clausula_adicional ?? '',
@@ -401,6 +404,18 @@ export function expectContratoPreviewMatchesPayload(
   prepared: PreparedContratoConvenio
 ): void {
   const { payload, template } = prepared;
+  const representantePayload = payload.responsaveis?.find(
+    (responsavel) => responsavel.tipo === 'REPRESENTANTE_LEGAL'
+  );
+  const prepostoPayload = payload.responsaveis?.find(
+    (responsavel) => responsavel.tipo === 'PREPOSTO_OPERACIONAL'
+  );
+  const representantePreview = preview.responsaveis.find(
+    (responsavel) => responsavel.tipo === 'REPRESENTANTE_LEGAL'
+  );
+  const prepostoPreview = preview.responsaveis.find(
+    (responsavel) => responsavel.tipo === 'PREPOSTO_OPERACIONAL'
+  );
 
   expect(preview.convenio_id).toBe(prepared.convenio.convenio_id);
   expect(preview.template_codigo).toBe(template.codigo);
@@ -422,6 +437,8 @@ export function expectContratoPreviewMatchesPayload(
   expect(preview.remuneracao_beneficios.observacao_beneficio).toBe(payload.observacao_beneficio);
   expect(preview.bonus_produtividade_descricao).toBe(payload.bonus_produtividade_descricao);
   expect(preview.responsaveis).toHaveLength(payload.responsaveis?.length ?? 0);
+  expect(representantePreview?.cargo).toBe(representantePayload?.cargo);
+  expect(prepostoPreview?.cargo).toBe(prepostoPayload?.cargo);
   expect(preview.locais_execucao).toHaveLength(payload.locais_execucao?.length ?? 0);
   expect(preview.distribuicao_profissoes).toHaveLength(
     payload.distribuicao_profissoes?.length ?? 0

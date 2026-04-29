@@ -1366,6 +1366,9 @@ export default function EmpresaConvenioFormPage() {
               <Field.Text name="responsaveis.1.nome" label="Nome" />
             </Grid>
             <Grid size={{ md: 6, sm: 12 }}>
+              <Field.Text name="responsaveis.1.cargo" label="Cargo / qualidade" />
+            </Grid>
+            <Grid size={{ md: 6, sm: 12 }}>
               <Field.Text name="responsaveis.1.email" label="E-mail" type="email" />
             </Grid>
             <Grid size={{ md: 6, sm: 12 }}>
