@@ -36,6 +36,11 @@ function expectTextContainsFields(text: string, fields: string[]): void {
   expect(missing, `Campos ausentes no contrato/preview: ${missing.join(', ')}`).toEqual([]);
 }
 
+function expectContratoPdfSemSecaoParametrizada(text: string): void {
+  const normalizedText = normalizeForSearch(text);
+  expect(normalizedText).not.toContain(normalizeForSearch('Dados parametrizados do convênio'));
+}
+
 async function expectLocatorContainsFields(locator: Locator, fields: string[]): Promise<void> {
   const text = (await locator.textContent()) ?? '';
   expectTextContainsFields(text, fields);
@@ -112,6 +117,7 @@ test.describe('Empresa Convênios — contratos', () => {
     );
     expect(artifact.bytes).toBeGreaterThan(0);
     expectTextContainsFields(artifact.text, prepared.pdfFields);
+    expectContratoPdfSemSecaoParametrizada(artifact.text);
 
     await popup.close();
   });
@@ -180,6 +186,7 @@ test.describe('Empresa Convênios — contratos', () => {
       prepared.empresa.razao_social,
     ]);
     expect(artifact.text).not.toContain('___________________');
+    expectContratoPdfSemSecaoParametrizada(artifact.text);
   });
 });
 
@@ -226,6 +233,7 @@ test.describe('Empresa Convênios — geração concorrente de contratos', () =>
 
             expect(artifact.bytes).toBeGreaterThan(0);
             expectTextContainsFields(artifact.text, prepared.pdfFields);
+            expectContratoPdfSemSecaoParametrizada(artifact.text);
 
             return {
               convenio_id: prepared.convenio.convenio_id,

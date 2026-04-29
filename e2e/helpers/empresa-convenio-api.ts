@@ -281,9 +281,16 @@ function buildExpectedFields(options: {
   marker: string;
   payload: CreateEmpresaConvenioDto;
   profissoes: ProfissaoResponse[];
+  template: ReadTemplateContratoDto;
 }): { pdfFields: string[]; previewFields: string[] } {
-  const { empresa, marker, payload, profissoes } = options;
-  const commonFields = [
+  const { empresa, marker, payload, profissoes, template } = options;
+  const representante = payload.responsaveis?.find(
+    (responsavel) => responsavel.tipo === 'REPRESENTANTE_LEGAL'
+  );
+  const preposto = payload.responsaveis?.find(
+    (responsavel) => responsavel.tipo === 'PREPOSTO_OPERACIONAL'
+  );
+  const previewFields = [
     marker,
     empresa.razao_social,
     onlyDigits(empresa.cnpj),
@@ -328,9 +335,31 @@ function buildExpectedFields(options: {
     profissoes[2].nome,
   ].filter(Boolean);
 
+  const pdfFields =
+    template.codigo === 'PADRAO_ORGAO_PUBLICO_GDF'
+      ? [
+          payload.numero_contrato ?? '',
+          payload.processo_sei ?? '',
+          payload.doc_sei ?? '',
+          payload.siggo_numero ?? '',
+          formatDateBR(payload.data_inicio),
+          representante?.nome ?? '',
+          representante?.cargo ?? '',
+          preposto?.nome ?? '',
+          preposto?.cargo ?? '',
+        ].filter(Boolean)
+      : [
+          empresa.razao_social,
+          onlyDigits(empresa.cnpj),
+          representante?.nome ?? '',
+          representante?.cargo ?? '',
+          preposto?.nome ?? '',
+          preposto?.cargo ?? '',
+        ].filter(Boolean);
+
   return {
-    pdfFields: commonFields,
-    previewFields: commonFields.filter((field) => !field.includes('@playwright.test')),
+    pdfFields,
+    previewFields: previewFields.filter((field) => !field.includes('@playwright.test')),
   };
 }
 
@@ -364,7 +393,13 @@ export async function prepareContratoConvenio(
     template,
   });
   const convenio = await createEmpresaConvenio(api, payload);
-  const expectedFields = buildExpectedFields({ empresa, marker, payload, profissoes });
+  const expectedFields = buildExpectedFields({
+    empresa,
+    marker,
+    payload,
+    profissoes,
+    template,
+  });
 
   return {
     empresa,
