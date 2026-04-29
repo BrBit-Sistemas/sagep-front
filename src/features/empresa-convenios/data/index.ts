@@ -176,7 +176,10 @@ const fromApi = (dto: ReadEmpresaConvenioDto): EmpresaConvenio => ({
 });
 
 const serializeDto = (data: CreateEmpresaConvenioSchema | UpdateEmpresaConvenioSchema) => {
-const responsaveis = (data.responsaveis ?? [])
+  const tabelaId = data.permite_bonus_produtividade
+    ? String(data.tabela_produtividade_id || '').trim() || undefined
+    : undefined;
+  const responsaveis = (data.responsaveis ?? [])
     .filter((r) => r.nome?.trim())
     .map((r) => ({
       tipo: r.tipo,
@@ -256,7 +259,13 @@ const responsaveis = (data.responsaveis ?? [])
     permite_bonus_produtividade: data.permite_bonus_produtividade,
     bonus_produtividade_descricao: data.bonus_produtividade_descricao?.trim() || undefined,
     bonus_produtividade_tabela_json: bonusJson,
+    percentual_gestao: data.percentual_gestao ?? undefined,
+    percentual_contrapartida: data.percentual_contrapartida ?? undefined,
     observacoes: data.observacoes?.trim() || undefined,
+    numero_contrato: data.numero_contrato?.trim() || undefined,
+    processo_sei: data.processo_sei?.trim() || undefined,
+    doc_sei: data.doc_sei?.trim() || undefined,
+    siggo_numero: data.siggo_numero?.trim() || undefined,
     locais_execucao: data.locais_execucao?.map((local) => {
       const estadoNorm = String(local.estado ?? '')
         .trim()
@@ -277,8 +286,7 @@ const responsaveis = (data.responsaveis ?? [])
     template_contrato_id: data.template_contrato_id,
     jornada_tipo: data.jornada_tipo?.trim() || undefined,
     carga_horaria_semanal:
-      data.carga_horaria_semanal != null &&
-      !Number.isNaN(Number(data.carga_horaria_semanal))
+      data.carga_horaria_semanal != null && !Number.isNaN(Number(data.carga_horaria_semanal))
         ? Number(data.carga_horaria_semanal)
         : undefined,
     escala: data.escala?.trim() || undefined,
@@ -287,8 +295,14 @@ const responsaveis = (data.responsaveis ?? [])
     possui_seguro_acidente: data.possui_seguro_acidente,
     tipo_cobertura_seguro: data.tipo_cobertura_seguro?.trim() || undefined,
     observacao_seguro: data.observacao_seguro?.trim() || undefined,
+    observacao_juridica: data.observacao_juridica?.trim() || undefined,
+    clausula_adicional: data.clausula_adicional?.trim() || undefined,
+    descricao_complementar_objeto: data.descricao_complementar_objeto?.trim() || undefined,
+    observacao_operacional: data.observacao_operacional?.trim() || undefined,
+    tabela_produtividade_id: tabelaId,
     responsaveis: responsaveis.length > 0 ? responsaveis : undefined,
-    distribuicao_profissoes: distribuicao_profissoes.length > 0 ? distribuicao_profissoes : undefined,
+    distribuicao_profissoes:
+      distribuicao_profissoes.length > 0 ? distribuicao_profissoes : undefined,
   };
   return body;
 };
